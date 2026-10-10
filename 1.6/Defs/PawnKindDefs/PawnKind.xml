@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <PawnKindDef ParentName="MechanitorBase">
+    <defName>MJV_Justiciar</defName>
+    <label>Justiciar</label>
+    <apparelMoney>6000</apparelMoney>
+  </PawnKindDef>
+</Defs>

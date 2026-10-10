@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+	<name>Justiciar Valor</name>
+	<packageId>Mortis.JusticiarValor</packageId>
+	<authors>
+		<li>Mortis</li>
+	</authors>
+	<url>https://github.com/Klon501/Mechanoids</url>
+	<supportedVersions>
+		<li>1.6</li>
+	</supportedVersions>
+	<description>TODO</description>
+	<modDependencies>
+		<li>
+			<packageId>OskarPotocki.VanillaFactionsExpanded.Core</packageId>
+			<displayName>Vanilla Expanded Framework</displayName>
+			<downloadUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=2023507013</downloadUrl>
+		</li>
+	</modDependencies>
+	<loadAfter>
+		<li>OskarPotocki.VanillaFactionsExpanded.Core</li>
+	</loadAfter>
+</ModMetaData>
