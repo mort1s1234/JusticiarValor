@@ -9,17 +9,22 @@
 			<texPath>Things/Item/Equipment/WeaponMelee/Dory</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 			<shaderType>CutoutComplex</shaderType>
-			<drawSize>1.6</drawSize>
+			<drawSize>1.75</drawSize>
 		</graphicData>
 		<uiIconScale>0.5</uiIconScale>
 		<techLevel>Spacer</techLevel>
 		<tradeability>Sellable</tradeability>
 		<relicChance>0</relicChance>
 		<statBases>
-			<MarketValue>3800</MarketValue>
+			<MarketValue>2800</MarketValue>
 			<WorkToMake>32000</WorkToMake>
 			<Mass>2.5</Mass>
 		</statBases>
+		<costList>
+			<Plasteel>100</Plasteel>
+			<ComponentSpacer>4</ComponentSpacer>
+			<VPE_Eltex MayRequire="VanillaPsycastsExpanded">4</VPE_Eltex>
+		</costList>
 		<tools>
 			<li>
 				<label>handle</label>
@@ -37,7 +42,7 @@
 				</capacities>
 				<power>32</power>
 				<cooldownTime>1.9</cooldownTime>
-				<armorPenetration>0.95</armorPenetration>
+				<armorPenetration>0.80</armorPenetration>
 			</li>
 			<li>
 				<label>edge</label>
@@ -96,10 +101,10 @@
 		<graphicData>
 			<texPath>Things/Item/Equipment/WeaponMelee/Xiphos</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
-			<drawSize>(0.75, 0.75)</drawSize>
+			<drawSize>(1, 1)</drawSize>
 		</graphicData>
 		<statBases>
-			<MarketValue>3800</MarketValue>
+			<MarketValue>2800</MarketValue>
 			<WorkToMake>32000</WorkToMake>
 			<Mass>2.5</Mass>
 		</statBases>
@@ -111,7 +116,7 @@
 				</capacities>
 				<power>10</power>
 				<cooldownTime>2.0</cooldownTime>
-				<armorPenetration>0.40</armorPenetration>
+				<armorPenetration>0.42</armorPenetration>
 			</li>
 			<li>
 				<label>point</label>
@@ -120,7 +125,7 @@
 				</capacities>
 				<power>18</power>
 				<cooldownTime>1.6</cooldownTime>
-				<armorPenetration>0.80</armorPenetration>
+				<armorPenetration>0.48</armorPenetration>
 			</li>
 			<li>
 				<label>edge</label>

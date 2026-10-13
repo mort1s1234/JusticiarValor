@@ -1,8 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <Defs>
+
+	<!-- Promachos Armor -->
 	<ThingDef ParentName="ApparelBase">
 		<defName>MJV_Apparel_PromachosArmor</defName>
 		<label>promachos armor</label>
-		<description>TODO</description>
+		<description>TODO.</description>
 		<techLevel>Spacer</techLevel>
 		<tickerType>Normal</tickerType>
 		<tradeTags>
@@ -19,29 +22,28 @@
 			<drawSize>(1, 1)</drawSize>
 		</graphicData>
 		<statBases>
-			<WorkToMake>60000</WorkToMake>
-			<MaxHitPoints>360</MaxHitPoints>
-			<Mass>18</Mass>
-			<ArmorRating_Sharp>1.22</ArmorRating_Sharp>
-			<ArmorRating_Blunt>0.65</ArmorRating_Blunt>
-			<ArmorRating_Heat>0.65</ArmorRating_Heat>
-			<Insulation_Cold>58</Insulation_Cold>
-			<Insulation_Heat>48</Insulation_Heat>
-			<EquipDelay>20</EquipDelay>
-			<EnergyShieldRechargeRate>0.02</EnergyShieldRechargeRate>
-			<EnergyShieldEnergyMax>2.6</EnergyShieldEnergyMax>
+			<WorkToMake>55000</WorkToMake>
+			<MaxHitPoints>340</MaxHitPoints>
+			<Mass>11</Mass>
+			<ArmorRating_Sharp>1.12</ArmorRating_Sharp>
+			<ArmorRating_Blunt>0.48</ArmorRating_Blunt>
+			<ArmorRating_Heat>0.58</ArmorRating_Heat>
+			<Insulation_Cold>48</Insulation_Cold>
+			<Insulation_Heat>38</Insulation_Heat>
+			<MoveSpeed>-0.20</MoveSpeed>
+			<EquipDelay>14</EquipDelay>
 		</statBases>
 		<costList>
-			<ComponentSpacer>6</ComponentSpacer>
-			<Plasteel>220</Plasteel>
-			<Steel>40</Steel>
-			<Uranium>40</Uranium>
-			<VPE_Eltex MayRequire="VanillaPsycastsExpanded">8</VPE_Eltex>
+			<ComponentSpacer>5</ComponentSpacer>
+			<Plasteel>180</Plasteel>
+			<Steel>30</Steel>
+			<Uranium>25</Uranium>
+			<VPE_Eltex MayRequire="VanillaPsycastsExpanded">6</VPE_Eltex>
 		</costList>
 		<equippedStatOffsets>
-			<PainShockThreshold>0.2</PainShockThreshold>
+			<PainShockThreshold>0.15</PainShockThreshold>
 			<PsychicSensitivityOffset>0.25</PsychicSensitivityOffset>
-			<PsychicEntropyMax>0.3337</PsychicEntropyMax>
+			<PsychicEntropyMax>15</PsychicEntropyMax>
 			<SlaveSuppressionOffset MayRequire="Ludeon.RimWorld.Ideology">-0.3</SlaveSuppressionOffset>
 		</equippedStatOffsets>
 		<apparel>
@@ -75,9 +77,6 @@
 		<thingCategories Inherit='False'>
 			<li>ApparelArmor</li>
 		</thingCategories>
-		<thingSetMakerTags>
-			<li>RewardSpecial</li>
-		</thingSetMakerTags>
 		<colorGenerator Class="ColorGenerator_Options">
 			<options>
 				<li>
@@ -106,10 +105,11 @@
 	</ThingDef>
 
 
+	<!-- Promachos Helm -->
 	<ThingDef ParentName="ApparelBase">
 		<defName>MJV_Apparel_ArmorHelmetPromachosHelmet</defName>
 		<label>promachos helmet</label>
-		<description>TODO</description>
+		<description>TODO.</description>
 		<techLevel>Spacer</techLevel>
 		<thingCategories>
 			<li>ArmorHeadgear</li>
@@ -128,27 +128,27 @@
 			<drawSize>(1, 1)</drawSize>
 		</graphicData>
 		<statBases>
-			<MaxHitPoints>300</MaxHitPoints>
-			<WorkToMake>35250</WorkToMake>
-			<Mass>3.5</Mass>
-			<Flammability>0.4</Flammability>
-			<ArmorRating_Sharp>0.114</ArmorRating_Sharp>
-			<ArmorRating_Blunt>0.52</ArmorRating_Blunt>
-			<ArmorRating_Heat>0.65</ArmorRating_Heat>
+			<MaxHitPoints>280</MaxHitPoints>
+			<WorkToMake>32000</WorkToMake>
+			<Mass>2.8</Mass>
+			<Flammability>0.3</Flammability>
+			<ArmorRating_Sharp>1.10</ArmorRating_Sharp>
+			<ArmorRating_Blunt>0.46</ArmorRating_Blunt>
+			<ArmorRating_Heat>0.55</ArmorRating_Heat>
 			<Insulation_Cold>4</Insulation_Cold>
 			<Insulation_Heat>2</Insulation_Heat>
-			<EquipDelay>6</EquipDelay>
+			<EquipDelay>5</EquipDelay>
 		</statBases>
 		<costList>
-			<ComponentSpacer>4</ComponentSpacer>
-			<Plasteel>120</Plasteel>
-			<VPE_Eltex MayRequire="VanillaPsycastsExpanded">12</VPE_Eltex>
+			<ComponentSpacer>3</ComponentSpacer>
+			<Plasteel>90</Plasteel>
+			<VPE_Eltex MayRequire="VanillaPsycastsExpanded">8</VPE_Eltex>
 		</costList>
 		<equippedStatOffsets>
-			<PainShockThreshold>0.1</PainShockThreshold>
-			<PsychicSensitivityOffset>0.3</PsychicSensitivityOffset>
-			<PsychicEntropyRecoveryRate>0.12</PsychicEntropyRecoveryRate>
-			<PsychicEntropyMax>0.5557</PsychicEntropyMax>
+			<PainShockThreshold>0.10</PainShockThreshold>
+			<PsychicSensitivityOffset>0.30</PsychicSensitivityOffset>
+			<PsychicEntropyRecoveryRate>0.15</PsychicEntropyRecoveryRate>
+			<PsychicEntropyMax>20</PsychicEntropyMax>
 			<SlaveSuppressionOffset MayRequire="Ludeon.RimWorld.Ideology">-0.2</SlaveSuppressionOffset>
 		</equippedStatOffsets>
 		<apparel>
@@ -201,4 +201,5 @@
 		</thingSetMakerTags>
 		<tradeability>Sellable</tradeability>
 	</ThingDef>
+
 </Defs>
