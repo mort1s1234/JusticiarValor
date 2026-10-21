@@ -9,7 +9,7 @@
 		<possessionCount>1</possessionCount>
 		<tickerType>Normal</tickerType>
 		<graphicData>
-			<texPath>Things/Item/Equipment/WeaponMelee/Dory</texPath>
+			<texPath>Things/Item/Equipment/WeaponMelee/MJV_Dory</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 			<shaderType>CutoutComplex</shaderType>
 			<drawSize>1.75</drawSize>
@@ -155,7 +155,7 @@
 		<description>An ultra-tech sword built around eltex. It deals solid damage, though its armor penetration is only moderate.\n\nIts wielder can use Celestial Pierce: the blade conjures a psychic glintblade from its point and thrusts it forward, impaling every foe up to three cells away.</description>
 		<techLevel>Spacer</techLevel>
 		<graphicData>
-			<texPath>Things/Item/Equipment/WeaponMelee/Xiphos</texPath>
+			<texPath>Things/Item/Equipment/WeaponMelee/MJV_Xiphos</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 			<drawSize>(1, 1)</drawSize>
 		</graphicData>

@@ -163,7 +163,7 @@ public static class JusticiarValorBundleBuilder
             else if (material.HasProperty("_MainTex"))
             {
                 string atlasPath = effectName == "MJV_CelestialBlade"
-                    ? Path.GetFullPath(Path.Combine(textureRoot, "../../../Things/Item/Equipment/WeaponMelee/Xiphos.png"))
+                    ? Path.GetFullPath(Path.Combine(textureRoot, "../../../Things/Item/Equipment/WeaponMelee/MJV_Xiphos.png"))
                     : Path.Combine(textureRoot ?? "", (SheetShaders.Contains(effectName) ? "Sheet" : effectName.Substring(4)) + ".png");
                 if (!File.Exists(atlasPath)) throw new FileNotFoundException("Missing effect texture", atlasPath);
                 atlas = new Texture2D(2, 2, TextureFormat.RGBA32, false);

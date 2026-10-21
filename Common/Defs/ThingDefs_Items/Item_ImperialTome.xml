@@ -10,7 +10,7 @@
 		<thingClass>ThingWithComps</thingClass>
 		<techLevel>Spacer</techLevel>
 		<graphicData>
-			<texPath>Things/Item/Special/ImperialTome</texPath>
+			<texPath>Things/Item/Special/MJV_ImperialTome</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 			<drawSize>(0.9, 0.9)</drawSize>
 		</graphicData>

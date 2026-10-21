@@ -21,7 +21,7 @@ namespace JusticiarValor
         public static readonly Material PsychicShield = Make(MJV_DefOf.MJV_PsychicShield, 3105);
         public static readonly Material PsyOrb = Make(MJV_DefOf.MJV_PsyOrb, "PsyOrb", 3110);
         public static readonly Material CelestialBlade = Make(MJV_DefOf.MJV_CelestialBlade,
-            ContentFinder<Texture2D>.Get("Things/Item/Equipment/WeaponMelee/Xiphos"), 3115);
+            ContentFinder<Texture2D>.Get("Things/Item/Equipment/WeaponMelee/MJV_Xiphos"), 3115);
         public static readonly Material AfterimageWake = Make(MJV_DefOf.MJV_InvictusBurst, "AfterimageWake", 3091);
 
         // Threat sense: the scan around the wearer (sheet) and the lock-on over each threat (Tech_GroundAOEIndicator).

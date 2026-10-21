@@ -10,7 +10,7 @@
 		<techLevel>Spacer</techLevel>
 		<tickerType>Normal</tickerType>
 		<graphicData>
-			<texPath>Things/Item/Equipment/Shield/WarlockbaneShield</texPath>
+			<texPath>Things/Item/Equipment/Shield/MJV_WarlockbaneShield</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 			<drawSize>(0.9, 0.9)</drawSize>
 		</graphicData>
