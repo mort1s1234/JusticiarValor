@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<loadFolders>
+  <!-- Defs, textures and languages are shared. Each version folder holds its own assembly and shaders:
+       1.6 loads Unity shaders from 1.6/AssetBundles, 1.7 uses native ShaderDefs and GLSL in 1.7/Defs and 1.7/Shaders. -->
+  <v1.6>
+    <li>Common</li>
+    <li>1.6</li>
+  </v1.6>
+  <v1.7>
+    <li>Common</li>
+    <li>1.7</li>
+  </v1.7>
+</loadFolders>

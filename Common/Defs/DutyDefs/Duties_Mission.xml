@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- The preacher of a sermon (JusticiarValor.LordJob_MJV_Sermon, LordToil_MJV_Preach): go to the sermon spot, the
+       duty's focus, and preach there. -->
+  <DutyDef>
+    <defName>MJV_DeliverSermon</defName>
+    <hook>HighPriority</hook>
+    <socialModeMax>Off</socialModeMax>
+    <thinkNode Class="ThinkNode_Priority">
+      <subNodes>
+        <li Class="JusticiarValor.JobGiver_MJV_DeliverSermon">
+          <soundDefMale>Speech_Throne_Male</soundDefMale>
+          <soundDefFemale>Speech_Throne_Female</soundDefFemale>
+        </li>
+        <li Class="JobGiver_Idle">
+          <ticks>60</ticks>
+        </li>
+      </subNodes>
+    </thinkNode>
+  </DutyDef>
+
+  <!-- A colonist listening to a sermon: stand or sit facing the preacher. Medium priority, like parties, so
+       emergency work and hunger come first. -->
+  <DutyDef>
+    <defName>MJV_HearSermon</defName>
+    <hook>MediumPriority</hook>
+    <socialModeMax>Off</socialModeMax>
+    <thinkNode Class="ThinkNode_Priority">
+      <subNodes>
+        <li Class="JobGiver_SpectateDutySpectateRect" />
+      </subNodes>
+    </thinkNode>
+  </DutyDef>
+
+</Defs>

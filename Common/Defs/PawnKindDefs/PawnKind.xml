@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <PawnKindDef ParentName="ImperialFighterBase">
+    <defName>MJV_Justiciar</defName>
+    <label>justiciar</label>
+    <labelPlural>justiciars</labelPlural>
+    <description>Justiciars are elite imperial warriors and members of the clergy. To the common citizens of the Empire they are symbols of justice, incorruptibility and protection: they settle land disputes, collect taxes for the Empire, hold trials and punish criminals. On wild worlds they bring imperial enlightenment, visiting independent settlements to preach and offering them better relations with the Empire if they adopt the imperial faith. At times they hunt down fugitive deserters and cultists. Their gear is designed specifically to counter warlocks.</description>
+    <combatPower>230</combatPower>
+    <royalTitleChance>1</royalTitleChance>
+    <titleSelectOne>
+      <li>Knight</li>
+      <li>Baron</li>
+    </titleSelectOne>
+    <itemQuality>Excellent</itemQuality>
+    <forceNormalGearQuality>false</forceNormalGearQuality>
+    <chemicalAddictionChance>0.01</chemicalAddictionChance>
+    <initialWillRange>6~8</initialWillRange>
+    <initialResistanceRange>25~38</initialResistanceRange>
+    <weaponMoney>6500~10000</weaponMoney>
+    <weaponTags>
+      <li>JusticiarMelee</li>
+    </weaponTags>
+    <apparelColor>(255,255,255)</apparelColor>
+    <apparelRequired>
+      <li>MJV_Apparel_ArmorHelmetPromachosHelmet</li>
+      <li>MJV_Apparel_PromachosArmor</li>
+      <li>MJV_Apparel_WarlockbaneShield</li>
+    </apparelRequired>
+    <specificApparelRequirements Inherit="False">
+      <li>
+        <bodyPartGroup>FullHead</bodyPartGroup>
+        <color>(255,255,255)</color>
+      </li>
+      <li>
+        <bodyPartGroup>Torso</bodyPartGroup>
+        <apparelLayer>OnSkin</apparelLayer>
+        <stuff>Hyperweave</stuff>
+      </li>
+      <li>
+        <bodyPartGroup>Legs</bodyPartGroup>
+        <apparelLayer>OnSkin</apparelLayer>
+        <stuff>Hyperweave</stuff>
+      </li>
+    </specificApparelRequirements>
+    <skills>
+      <li>
+        <skill>Melee</skill>
+        <range>12~17</range>
+      </li>
+      <li>
+        <skill>Social</skill>
+        <range>7~14</range>
+      </li>
+      <li>
+        <skill>Intellectual</skill>
+        <range>6~12</range>
+      </li>
+    </skills>
+    <techHediffsMoney>2000~5000</techHediffsMoney>
+    <techHediffsTags>
+      <li>Advanced</li>
+      <li>ImplantEmpireCommon</li>
+      <li>ImplantEmpireRoyal</li>
+    </techHediffsTags>
+    <techHediffsDisallowTags>
+      <li>PainCauser</li>
+    </techHediffsDisallowTags>
+    <techHediffsRequired>
+      <li>BionicEye</li>
+      <li>BionicEye</li>
+      <li>StoneskinGland</li>
+    </techHediffsRequired>
+    <disallowedTraits>
+      <li>Wimp</li>
+      <li>Nudist</li>
+      <li>BodyPurist</li>
+      <li MayRequire="VanillaExpanded.VanillaTraitsExpanded">Cowardly</li>
+      <li>Greedy</li>
+      <li>Jealous</li>
+    </disallowedTraits>
+    <useFactionXenotypes>false</useFactionXenotypes>
+    <xenotypeSet>
+      <xenotypeChances>
+        <Neanderthal MayRequire="Ludeon.RimWorld.Biotech">0.03</Neanderthal>
+        <Genie MayRequire="Ludeon.RimWorld.Biotech">0.03</Genie>
+        <Starjack MayRequire="Ludeon.RimWorld.Biotech,Ludeon.RimWorld.Odyssey">0.03</Starjack>
+        <Nephilim MayRequire="Sov.Nephilim">0.03</Nephilim>
+      </xenotypeChances>
+    </xenotypeSet>
+  </PawnKindDef>
+
+  <!-- The preacher of the imperial missions (incident MJV_ImperialMissionary, quests MJV_ImperialMission and
+       MJV_DisgracedSermon). Robed like the Empire's bestowers, armed with an eltex staff, a gifted speaker. -->
+  <PawnKindDef ParentName="RoyalBase">
+    <defName>MJV_ImperialMissionary</defName>
+    <label>imperial missionary</label>
+    <labelPlural>imperial missionaries</labelPlural>
+    <description>A preacher of the imperial faith. Imperial missionaries travel the wild worlds with a few justiciars at their side, visiting independent settlements to preach and to offer them the friendship of the Empire if they take up its faith.</description>
+    <combatPower>45</combatPower>
+    <titleSelectOne>
+      <li>Yeoman</li>
+    </titleSelectOne>
+    <minGenerationAge>30</minGenerationAge>
+    <maxGenerationAge>72</maxGenerationAge>
+    <invNutrition>2.4</invNutrition>
+    <weaponMoney>99999</weaponMoney>
+    <weaponTags Inherit="False">
+      <li>EltexStaff</li>
+    </weaponTags>
+    <apparelColor>(232,222,196)</apparelColor>
+    <specificApparelRequirements>
+      <li>
+        <bodyPartGroup>Torso</bodyPartGroup>
+        <requiredTag>RoyalRobe</requiredTag>
+      </li>
+      <li>
+        <bodyPartGroup>Torso</bodyPartGroup>
+        <apparelLayer>OnSkin</apparelLayer>
+        <requiredTag>RoyalTier2</requiredTag>
+      </li>
+      <li>
+        <bodyPartGroup>Legs</bodyPartGroup>
+        <stuff>Hyperweave</stuff>
+      </li>
+    </specificApparelRequirements>
+    <skills>
+      <li>
+        <skill>Social</skill>
+        <range>12~18</range>
+      </li>
+      <li>
+        <skill>Intellectual</skill>
+        <range>6~12</range>
+      </li>
+    </skills>
+    <requiredWorkTags>
+      <li>Social</li>
+    </requiredWorkTags>
+    <disallowedTraits>
+      <li>Abrasive</li>
+      <li>Psychopath</li>
+      <li>Pyromaniac</li>
+    </disallowedTraits>
+    <techHediffsMoney>500~2000</techHediffsMoney>
+    <techHediffsMaxAmount>2</techHediffsMaxAmount>
+    <initialWillRange>5~7</initialWillRange>
+    <initialResistanceRange>25~40</initialResistanceRange>
+    <humanPregnancyChance>0</humanPregnancyChance>
+    <useFactionXenotypes>false</useFactionXenotypes>
+    <xenotypeSet>
+      <xenotypeChances>
+        <Baseliner MayRequire="Ludeon.RimWorld.Biotech">1</Baseliner>
+      </xenotypeChances>
+    </xenotypeSet>
+  </PawnKindDef>
+</Defs>

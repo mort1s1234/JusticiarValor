@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<!-- Promachos helmet -->
+	<MJV_ArrestRefused>{PAWN_nameDef}'s Promachos helmet will not let {PAWN_objective} be taken: Justiciar Valor!</MJV_ArrestRefused>
+
+	<!-- Promachos armor -->
+	<MJV_ShieldEnergy>{0} / {1}</MJV_ShieldEnergy>
+	<MJV_ShieldResetting>Resetting</MJV_ShieldResetting>
+	<MJV_InvictusCharge>Invictus {0}</MJV_InvictusCharge>
+	<MJV_PromachosArmorTip>Psychic shield: absorbs gunfire, projectiles and blasts, but not melee attacks. It recharges a few seconds after the last hit, and resets some time after it breaks.\n\nInvictus: every hit the shield absorbs stores energy for the Invictus ability.</MJV_PromachosArmorTip>
+	<MJV_InvictusNoArmor>Needs a Promachos armor's psychic shield</MJV_InvictusNoArmor>
+	<MJV_InvictusNotCharged>Not enough stored energy ({0}, needs {1}). The psychic shield stores energy from the hits it absorbs.</MJV_InvictusNotCharged>
+
+	<!-- Energy psyspear -->
+	<MJV_PsyOrbToggle>Psy-orbs</MJV_PsyOrbToggle>
+	<MJV_PsyOrbToggleDesc>While switched on, the energy psy-spear synthesizes psy-orbs (one every five seconds, up to three) and launches them at enemies within range on its own. Each orb sears what it hits and slows it for a few seconds.\n\nOrbs ready: {0} / {1}</MJV_PsyOrbToggleDesc>
+
+	<!-- Warlockbane shield -->
+	<MJV_Deflected>Deflected</MJV_Deflected>
+	<MJV_WarlockbaneTip>Warlockbane: turns aside hostile psycasts aimed at the bearer and stuns their caster with the backlash. Each deflection spends a charge; charges come back slowly.\n\nCharges: {0} / {1}</MJV_WarlockbaneTip>
+
+	<!-- Imperial tome -->
+	<MJV_TomeNoBlueprints>No unfinished project needs imperial techprints</MJV_TomeNoBlueprints>
+	<MJV_TomeNothingToLearn>{PAWN_nameDef} studied the imperial tome but found nothing the colony still needs.</MJV_TomeNothingToLearn>
+	<MJV_TomeStudiedLabel>Imperial blueprint</MJV_TomeStudiedLabel>
+	<MJV_TomeStudiedText>{PAWN_nameDef} has deciphered the technical appendices of an imperial tome and recovered a blueprint for {1}.\n\nTechprints applied: {2} / {3}</MJV_TomeStudiedText>
+
+	<!-- Imperial missions: sermons -->
+	<MJV_ImperialFaithFallback>the imperial faith</MJV_ImperialFaithFallback>
+	<MJV_SermonStarted>{PREACHER_nameDef} has begun a sermon of {FAITH}. Colonists who are free to will gather to listen.</MJV_SermonStarted>
+	<MJV_SermonFinished>{PREACHER_nameDef} has finished preaching. Listeners: {COUNT}.</MJV_SermonFinished>
+	<MJV_SermonInterrupted>{PREACHER_nameDef}'s sermon was interrupted.</MJV_SermonInterrupted>
+	<MJV_SermonConvertsLabel>Converts to the imperial faith</MJV_SermonConvertsLabel>
+	<MJV_SermonConvertsText>{PREACHER_nameDef}'s sermon has moved some of your colonists to take up {FAITH}:\n\n{CONVERTS}\n\nThe Empire looks kindly on every new believer.</MJV_SermonConvertsText>
+	<MJV_LordReportPreaching>Preaching the imperial faith.</MJV_LordReportPreaching>
+	<MJV_LordReportListening>Listening to {PREACHER_nameDef}'s sermon.</MJV_LordReportListening>
+
+	<!-- Imperial missions: the visiting missionary -->
+	<MJV_MissionaryArrivedSolo>{PREACHER_nameFull}, a missionary of {FAITH}, has come from {FACTION_name} to preach the imperial faith at your colony.</MJV_MissionaryArrivedSolo>
+	<MJV_MissionaryArrivedEscorted>{PREACHER_nameFull}, a missionary of {FAITH}, has come from {FACTION_name} to preach the imperial faith at your colony. For protection, {PREACHER_nameDef} travels with {COUNT} {ESCORT}.</MJV_MissionaryArrivedEscorted>
+	<MJV_MissionaryArrivedExplain>{PREACHER_nameDef} will stay for about {DURATION} and hold sermons. Colonists whose schedule allows recreation will gather to listen, and every sermon shakes the certainty of those who do not share the imperial faith; those whose certainty breaks will convert. {FACTION_name} will look kindly on every convert.\n\nIf you would rather your people kept their faith, keep them busy while {PREACHER_nameDef} preaches.</MJV_MissionaryArrivedExplain>
+	<MJV_MissionaryLeaving>{PREACHER_nameDef} has finished {PREACHER_possessive} mission and is leaving.</MJV_MissionaryLeaving>
+	<MJV_MissionaryLeavingConverted>Your whole colony now follows {FAITH}. {PREACHER_nameDef} considers {PREACHER_possessive} work here done and is leaving.</MJV_MissionaryLeavingConverted>
+	<MJV_MissionEscortLeaving>Without their missionary, the escort from {0} is going home.</MJV_MissionEscortLeaving>
+
+	<!-- Imperial missions: the lodging missionary -->
+	<MJV_MissionColonyConvertedLabel>Mission accomplished</MJV_MissionColonyConvertedLabel>
+	<MJV_MissionColonyConvertedText>Your whole colony now follows {FAITH}. {PREACHER_nameDef} considers {PREACHER_possessive} work here done: the imperial shuttle has been called to collect {PREACHER_objective} early.</MJV_MissionColonyConvertedText>
+	<MJV_CalledToServiceLabel>Called to service: {PAWN_nameDef}</MJV_CalledToServiceLabel>
+	<MJV_CalledToServiceText>{PAWN_nameDef} has heard the call of {FAITH} and has decided to leave with {PREACHER_nameDef} to serve the Empire.\n\n{PAWN_nameDef} is walking to the imperial shuttle to board it. If you want to keep {PAWN_objective}, you can arrest {PAWN_objective} before {PAWN_pronoun} gets there.</MJV_CalledToServiceText>
+	<MJV_CalledToServiceLeftLabel>Left to serve: {PAWN_nameDef}</MJV_CalledToServiceLeftLabel>
+	<MJV_CalledToServiceLeftText>{PAWN_nameDef} has left with {PREACHER_nameDef} on the imperial shuttle to serve the Empire.</MJV_CalledToServiceLeftText>
+
+</LanguageData>

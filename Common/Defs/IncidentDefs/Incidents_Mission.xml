@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- An imperial missionary visits, alone or with justiciars, and holds sermons that convert colonists to the
+       imperial faith (JusticiarValor.IncidentWorker_MJV_ImperialMissionary). Conversion needs Ideology. -->
+  <IncidentDef MayRequire="Ludeon.RimWorld.Ideology">
+    <defName>MJV_ImperialMissionary</defName>
+    <label>imperial missionary</label>
+    <category>FactionArrival</category>
+    <targetTags>
+      <li>Map_PlayerHome</li>
+    </targetTags>
+    <workerClass>JusticiarValor.IncidentWorker_MJV_ImperialMissionary</workerClass>
+    <baseChance>0.5</baseChance>
+    <minRefireDays>20</minRefireDays>
+    <earliestDay>10</earliestDay>
+    <pointsScaleable>false</pointsScaleable>
+    <letterLabel>Imperial missionary</letterLabel>
+    <letterDef>NeutralEvent</letterDef>
+    <modExtensions>
+      <li Class="JusticiarValor.MissionExtension">
+        <missionaryKind>MJV_ImperialMissionary</missionaryKind>
+        <escortKind>MJV_Justiciar</escortKind>
+        <escortCount>0~2</escortCount>
+        <visitDays>1~1.5</visitDays>
+        <firstSermonDelayTicks>1500~3000</firstSermonDelayTicks>
+        <sermonIntervalTicks>12000~18000</sermonIntervalTicks>
+        <sermon>
+          <durationTicks>2000~2600</durationTicks>
+          <certaintyFactor>2.5</certaintyFactor>
+          <goodwillPerConvert>4</goodwillPerConvert>
+        </sermon>
+      </li>
+    </modExtensions>
+  </IncidentDef>
+
+</Defs>

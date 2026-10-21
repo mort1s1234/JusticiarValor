@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- Behaviour of MentalStateDef MJV_CalledToService: walk to the missionary's shuttle and board it. Inserted into
+       the humanlike think tree after the game's own mental states. -->
+  <ThinkTreeDef>
+    <defName>MJV_CalledToServiceBehavior</defName>
+    <insertTag>Humanlike_PostMentalState</insertTag>
+    <insertPriority>100</insertPriority>
+    <thinkRoot Class="ThinkNode_ConditionalMentalState">
+      <state>MJV_CalledToService</state>
+      <subNodes>
+        <li Class="ThinkNode_Priority">
+          <subNodes>
+            <li Class="JusticiarValor.JobGiver_MJV_BoardImperialShuttle" />
+            <li Class="JobGiver_WanderColony" />
+          </subNodes>
+        </li>
+      </subNodes>
+    </thinkRoot>
+  </ThinkTreeDef>
+
+</Defs>

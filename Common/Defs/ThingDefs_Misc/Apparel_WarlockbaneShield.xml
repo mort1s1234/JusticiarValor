@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<!-- Warlockbane shield: a Vanilla Expanded Framework shield (worn in the off hand), plus CompWarlockbane. -->
+	<ThingDef ParentName="ApparelBase">
+		<defName>MJV_Apparel_WarlockbaneShield</defName>
+		<label>warlockbane shield</label>
+		<description>A round justiciar's shield of plasteel around a disc of tuned eltex. The eltex is tuned against hostile psychic fields: when a warlock aims a psycast at its bearer, the shield turns it aside and lashes the caster with the backlash.\n\nThe shield holds two charges and slowly regains them.</description>
+		<thingClass>VEF.Apparels.Apparel_Shield</thingClass>
+		<techLevel>Spacer</techLevel>
+		<tickerType>Normal</tickerType>
+		<graphicData>
+			<texPath>Things/Item/Equipment/Shield/WarlockbaneShield</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<drawSize>(0.9, 0.9)</drawSize>
+		</graphicData>
+		<statBases>
+			<WorkToMake>30000</WorkToMake>
+			<MaxHitPoints>260</MaxHitPoints>
+			<Mass>3.5</Mass>
+			<Flammability>0.3</Flammability>
+			<ArmorRating_Sharp>0.9</ArmorRating_Sharp>
+			<ArmorRating_Blunt>0.5</ArmorRating_Blunt>
+			<ArmorRating_Heat>0.6</ArmorRating_Heat>
+			<EquipDelay>2</EquipDelay>
+		</statBases>
+		<equippedStatOffsets>
+			<MeleeDodgeChance>4</MeleeDodgeChance>
+		</equippedStatOffsets>
+		<costList>
+			<Plasteel>70</Plasteel>
+			<ComponentSpacer>2</ComponentSpacer>
+			<VPE_Eltex MayRequire="VanillaExpanded.VPsycastsE">3</VPE_Eltex>
+		</costList>
+		<recipeMaker>
+			<workSpeedStat>GeneralLaborSpeed</workSpeedStat>
+			<workSkill>Crafting</workSkill>
+			<effectWorking>Smith</effectWorking>
+			<soundWorking>Recipe_Machining</soundWorking>
+			<unfinishedThingDef>UnfinishedTechArmor</unfinishedThingDef>
+			<researchPrerequisite>MJV_JusticiarGear</researchPrerequisite>
+			<skillRequirements>
+				<Crafting>8</Crafting>
+			</skillRequirements>
+			<recipeUsers>
+				<li>FabricationBench</li>
+			</recipeUsers>
+			<displayPriority>144</displayPriority>
+		</recipeMaker>
+		<thingCategories Inherit="False">
+			<li>VFEC_Shields</li>
+		</thingCategories>
+		<tradeTags>
+			<li>ExoticMisc</li>
+			<li>HiTechArmor</li>
+			<li>Armor</li>
+		</tradeTags>
+		<apparel>
+			<bodyPartGroups>
+				<li>LeftHand</li>
+				<li>Arms</li>
+			</bodyPartGroups>
+			<layers>
+				<li>VFEC_OuterShell</li>
+			</layers>
+			<tags>
+				<li>MJV_JusticiarGear</li>
+			</tags>
+			<defaultOutfitTags>
+				<li>Soldier</li>
+			</defaultOutfitTags>
+			<countsAsClothingForNudity>false</countsAsClothingForNudity>
+			<canBeDesiredForIdeo>false</canBeDesiredForIdeo>
+			<useDeflectMetalEffect>true</useDeflectMetalEffect>
+		</apparel>
+		<comps>
+			<li Class="VEF.Apparels.CompProperties_Shield">
+				<shieldTags>
+					<li>MJV_Justiciar</li>
+				</shieldTags>
+				<useDeflectMetalEffect>true</useDeflectMetalEffect>
+				<coveredBodyPartGroups>
+					<li>Torso</li>
+					<li>Neck</li>
+					<li>Arms</li>
+					<li>Hands</li>
+				</coveredBodyPartGroups>
+				<offHandGraphicData>
+					<texPath>Things/Item/Equipment/Shield/WarlockbaneShield</texPath>
+					<graphicClass>Graphic_Single</graphicClass>
+					<drawSize>0.78</drawSize>
+				</offHandGraphicData>
+				<offHandHoldOffset>
+					<northDefault>
+						<offset>(-0.05, 0, 0.12)</offset>
+						<behind>true</behind>
+					</northDefault>
+					<east>
+						<offset>(-0.12, 0, 0.12)</offset>
+						<behind>true</behind>
+					</east>
+					<south>
+						<offset>(0.18, -0.04, 0.12)</offset>
+					</south>
+					<west>
+						<offset>(0.12, 0, 0.12)</offset>
+					</west>
+				</offHandHoldOffset>
+			</li>
+			<li Class="JusticiarValor.CompProperties_Warlockbane">
+				<maxCharges>2</maxCharges>
+				<rechargeTicks>2400</rechargeTicks>
+				<deflectSound>Deflect_Metal</deflectSound>
+				<backlashStunTicks>90</backlashStunTicks>
+				<backlashEntropy>12</backlashEntropy>
+			</li>
+		</comps>
+		<thingSetMakerTags>
+			<li>RewardStandardHighFreq</li>
+		</thingSetMakerTags>
+		<tradeability>Sellable</tradeability>
+	</ThingDef>
+
+</Defs>

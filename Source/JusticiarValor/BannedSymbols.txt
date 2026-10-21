@@ -1,0 +1,280 @@
+// RimWorld 1.7 build: the Unity compatibility layer (UnityStubs / Waylith.UnityCompat) is not used.
+// UnityEngine types appear only where RimWorld's own API declares them, as data: constructed and passed to the game,
+// fields read. Drawing goes through Verse (DrawBatch, GenDraw, MaterialPool, FleckMaker), shaders through ShaderTypeDefs.
+// The members of the boundary structs below were generated from UnityStubs.dll (all public members but constructors,
+// fields, Equals, GetHashCode and ToString).
+T:UnityEngine.Mathf;Unity compatibility layer service: use System.MathF / System.Math or JVMath
+T:UnityEngine.Time;Unity compatibility layer service: use Verse.RealTime or the TickManager
+T:UnityEngine.Random;Unity compatibility layer service: use Verse.Rand (gameplay) or FxDraw.Seed (visuals)
+T:UnityEngine.GUI;Unity compatibility layer service: use Verse.Widgets
+T:UnityEngine.GUILayout;Unity compatibility layer service: use Verse.Widgets
+T:UnityEngine.Graphics;Unity compatibility layer service: draw through Verse (DrawBatch, GenDraw)
+T:UnityEngine.Input;Unity compatibility layer service
+T:UnityEngine.Screen;Unity compatibility layer service
+T:UnityEngine.Debug;Unity compatibility layer service: use Verse.Log
+T:UnityEngine.Application;Unity compatibility layer service
+T:UnityEngine.Resources;Unity compatibility layer service
+T:UnityEngine.AssetBundle;Shaders resolve through ShaderTypeDefs (native ShaderDefs on 1.7)
+T:UnityEngine.MonoBehaviour;Unity compatibility layer service
+T:UnityEngine.GameObject;Unity compatibility layer service
+T:UnityEngine.ComputeShader;Unity compatibility layer service
+T:UnityEngine.Camera;Unity compatibility layer service: use Find.CameraDriver
+T:UnityEngine.MaterialPropertyBlock;Use Verse.DrawBatchPropertyBlock
+T:UnityEngine.Shader;Shaders resolve through ShaderTypeDef.Shader
+T:UnityEngine.GL;Unity compatibility layer service
+P:UnityEngine.Event.current;Unity compatibility layer service
+M:UnityEngine.Material.#ctor(UnityEngine.Shader);Use MaterialPool.MatFrom
+M:UnityEngine.Material.#ctor(UnityEngine.Material);Use MaterialPool.MatFrom
+M:UnityEngine.Object.op_Equality(UnityEngine.Object,UnityEngine.Object);Compare with 'is null' / ReferenceEquals
+M:UnityEngine.Object.op_Inequality(UnityEngine.Object,UnityEngine.Object);Compare with 'is not null' / ReferenceEquals
+M:UnityEngine.Object.op_Implicit(UnityEngine.Object)~System.Boolean;Compare with 'is null'
+M:UnityEngine.Texture.op_Equality(UnityEngine.Texture,UnityEngine.Texture);UnityStubs-only operator: compare with 'is null' / ReferenceEquals
+M:UnityEngine.Texture.op_Inequality(UnityEngine.Texture,UnityEngine.Texture);UnityStubs-only operator: compare with 'is not null' / ReferenceEquals
+M:UnityEngine.Object.Destroy(UnityEngine.Object);Unity compatibility layer service
+M:UnityEngine.Object.DestroyImmediate(UnityEngine.Object);Unity compatibility layer service
+P:UnityEngine.Vector2.Item(System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2.down;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2.zero;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2.one;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2.up;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2.right;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2.left;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2.negativeInfinity;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2.positiveInfinity;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2.magnitude;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2.sqrMagnitude;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2.normalized;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.Dot(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.Perpendicular(UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.SmoothDamp(UnityEngine.Vector2,UnityEngine.Vector2,UnityEngine.Vector2@,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.SmoothDamp(UnityEngine.Vector2,UnityEngine.Vector2,UnityEngine.Vector2@,System.Single,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.SmoothDamp(UnityEngine.Vector2,UnityEngine.Vector2,UnityEngine.Vector2@,System.Single,System.Single,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.MoveTowards(UnityEngine.Vector2,UnityEngine.Vector2,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.Min(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.Max(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.SqrMagnitude(UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.Distance(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.Lerp(UnityEngine.Vector2,UnityEngine.Vector2,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.LerpUnclamped(UnityEngine.Vector2,UnityEngine.Vector2,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.Normalize;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.ClampMagnitude(UnityEngine.Vector2,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.Scale(UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.Scale(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.SqrMagnitude;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.Set(System.Single,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_Equality(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_Inequality(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_Addition(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_Subtraction(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_UnaryNegation(UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_Multiply(UnityEngine.Vector2,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_Multiply(System.Single,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_Multiply(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_Division(UnityEngine.Vector2,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_Division(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_Implicit(UnityEngine.Vector3)~UnityEngine.Vector2;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.op_Implicit(UnityEngine.Vector2)~UnityEngine.Vector3;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.Angle(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2.SignedAngle(UnityEngine.Vector2,UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.Item(System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.back;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.down;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.forward;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.left;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.magnitude;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.negativeInfinity;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.normalized;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.one;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.positiveInfinity;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.right;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.sqrMagnitude;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.up;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3.zero;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Set(System.Single,System.Single,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Angle(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.SignedAngle(UnityEngine.Vector3,UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.RotateTowards(UnityEngine.Vector3,UnityEngine.Vector3,System.Single,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.SmoothDamp(UnityEngine.Vector3,UnityEngine.Vector3,UnityEngine.Vector3@,System.Single,System.Single,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Cross(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Distance(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Magnitude(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.SqrMagnitude(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Reflect(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Dot(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Lerp(UnityEngine.Vector3,UnityEngine.Vector3,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.LerpUnclamped(UnityEngine.Vector3,UnityEngine.Vector3,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Max(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Min(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.MoveTowards(UnityEngine.Vector3,UnityEngine.Vector3,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Normalize;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Normalize(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.op_Addition(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.op_Division(UnityEngine.Vector3,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.op_Multiply(System.Single,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.op_Multiply(UnityEngine.Vector3,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.op_Subtraction(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.op_UnaryNegation(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.ProjectOnPlane(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Scale(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Scale(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.Slerp(UnityEngine.Vector3,UnityEngine.Vector3,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.SlerpUnclamped(UnityEngine.Vector3,UnityEngine.Vector3,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.op_Equality(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.op_Inequality(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3.ClampMagnitude(UnityEngine.Vector3,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector4.Item(System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector4.magnitude;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector4.normalized;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector4.sqrMagnitude;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector4.one;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector4.zero;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Inequality(UnityEngine.Vector4,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.Distance(UnityEngine.Vector4,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.Dot(UnityEngine.Vector4,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.Lerp(UnityEngine.Vector4,UnityEngine.Vector4,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.LerpUnclamped(UnityEngine.Vector4,UnityEngine.Vector4,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.Normalize;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.Scale(UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Addition(UnityEngine.Vector4,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Subtraction(UnityEngine.Vector4,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_UnaryNegation(UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Equality(UnityEngine.Vector4,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Implicit(UnityEngine.Vector3)~UnityEngine.Vector4;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Implicit(UnityEngine.Vector4)~UnityEngine.Vector3;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Implicit(UnityEngine.Vector2)~UnityEngine.Vector4;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Implicit(UnityEngine.Vector4)~UnityEngine.Vector2;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Multiply(System.Single,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Multiply(UnityEngine.Vector4,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Multiply(UnityEngine.Vector4,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Division(UnityEngine.Vector4,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector4.op_Division(UnityEngine.Vector4,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Quaternion.eulerAngles;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Quaternion.identity;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.op_Equality(UnityEngine.Quaternion,UnityEngine.Quaternion);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.Angle(UnityEngine.Quaternion,UnityEngine.Quaternion);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.AngleAxis(System.Single,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.Euler(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.Euler(System.Single,System.Single,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.FromToRotation(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.Inverse(UnityEngine.Quaternion);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.Lerp(UnityEngine.Quaternion,UnityEngine.Quaternion,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.LookRotation(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.LookRotation(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.op_Inequality(UnityEngine.Quaternion,UnityEngine.Quaternion);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.op_Multiply(UnityEngine.Quaternion,UnityEngine.Quaternion);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.op_Multiply(UnityEngine.Quaternion,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.ToAngleAxis(System.Single@,UnityEngine.Vector3@);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.Dot(UnityEngine.Quaternion,UnityEngine.Quaternion);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.Slerp(UnityEngine.Quaternion,UnityEngine.Quaternion,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Quaternion.SlerpUnclamped(UnityEngine.Quaternion,UnityEngine.Quaternion,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Matrix4x4.rotation;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Matrix4x4.identity;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Matrix4x4.inverse;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Matrix4x4.Item(System.Int32,System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Matrix4x4.lossyScale;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Matrix4x4.transpose;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Matrix4x4.zero;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Matrix4x4.isIdentity;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Matrix4x4.Item(System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.GetColumn(System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.SetColumn(System.Int32,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.GetRow(System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.SetRow(System.Int32,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.op_Equality(UnityEngine.Matrix4x4,UnityEngine.Matrix4x4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.op_Inequality(UnityEngine.Matrix4x4,UnityEngine.Matrix4x4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.GetPosition;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.Multiply(UnityEngine.Matrix4x4@,UnityEngine.Matrix4x4@);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.Inverse(UnityEngine.Matrix4x4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.MultiplyPoint(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.MultiplyPoint3x4(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.MultiplyVector(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.op_Multiply(UnityEngine.Matrix4x4,UnityEngine.Matrix4x4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.op_Multiply(UnityEngine.Matrix4x4,UnityEngine.Vector4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.Ortho(System.Single,System.Single,System.Single,System.Single,System.Single,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.Rotate(UnityEngine.Quaternion);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.Scale(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.SetTRS(UnityEngine.Vector3,UnityEngine.Quaternion,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.Translate(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.TRS(UnityEngine.Vector3,UnityEngine.Quaternion,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.Perspective(System.Single,System.Single,System.Single,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Matrix4x4.ToNumerics(UnityEngine.Matrix4x4);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.Item(System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.black;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.blue;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.clear;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.cyan;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.gray;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.green;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.limeGreen;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.grey;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.indianRed;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.magenta;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.red;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.white;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.yellow;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.grayscale;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.linear;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.gamma;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Color.maxColorComponent;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.HSVToRGB(System.Single,System.Single,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.HSVToRGB(System.Single,System.Single,System.Single,System.Boolean);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.Lerp(UnityEngine.Color,UnityEngine.Color,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.LerpUnclamped(UnityEngine.Color,UnityEngine.Color,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.op_Division(UnityEngine.Color,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.op_Addition(UnityEngine.Color,UnityEngine.Color);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.op_Equality(UnityEngine.Color,UnityEngine.Color);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.op_Inequality(UnityEngine.Color,UnityEngine.Color);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.op_Implicit(UnityEngine.Color)~UnityEngine.Vector4;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.op_Implicit(UnityEngine.Vector4)~UnityEngine.Color;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.op_Multiply(UnityEngine.Color,UnityEngine.Color);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.op_Multiply(UnityEngine.Color,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.op_Multiply(System.Single,UnityEngine.Color);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.op_Subtraction(UnityEngine.Color,UnityEngine.Color);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color.RGBToHSV(UnityEngine.Color,System.Single@,System.Single@,System.Single@);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color32.op_Implicit(UnityEngine.Color)~UnityEngine.Color32;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color32.op_Implicit(UnityEngine.Color32)~UnityEngine.Color;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color32.Lerp(UnityEngine.Color32,UnityEngine.Color32,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Color32.LerpUnclamped(UnityEngine.Color32,UnityEngine.Color32,System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2Int.x;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2Int.y;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2Int.zero;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector2Int.one;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2Int.RoundToInt(UnityEngine.Vector2);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2Int.op_Equality(UnityEngine.Vector2Int,UnityEngine.Vector2Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2Int.op_Inequality(UnityEngine.Vector2Int,UnityEngine.Vector2Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2Int.op_Addition(UnityEngine.Vector2Int,UnityEngine.Vector2Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2Int.op_Subtraction(UnityEngine.Vector2Int,UnityEngine.Vector2Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2Int.op_UnaryNegation(UnityEngine.Vector2Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2Int.op_Multiply(UnityEngine.Vector2Int,System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2Int.op_Multiply(System.Int32,UnityEngine.Vector2Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2Int.op_Division(UnityEngine.Vector2Int,System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector2Int.op_Implicit(UnityEngine.Vector2Int)~UnityEngine.Vector2;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3Int.x;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3Int.y;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3Int.z;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3Int.zero;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Vector3Int.one;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3Int.op_Equality(UnityEngine.Vector3Int,UnityEngine.Vector3Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3Int.op_Inequality(UnityEngine.Vector3Int,UnityEngine.Vector3Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3Int.op_Addition(UnityEngine.Vector3Int,UnityEngine.Vector3Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3Int.op_Subtraction(UnityEngine.Vector3Int,UnityEngine.Vector3Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3Int.op_UnaryNegation(UnityEngine.Vector3Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3Int.op_Multiply(UnityEngine.Vector3Int,System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3Int.op_Multiply(System.Int32,UnityEngine.Vector3Int);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3Int.op_Division(UnityEngine.Vector3Int,System.Int32);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Vector3Int.op_Implicit(UnityEngine.Vector3Int)~UnityEngine.Vector3;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Bounds.center;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Bounds.extents;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Bounds.size;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Bounds.min;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+P:UnityEngine.Bounds.max;Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Bounds.ClosestPoint(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Bounds.SqrDistance(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Bounds.Contains(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Bounds.Encapsulate(UnityEngine.Bounds);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Bounds.Encapsulate(UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Bounds.Expand(System.Single);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Bounds.IntersectRay(UnityEngine.Ray);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Bounds.IntersectRay(UnityEngine.Ray,System.Single@);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Bounds.Intersects(UnityEngine.Bounds);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath
+M:UnityEngine.Bounds.SetMinMax(UnityEngine.Vector3,UnityEngine.Vector3);Unity compatibility layer member; on 1.7 read the fields and compute with JVMath

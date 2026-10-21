@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- The imperial tome a sheltered missionary leaves as thanks (quest MJV_DisgracedSermon). -->
+  <ThingSetMakerDef>
+    <defName>MJV_Reward_ImperialTome</defName>
+    <root Class="ThingSetMaker_StackCount">
+      <fixedParams>
+        <filter>
+          <thingDefs>
+            <li>MJV_ImperialTome</li>
+          </thingDefs>
+        </filter>
+        <countRange>1</countRange>
+      </fixedParams>
+    </root>
+  </ThingSetMakerDef>
+
+</Defs>

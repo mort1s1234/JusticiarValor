@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- A convert who leaves with the lodging missionary to serve the Empire (JusticiarValor.QuestPart_MJV_LodgerSermons).
+       Never a mental break: only the quest starts it. The behaviour is ThinkTreeDef MJV_CalledToServiceBehavior. -->
+  <MentalStateDef>
+    <defName>MJV_CalledToService</defName>
+    <label>called to imperial service</label>
+    <stateClass>JusticiarValor.MentalState_MJV_CalledToService</stateClass>
+    <category>Misc</category>
+    <colonistsOnly>true</colonistsOnly>
+    <prisonersCanDo>false</prisonersCanDo>
+    <slavesCanDo>false</slavesCanDo>
+    <minTicksBeforeRecovery>99999999</minTicksBeforeRecovery>
+    <recoveryMtbDays>9999</recoveryMtbDays>
+    <recoverFromSleep>false</recoverFromSleep>
+    <recoverFromDowned>true</recoverFromDowned>
+    <recoverFromCaptured>true</recoverFromCaptured>
+    <blockNormalThoughts>false</blockNormalThoughts>
+    <allowBeatfire>false</allowBeatfire>
+    <nameColor>(0.95, 0.84, 0.52)</nameColor>
+    <recoveryMessage>{0} has decided to stay with the colony after all.</recoveryMessage>
+    <baseInspectLine>Mental state: Called to imperial service</baseInspectLine>
+    <escapingPrisonersIgnore>true</escapingPrisonersIgnore>
+  </MentalStateDef>
+
+</Defs>

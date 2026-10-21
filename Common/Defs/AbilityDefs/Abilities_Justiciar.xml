@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<!-- Promachos helmet. Also fired automatically when someone tries to arrest the conscious wearer. -->
+	<AbilityDef>
+		<defName>MJV_JusticiarValor</defName>
+		<label>Justiciar Valor</label>
+		<description>Channel an extra charge through the helmet's eltex until it resonates and releases a psychic wave around the wearer. The wave throws nearby enemies back, damages them and leaves them dazed.\n\nThe wearer of the Promachos helmet cannot be arrested while conscious: an attempt triggers Justiciar Valor at once, and the wearer takes it as an attack.</description>
+		<iconPath>UI/Abilities/MJV_JusticiarValor</iconPath>
+		<cooldownTicksRange>3600</cooldownTicksRange>
+		<targetRequired>false</targetRequired>
+		<hostile>true</hostile>
+		<casterMustBeCapableOfViolence>true</casterMustBeCapableOfViolence>
+		<aiCanUse>true</aiCanUse>
+		<ai_IsOffensive>true</ai_IsOffensive>
+		<displayGizmoWhileUndrafted>false</displayGizmoWhileUndrafted>
+		<disableGizmoWhileUndrafted>true</disableGizmoWhileUndrafted>
+		<writeCombatLog>true</writeCombatLog>
+		<!-- No Ability_EffectRadius: with it the game gathers the affected targets in the radius through targetParams
+		     (Ability.GetAffectedTargets), and with canTargetPawns false the effect would apply to nothing. The comp finds
+		     its victims itself. -->
+		<verbProperties>
+			<verbClass>Verb_CastAbility</verbClass>
+			<warmupTime>0.3</warmupTime>
+			<range>4.9</range>
+			<drawAimPie>false</drawAimPie>
+			<requireLineOfSight>false</requireLineOfSight>
+			<violent>true</violent>
+			<targetParams>
+				<canTargetSelf>true</canTargetSelf>
+				<canTargetPawns>false</canTargetPawns>
+				<canTargetBuildings>false</canTargetBuildings>
+			</targetParams>
+		</verbProperties>
+		<comps>
+			<li Class="JusticiarValor.CompProperties_AbilityJusticiarValor">
+				<radius>4.9</radius>
+				<damageDef>MJV_PsychicConcussion</damageDef>
+				<damage>14</damage>
+				<armorPenetration>0.4</armorPenetration>
+				<knockbackDistance>3</knockbackDistance>
+				<maxKnockbackBodySize>2.5</maxKnockbackBodySize>
+				<stunTicks>60~120</stunTicks>
+				<dazeHediff>MJV_PsychicDaze</dazeHediff>
+				<releaseSound>PsycastPsychicPulse</releaseSound>
+				<aiMinTargets>2</aiMinTargets>
+			</li>
+		</comps>
+	</AbilityDef>
+
+	<!-- Promachos armor: needs energy stored by the psychic shield. -->
+	<AbilityDef>
+		<defName>MJV_Invictus</defName>
+		<label>Invictus</label>
+		<description>Release the energy the psychic shield has stored from the hits it absorbed. The shield is refilled and overcharged, and the armor's servos are overdriven: the wearer moves and strikes at a blinding pace for several seconds, leaving afterimages in their wake. The more energy is stored, the longer it lasts.</description>
+		<iconPath>UI/Abilities/MJV_Invictus</iconPath>
+		<cooldownTicksRange>1200</cooldownTicksRange>
+		<targetRequired>false</targetRequired>
+		<hostile>false</hostile>
+		<casterMustBeCapableOfViolence>false</casterMustBeCapableOfViolence>
+		<aiCanUse>true</aiCanUse>
+		<ai_IsOffensive>true</ai_IsOffensive>
+		<displayGizmoWhileUndrafted>false</displayGizmoWhileUndrafted>
+		<disableGizmoWhileUndrafted>true</disableGizmoWhileUndrafted>
+		<verbProperties>
+			<verbClass>Verb_CastAbility</verbClass>
+			<warmupTime>0.1</warmupTime>
+			<range>1</range>
+			<drawAimPie>false</drawAimPie>
+			<requireLineOfSight>false</requireLineOfSight>
+			<violent>false</violent>
+			<nonInterruptingSelfCast>true</nonInterruptingSelfCast>
+			<targetParams>
+				<canTargetSelf>true</canTargetSelf>
+				<canTargetPawns>false</canTargetPawns>
+				<canTargetBuildings>false</canTargetBuildings>
+			</targetParams>
+		</verbProperties>
+		<comps>
+			<li Class="JusticiarValor.CompProperties_AbilityInvictus">
+				<minChargeFraction>0.25</minChargeFraction>
+				<durationSeconds>4~10</durationSeconds>
+				<hediff>MJV_InvictusOverdrive</hediff>
+				<releaseSound>Psycast_Skip_Exit</releaseSound>
+				<aiMinChargeFraction>0.5</aiMinChargeFraction>
+			</li>
+		</comps>
+	</AbilityDef>
+
+	<!-- Energy psyblade (CompEquippableAbility). -->
+	<AbilityDef>
+		<defName>MJV_CelestialPierce</defName>
+		<label>Celestial Pierce</label>
+		<description>Conjure a psychic blade from the psyblade's point and thrust it forward, impaling every foe in a line up to three cells away. The blade stops at walls.</description>
+		<iconPath>UI/Abilities/MJV_CelestialPierce</iconPath>
+		<cooldownTicksRange>600</cooldownTicksRange>
+		<hostile>true</hostile>
+		<casterMustBeCapableOfViolence>true</casterMustBeCapableOfViolence>
+		<aiCanUse>true</aiCanUse>
+		<ai_IsOffensive>true</ai_IsOffensive>
+		<displayGizmoWhileUndrafted>false</displayGizmoWhileUndrafted>
+		<disableGizmoWhileUndrafted>true</disableGizmoWhileUndrafted>
+		<writeCombatLog>true</writeCombatLog>
+		<verbProperties>
+			<verbClass>Verb_CastAbility</verbClass>
+			<warmupTime>0.35</warmupTime>
+			<range>3.9</range>
+			<requireLineOfSight>true</requireLineOfSight>
+			<violent>true</violent>
+			<targetParams>
+				<canTargetPawns>true</canTargetPawns>
+				<canTargetLocations>true</canTargetLocations>
+				<canTargetBuildings>false</canTargetBuildings>
+				<canTargetSelf>false</canTargetSelf>
+			</targetParams>
+		</verbProperties>
+		<comps>
+			<li Class="JusticiarValor.CompProperties_AbilityCelestialPierce">
+				<length>3.6</length>
+				<halfWidth>0.45</halfWidth>
+				<damageDef>Stab</damageDef>
+				<damage>24</damage>
+				<armorPenetration>0.85</armorPenetration>
+				<stunTicks>20</stunTicks>
+				<conjureSound>Psycast_Skip_Entry</conjureSound>
+				<hitSound>MeleeHit_BladelinkPlasmaSword</hitSound>
+				<impactSound>Longjump_Land</impactSound>
+			</li>
+		</comps>
+	</AbilityDef>
+
+</Defs>

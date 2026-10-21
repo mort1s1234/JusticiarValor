@@ -1,0 +1,285 @@
+// Shared functions of the Justiciar Valor effect shaders.
+//
+// Written once in a neutral dialect that build_shaders.py compiles to both targets:
+//  - RimWorld 1.7: GLSL 450 fragment shaders registered as native ShaderDefs (1.7/Shaders, 1.7/Defs/ShaderDefs);
+//  - RimWorld 1.6: Unity ShaderLab/HLSL, built into 1.6/AssetBundles.
+// Rules of the dialect: GLSL type and function names (vec2..vec4, mix, fract), the HLSL target maps them with macros;
+// constructors always get every component (no vec3(1.0) splats); MJV_ATAN2 and MJV_MOD instead of atan/mod;
+// smoothstep only with increasing edges (reversed edges are undefined in GLSL); pow only of non-negative bases (mjv_sq
+// for squares). Names that are keywords on either side (line, point, sample, smooth, flat, precise...) are avoided.
+//
+// Conventions of the effects: they add up light in linear units (about 1 = a clearly lit line, 3 = white hot) and hand
+// it to mjv_out, which exposes it with a soft shoulder. Bright cores therefore bleach towards white the way overexposed
+// light does instead of clipping to flat white, and faint falloffs keep their colour.
+
+#define MJV_PI 3.14159265
+#define MJV_TAU 6.28318531
+
+float mjv_sat(float x) { return clamp(x, 0.0, 1.0); }
+
+// Square. Not pow(x, 2.0): GLSL leaves pow undefined for negative bases (HLSL compilers expand it to x * x, GLSL
+// drivers need not), and gaussian falloffs square signed distances.
+float mjv_sq(float x) { return x * x; }
+
+// Pixel footprint of a value, for antialiased edges that stay crisp at every zoom level.
+float mjv_aa(float x) { return max(fwidth(x), 0.0001); }
+
+// 1 inside a band of half-width w around d = 0, antialiased.
+float mjv_band(float d, float w, float aa) { return 1.0 - smoothstep(w, w + aa, abs(d)); }
+
+// A thin line of light: an antialiased core of half-width w and a soft glow around it falling off over `spread`.
+float mjv_glowLine(float d, float w, float aa, float spread)
+{
+    return mjv_band(d, w, aa) + 0.45 * exp(-abs(d) / spread);
+}
+
+float mjv_hash11(float p)
+{
+    p = fract(p * 0.1031);
+    p *= p + 33.33;
+    p *= p + p;
+    return fract(p);
+}
+
+float mjv_hash12(vec2 p)
+{
+    vec3 p3 = fract(vec3(p.x, p.y, p.x) * 0.1031);
+    p3 += dot(p3, vec3(p3.y, p3.z, p3.x) + vec3(33.33, 33.33, 33.33));
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+vec2 mjv_hash22(vec2 p)
+{
+    vec3 p3 = fract(vec3(p.x, p.y, p.x) * vec3(0.1031, 0.1030, 0.0973));
+    p3 += dot(p3, vec3(p3.y, p3.z, p3.x) + vec3(33.33, 33.33, 33.33));
+    return fract(vec2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));
+}
+
+// Value noise, 0..1. Cheap; blocky in still frames, fine for flicker over time.
+float mjv_noise(vec2 p)
+{
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 w = f * f * (vec2(3.0, 3.0) - 2.0 * f);
+    float a = mjv_hash12(i);
+    float b = mjv_hash12(i + vec2(1.0, 0.0));
+    float c = mjv_hash12(i + vec2(0.0, 1.0));
+    float d = mjv_hash12(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, w.x), mix(c, d, w.x), w.y);
+}
+
+// Gradient noise, 0..1 (about 0.15..0.85 in practice). Rounder features and no lattice blocks, for anything that is
+// seen standing still.
+float mjv_gnoise(vec2 p)
+{
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * f * (f * (f * 6.0 - vec2(15.0, 15.0)) + vec2(10.0, 10.0));
+    vec2 one = vec2(1.0, 1.0);
+    float a = dot(mjv_hash22(i) * 2.0 - one, f);
+    float b = dot(mjv_hash22(i + vec2(1.0, 0.0)) * 2.0 - one, f - vec2(1.0, 0.0));
+    float c = dot(mjv_hash22(i + vec2(0.0, 1.0)) * 2.0 - one, f - vec2(0.0, 1.0));
+    float d = dot(mjv_hash22(i + one) * 2.0 - one, f - one);
+    return mjv_sat(0.5 + 0.9 * mix(mix(a, b, u.x), mix(c, d, u.x), u.y));
+}
+
+// Four octaves of gradient noise, each rotated against the last so no grid direction shows. 0..1.
+float mjv_fbm(vec2 p)
+{
+    float v = 0.0;
+    float a = 0.5;
+    for (int i = 0; i < 4; i++)
+    {
+        v += a * mjv_gnoise(p);
+        p = vec2(0.8 * p.x - 0.6 * p.y, 0.6 * p.x + 0.8 * p.y) * 2.03 + vec2(17.1, 9.7);
+        a *= 0.5;
+    }
+    return v / 0.9375;
+}
+
+// One slot of a ring of `count` particle slots around the centre. Each slot holds a particle at a random angle inside
+// it. x: arc-length offset from the slot's particle at radius r, y: slot id, z, w: two randoms of the slot. The slots
+// meet at the angle seam, so nothing jumps there; arc lengths stay in quad units, so the caller's aa applies.
+vec4 mjv_ringSlot(float ang, float r, float count, float seed)
+{
+    float u = (ang + MJV_PI) / MJV_TAU * count;
+    float id = floor(u);
+    float h1 = mjv_hash11(id * 1.731 + seed * 91.7 + 3.1);
+    float h2 = mjv_hash11(id * 3.117 + seed * 47.3 + 11.0);
+    float centre = 0.25 + 0.5 * h1;
+    return vec4((fract(u) - centre) * MJV_TAU * r / count, id, h1, h2);
+}
+
+// Four-pointed glint around offset d from its centre: a soft core with two thin crossed spikes of reach ~4 size.
+float mjv_glint(vec2 d, float size)
+{
+    vec2 a = abs(d) / size;
+    float core = exp(-dot(a, a) * 3.0);
+    float spikes = exp(-a.x * 0.9 - a.y * 16.0) + exp(-a.y * 0.9 - a.x * 16.0);
+    return core + spikes * 0.7;
+}
+
+// Eltex palette, matching the mint inlays of the Promachos gear: 0 deep teal, 0.5 eltex mint, 1 near white.
+vec3 mjv_eltex(float t)
+{
+    vec3 deep = vec3(0.08, 0.50, 0.55);
+    vec3 mint = vec3(0.42, 0.95, 0.80);
+    vec3 white = vec3(0.93, 1.0, 0.98);
+    float k = mjv_sat(t);
+    return k < 0.5 ? mix(deep, mint, k * 2.0) : mix(mint, white, k * 2.0 - 1.0);
+}
+
+// Imperial gilt, the gold of the Empire's robes and the missionaries' halos: 0 deep amber, 0.5 gold, 1 ivory white.
+vec3 mjv_gilt(float t)
+{
+    vec3 amber = vec3(0.60, 0.32, 0.07);
+    vec3 gold = vec3(1.0, 0.77, 0.34);
+    vec3 ivory = vec3(1.0, 0.97, 0.88);
+    float k = mjv_sat(t);
+    return k < 0.5 ? mix(amber, gold, k * 2.0) : mix(gold, ivory, k * 2.0 - 1.0);
+}
+
+// Ease-out cubic.
+float mjv_easeOut(float t)
+{
+    float k = 1.0 - mjv_sat(t);
+    return 1.0 - k * k * k;
+}
+
+// Ease-out quintic: a harder launch for blasts.
+float mjv_easeOut5(float t)
+{
+    float k = 1.0 - mjv_sat(t);
+    float k2 = k * k;
+    return 1.0 - k2 * k2 * k;
+}
+
+// Rises over [a0, a1] and falls over [b0, b1]: the envelope of a layer that comes and goes inside an effect.
+float mjv_window(float t, float a0, float a1, float b0, float b1)
+{
+    return smoothstep(a0, a1, t) * (1.0 - smoothstep(b0, b1, t));
+}
+
+// Rotates a 2D vector by an angle in radians (counter-clockwise in uv space).
+vec2 mjv_rot(vec2 v, float a)
+{
+    float c = cos(a);
+    float s = sin(a);
+    return vec2(c * v.x - s * v.y, s * v.x + c * v.y);
+}
+
+// Final colour: exposes the accumulated light with a soft shoulder (per channel, so saturated light bleaches towards
+// white only where it is intense), tints it by the material colour and dithers it below one 8-bit step so the long
+// faint falloffs do not band. Returns premultiplied RGBA.
+vec4 mjv_out(vec3 light, float alpha, vec4 col, vec3 wpos)
+{
+    vec3 lit = max(light * col.rgb, vec3(0.0, 0.0, 0.0));
+    vec3 rgb = vec3(1.0, 1.0, 1.0) - exp(-lit);
+    float n = mjv_hash12(vec2(wpos.x * 517.0 + wpos.y * 263.0, wpos.z * 517.0)) - 0.5;
+    float present = mjv_sat(max(rgb.x, max(rgb.y, rgb.z)) * 64.0);
+    rgb = max(rgb + vec3(n, n, n) * (present / 255.0), vec3(0.0, 0.0, 0.0));
+    return vec4(rgb * col.a, mjv_sat(alpha) * col.a);
+}
+
+// Piloto playback and the gray-green palette for newer effects.
+vec3 mjv_sage(float light)
+{
+    vec3 deep = vec3(0.29, 0.43, 0.40);
+    vec3 sage = vec3(0.56, 0.72, 0.66);
+    vec3 pale = vec3(0.78, 0.87, 0.82);
+    return light < 0.65 ? mix(deep, sage, light / 0.65)
+        : mix(sage, pale, (light - 0.65) / 0.35);
+}
+
+// Atlas-only functions are excluded from the restored procedural shaders.
+#ifdef MJV_TEX
+vec4 mjv_frame(vec2 uv, float index)
+{
+    float f = clamp(index, 0.0, 63.0);
+    vec2 cell = vec2(f - floor(f / 8.0) * 8.0, floor(f / 8.0));
+    // Half-texel inset and the bake's transparent gutters prevent neighboring cells leaking in.
+    vec2 localUV = (clamp(uv, vec2(0.0, 0.0), vec2(1.0, 1.0)) * 255.0 + vec2(0.5, 0.5)) / 256.0;
+    // Loose mod PNGs load in the same sampling convention on both engines. Keep the baked row order.
+    return MJV_TEX(MJV_MAINTEX_UV((cell + localUV) / 8.0));
+}
+
+vec4 mjv_interpolated(vec2 uv, float frame)
+{
+    float f = floor(frame);
+    return mix(mjv_frame(uv, f), mjv_frame(uv, min(f + 1.0, 63.0)), fract(frame));
+}
+
+// p0: normalized playback position, looping, emission strength, opacity.
+vec4 mjv_clip(vec2 uv, vec4 col, vec4 p0)
+{
+    float frame = mjv_sat(p0.x) * 63.0;
+    vec4 texel;
+    if (p0.y > 0.5)
+    {
+        // Overlap eight frames of each end to close non-periodic particle loops without a jump.
+        frame = fract(p0.x) * 56.0 + 8.0;
+        texel = mjv_interpolated(uv, frame);
+        if (frame >= 56.0)
+            texel = mix(texel, mjv_interpolated(uv, frame - 56.0), (frame - 56.0) / 8.0);
+    }
+    else texel = mjv_interpolated(uv, frame);
+    float opacity = mjv_sat(p0.w) * col.a;
+    if (p0.y < 0.5) opacity *= 1.0 - smoothstep(0.8, 1.0, p0.x);
+    // Alpha is not sRGB-decoded, so the baked emission has the same brightness on both engines.
+    float light = texel.a;
+    vec3 rgb = mjv_sage(light) * light * max(0.0, p0.z) * opacity * col.rgb;
+    // Keep enough coverage for the armor's gray-green to survive bright sand and snow.
+    return vec4(rgb, texel.a * opacity * 0.95);
+}
+
+// BEGIN SHEET (generated by pack_sheet.py: cells of Common/Textures/Effects/JusticiarValor/Piloto/Sheet.png)
+#define MJV_SHEET_RADIALCRACK vec4(0.002930, 0.752930, 0.244141, 0.244141)
+#define MJV_SHEET_DUSTBURST vec4(0.252930, 0.752930, 0.244141, 0.244141)
+#define MJV_SHEET_FISSURE vec4(0.002930, 0.252930, 0.494141, 0.119141)
+#define MJV_SHEET_PUFFS vec4(0.752930, 0.127930, 0.244141, 0.244141)
+#define MJV_SHEET_ROCKS vec4(0.502930, 0.127930, 0.119141, 0.119141)
+#define MJV_SHEET_IMPACTFLARE vec4(0.502930, 0.752930, 0.244141, 0.244141)
+#define MJV_SHEET_JAGGEDRING vec4(0.752930, 0.752930, 0.244141, 0.244141)
+#define MJV_SHEET_SIGHTINNER vec4(0.002930, 0.502930, 0.244141, 0.244141)
+#define MJV_SHEET_HUDRING vec4(0.252930, 0.502930, 0.244141, 0.244141)
+#define MJV_SHEET_PINGRING vec4(0.752930, 0.502930, 0.244141, 0.244141)
+#define MJV_SHEET_WARDARC vec4(0.502930, 0.502930, 0.244141, 0.244141)
+#define MJV_SHEET_CHEVRON vec4(0.002930, 0.127930, 0.119141, 0.119141)
+#define MJV_SHEET_TRAILWISP vec4(0.002930, 0.377930, 0.494141, 0.119141)
+#define MJV_SHEET_TRAILSTARRY vec4(0.502930, 0.377930, 0.494141, 0.119141)
+#define MJV_SHEET_SPARKLES vec4(0.502930, 0.252930, 0.244141, 0.119141)
+#define MJV_SHEET_TRAILCORE vec4(0.127930, 0.127930, 0.119141, 0.119141)
+#define MJV_SHEET_CROSSFLARE vec4(0.252930, 0.127930, 0.119141, 0.119141)
+#define MJV_SHEET_SOFTGLOW vec4(0.377930, 0.127930, 0.119141, 0.119141)
+// END SHEET
+
+// A cell of the packed Piloto sheet at local coordinates 0..1 (outside them it is transparent). Mask cells hold their
+// light in every channel; colour cells hold straight RGBA.
+vec4 mjv_sheet(vec2 local, vec4 rect)
+{
+    vec2 inside = step(vec2(0.0, 0.0), local) * step(local, vec2(1.0, 1.0));
+    vec2 uv = vec2(rect.x, rect.y) + clamp(local, vec2(0.0, 0.0), vec2(1.0, 1.0)) * vec2(rect.z, rect.w);
+    return MJV_TEX(MJV_MAINTEX_UV(uv)) * (inside.x * inside.y);
+}
+
+float mjv_sheetMask(vec2 local, vec4 rect)
+{
+    return mjv_sheet(local, rect).a;
+}
+
+// One sprite of a cell that holds a cols x rows grid of them, numbered from the top left as in the source image.
+vec4 mjv_sheetSprite(vec2 local, vec4 rect, float index, float cols, float rows)
+{
+    float i = floor(MJV_MOD(index, cols * rows));
+    vec2 cell = vec2(MJV_MOD(i, cols), rows - 1.0 - floor(i / cols));
+    vec4 sub = vec4(rect.x + cell.x * rect.z / cols, rect.y + cell.y * rect.w / rows, rect.z / cols, rect.w / rows);
+    return mjv_sheet(local, sub);
+}
+
+// Glow of a mask in the armor palette, as the Piloto clips are coloured: light 0..1, premultiplied.
+vec4 mjv_glow(float light, float intensity, float opacity, vec4 col)
+{
+    float l = mjv_sat(light);
+    return vec4(mjv_sage(l) * l * max(0.0, intensity) * opacity * col.rgb, l * opacity * 0.95 * col.a);
+}
+#endif

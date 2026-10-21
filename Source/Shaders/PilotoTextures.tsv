@@ -1,0 +1,19 @@
+cell	source	sheetRect	mode	options
+RadialCrack	Assets/Piloto Studio/Textures/GroundCracks_Radial.png	0,0,512,512	mask	
+DustBurst	Assets/Piloto Studio/Textures/Shockwave_Dusty.png	512,0,512,512	mask	
+Fissure	Assets/Piloto Studio/Textures/TentacleCrack.png	0,1280,1024,256	mask	{'rotate': 90, 'trim': True, 'luma': True, 'normalize': False}
+Puffs	Assets/Piloto Studio/Textures/SmokePuff_Quad.png	1536,1280,512,512	mask	
+Rocks	Assets/Piloto Studio/Textures/Dust_Rocks.png	1024,1536,256,256	color	
+ImpactFlare	Assets/Piloto Studio/Textures/StarImpactFlare.png	1024,0,512,512	mask	
+JaggedRing	Assets/Piloto Studio/Textures/Ring_Shockwave2.png	1536,0,512,512	mask	
+SightInner	Assets/Piloto Studio/Textures/FX_Tech_Sight_InnerSide_Glowy_T.png	0,512,512,512	mask	
+HudRing	Assets/Piloto Studio/Textures/Tech_DecalRing2.png	512,512,512,512	mask	
+PingRing	Assets/Piloto Studio/Textures/Ring_Shockwave.png	1536,512,512,512	mask	
+WardArc	Assets/Piloto Studio/Textures/Ring_EdgeLower.png	1024,512,512,512	mask	
+Chevron	Assets/Piloto Studio/Textures/FX_Tech_Shapes_Lined_T_Rotated.png	0,1536,256,256	mask	{'crop': (0, 0, 512, 512)}
+TrailWisp	Assets/Piloto Studio/Textures/RemasterList/Trail13.png	0,1024,1024,256	mask	
+TrailStarry	Assets/Piloto Studio/Textures/Trail_Starry_2.png	1024,1024,1024,256	mask	
+Sparkles	Assets/Piloto Studio/Textures/SparklesPickbook.png	1024,1280,512,256	mask	
+TrailCore	Assets/Piloto Studio/Textures/Trail_TaperedSoft.png	256,1536,256,256	mask	
+CrossFlare	Assets/Piloto Studio/Textures/StarCrossFlare.png	512,1536,256,256	mask	
+SoftGlow	Assets/Piloto Studio/Textures/Glowing_Soft_02.png	768,1536,256,256	mask	

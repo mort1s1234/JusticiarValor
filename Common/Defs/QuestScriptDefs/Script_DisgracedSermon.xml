@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- Disgraced sermon: a missionary who failed to convert a neighbouring faction flees to the colony with an enraged
+       mob of that faction at his heels. Shelter him until an imperial shuttle collects him and fend off the raid. -->
+  <QuestScriptDef>
+    <defName>MJV_DisgracedSermon</defName>
+    <rootSelectionWeight>0.6</rootSelectionWeight>
+    <rootMinPoints>200</rootMinPoints>
+    <expireDaysRange>0.5~1.5</expireDaysRange>
+    <canGiveRoyalFavor>true</canGiveRoyalFavor>
+    <questNameRules>
+      <rulesStrings>
+        <li>questName->The disgraced sermon</li>
+        <li>questName->A sermon gone wrong</li>
+        <li>questName->[missionary_nameDef] the [fleeingAdj]</li>
+        <li>questName->Sanctuary for [missionary_nameDef]</li>
+        <li>questName->The [fleeingAdj] missionary</li>
+        <li>fleeingAdj->disgraced</li>
+        <li>fleeingAdj->hunted</li>
+        <li>fleeingAdj->fleeing</li>
+        <li>fleeingAdj->unwelcome</li>
+      </rulesStrings>
+    </questNameRules>
+    <questDescriptionRules>
+      <rulesStrings>
+        <li>questDescription->[missionary_nameFull], a missionary of [faithName], begs you for shelter. [missionary_nameDef] tried to bring the imperial faith to [enemyFaction_name], but the sermon ended in disgrace: [missionary_pronoun] fled for [missionary_possessive] life with an enraged mob of [enemyFaction_pawnsPlural] at [missionary_possessive] heels.\n\n[missionary_nameDef] will arrive on foot and stay at [map_definite] until an imperial shuttle collects [missionary_objective] in [shelterTicks_duration]. Keep [missionary_objective] alive and fend off the pursuers. [raidArrivalModeInfo]\n\n[raidPawnKinds]\n\n[missionary_nameDef] will not do manual work. As thanks, [missionary_pronoun] promises you a tome of imperial scripture from [missionary_possessive] travelling library.</li>
+      </rulesStrings>
+    </questDescriptionRules>
+    <root Class="QuestNode_Sequence">
+      <nodes>
+        <li Class="QuestNode_GetMap" />
+
+        <li Class="JusticiarValor.QuestNode_MJV_ImperialMission">
+          <requireFaith>false</requireFaith>
+        </li>
+        <li Class="JusticiarValor.QuestNode_MJV_GetPursuers">
+          <storeAs>enemyFaction</storeAs>
+        </li>
+
+        <!-- Always a raid: two or three stars -->
+        <li Class="QuestNode_SubScript">
+          <def>Util_RandomizePointsChallengeRating</def>
+          <parms>
+            <pointsFactorTwoStar>1</pointsFactorTwoStar>
+            <pointsFactorThreeStar>1.5</pointsFactorThreeStar>
+            <selectionWeightOneStar>0</selectionWeightOneStar>
+            <selectionWeightTwoStar>0.7</selectionWeightTwoStar>
+            <selectionWeightThreeStar>0.3</selectionWeightThreeStar>
+            <minPointsThreeStar>500</minPointsThreeStar>
+          </parms>
+        </li>
+
+        <li Class="QuestNode_Set">
+          <name>shelterTicks</name>
+          <value>$(roundToTicksRough(randFloat(1.5, 2.5) * 60000))</value>
+        </li>
+        <li Class="QuestNode_Set">
+          <name>raidDelayTicks</name>
+          <value>$(roundToTicksRough(randFloat(0.25, 0.75) * 60000))</value>
+        </li>
+        <li Class="QuestNode_Set">
+          <name>shuttleLeaveDelayTicks</name>
+          <value>$(1 * 60000)</value>
+        </li>
+
+        <!-- The missionary -->
+        <li Class="QuestNode_GeneratePawn">
+          <kindDef>MJV_ImperialMissionary</kindDef>
+          <faction>$empire</faction>
+          <storeAs>missionary</storeAs>
+          <addToList>lodgers</addToList>
+          <allowAddictions>false</allowAddictions>
+          <biocodeWeaponChance>1</biocodeWeaponChance>
+          <biocodeApparelChance>1</biocodeApparelChance>
+          <allowPregnant>false</allowPregnant>
+          <isChild>false</isChild>
+        </li>
+        <li Class="JusticiarValor.QuestNode_MJV_Ordain">
+          <pawn>$missionary</pawn>
+        </li>
+        <li Class="QuestNode_Set">
+          <name>asker</name>
+          <value>$missionary</value>
+        </li>
+        <li Class="QuestNode_ExtraFaction">
+          <factionOf>$missionary</factionOf>
+          <pawns>$lodgers</pawns>
+          <factionType>HomeFaction</factionType>
+          <inSignalsRemovePawn>
+            <li>lodgers.RanWild</li>
+            <li>lodgers.BecameMutant</li>
+          </inSignalsRemovePawn>
+        </li>
+        <li Class="QuestNode_SetAllApparelLocked">
+          <pawns>$lodgers</pawns>
+        </li>
+        <!-- No work, but not AllWork: a missionary who cannot talk (Social) cannot convert anyone. -->
+        <li Class="QuestNode_WorkDisabled">
+          <pawns>$lodgers</pawns>
+          <disabledWorkTags>
+            <li>ManualDumb</li>
+            <li>ManualSkilled</li>
+            <li>Hauling</li>
+            <li>Cleaning</li>
+            <li>Firefighting</li>
+            <li>PlantWork</li>
+            <li>Mining</li>
+            <li>Constructing</li>
+            <li>Crafting</li>
+            <li>Cooking</li>
+            <li>Artistic</li>
+            <li>Animals</li>
+            <li>Caring</li>
+            <li>Intellectual</li>
+          </disabledWorkTags>
+        </li>
+        <li Class="QuestNode_LeaveOnCleanup">
+          <pawns>$lodgers</pawns>
+          <sendStandardLetter>false</sendStandardLetter>
+          <inSignalRemovePawn>lodgers.RanWild</inSignalRemovePawn>
+        </li>
+
+        <!-- He arrives on foot, fleeing -->
+        <li Class="QuestNode_JoinPlayer">
+          <pawns>$lodgers</pawns>
+          <joinPlayer>true</joinPlayer>
+        </li>
+        <li Class="QuestNode_PawnsArrive">
+          <pawns>$lodgers</pawns>
+          <arrivalMode>EdgeWalkIn</arrivalMode>
+          <customLetterLabel>Missionary arrived: [missionary_nameDef]</customLetterLabel>
+          <customLetterText>[missionary_nameDef] has reached [map_definite], out of breath. The [enemyFaction_pawnsPlural] of [enemyFaction_name] are not far behind.\n\nKeep [missionary_objective] safe until the imperial shuttle comes for [missionary_objective] in [shelterTicks_duration].</customLetterText>
+        </li>
+
+        <!-- The pursuers -->
+        <li Class="QuestNode_Delay">
+          <delayTicks>$raidDelayTicks</delayTicks>
+          <!-- No arrivalMode here: given one, IncidentWorker_Raid.ResolveRaidArriveMode logs "Could not resolve arrival
+               mode" (TryResolveRaidArriveMode returns false when the mode is already set) before using it anyway. -->
+          <node Class="QuestNode_Raid">
+            <customLetterLabel>Pursuers: [enemyFaction_name]</customLetterLabel>
+            <customLetterText>An enraged mob of [enemyFaction_pawnsPlural] from [enemyFaction_name] has followed [missionary_nameDef] to [map_definite]. They will not rest until the missionary who insulted their beliefs is dead.</customLetterText>
+          </node>
+        </li>
+
+        <!-- The shuttle -->
+        <li Class="QuestNode_ShuttleDelay">
+          <delayTicks>$shelterTicks</delayTicks>
+          <lodgers>$lodgers</lodgers>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_SubScript">
+                <def>Util_TransportShip_Pickup</def>
+                <parms>
+                  <leaveDelayTicks>$shuttleLeaveDelayTicks</leaveDelayTicks>
+                  <leaveImmediatelyWhenSatisfied>true</leaveImmediatelyWhenSatisfied>
+                  <requiredPawns>$lodgers</requiredPawns>
+                  <sendAwayIfAllDespawned>$lodgers</sendAwayIfAllDespawned>
+                </parms>
+              </li>
+              <li Class="QuestNode_InspectString">
+                <targets>$lodgers</targets>
+                <inspectString>Should depart on shuttle</inspectString>
+              </li>
+              <li Class="QuestNode_Letter">
+                <label>Shuttle arrived</label>
+                <text>The imperial shuttle has arrived to collect [missionary_nameDef]. Be sure to have [missionary_objective] on board before it leaves in [shuttleLeaveDelayTicks_duration].</text>
+                <lookTargets>$pickupShipThing</lookTargets>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_Set">
+          <name>rewardValue</name>
+          <value>$($points * 1.1)</value>
+        </li>
+        <li Class="QuestNode_GenerateThingSet">
+          <thingSetMaker>MJV_Reward_ImperialTome</thingSetMaker>
+          <storeAs>tome</storeAs>
+        </li>
+
+        <!-- - - - - - - -  -->
+        <!-- End conditions -->
+        <!-- - - - - - - -  -->
+
+        <li Class="QuestNode_Signal">
+          <inSignal>lodgers.Destroyed</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>Missionary died: {SUBJECT_definite}</label>
+                <letterDef>NegativeEvent</letterDef>
+                <text>{SUBJECT_definite}, the missionary you sheltered, has died. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 10.</text>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Fail</outcome>
+                <goodwillChangeAmount>-10</goodwillChangeAmount>
+                <goodwillChangeFactionOf>$missionary</goodwillChangeFactionOf>
+                <goodwillChangeReason>QuestPawnLost</goodwillChangeReason>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_Signal">
+          <inSignal>lodgers.Arrested</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>Missionary captured: {SUBJECT_definite}</label>
+                <letterDef>NegativeEvent</letterDef>
+                <text>{SUBJECT_definite}, the missionary you sheltered, has been arrested. You have failed the quest '[resolvedQuestName]'.</text>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Fail</outcome>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_Signal">
+          <inSignal>lodgers.SurgeryViolation</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>Unauthorized surgery: {SUBJECT_definite}</label>
+                <letterDef>NegativeEvent</letterDef>
+                <text>Unauthorized, violating surgery has been performed on {SUBJECT_definite}. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Fail</outcome>
+                <goodwillChangeAmount>-5</goodwillChangeAmount>
+                <goodwillChangeFactionOf>$missionary</goodwillChangeFactionOf>
+                <goodwillChangeReason>PerformedHarmfulSurgery</goodwillChangeReason>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_Signal" MayRequire="Ludeon.RimWorld.Biotech">
+          <inSignal>lodgers.XenogermAbsorbed</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>Xenogerm absorbed: {SUBJECT_definite}</label>
+                <letterDef>NegativeEvent</letterDef>
+                <text>{SUBJECT_definite}, the missionary you sheltered, has had {SUBJECT_possessive} xenogerm forcibly absorbed. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Fail</outcome>
+                <goodwillChangeAmount>-5</goodwillChangeAmount>
+                <goodwillChangeFactionOf>$missionary</goodwillChangeFactionOf>
+                <goodwillChangeReason>XenogermAbsorbed</goodwillChangeReason>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_AnySignal">
+          <inSignals>
+            <li>lodgers.LeftMap</li>
+            <li>lodgers.LeftBehind</li>
+            <li>lodgers.RanWild</li>
+          </inSignals>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>Missionary lost: {SUBJECT_definite}</label>
+                <letterDef>NegativeEvent</letterDef>
+                <text>{SUBJECT_definite}, the missionary you sheltered, is gone. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Fail</outcome>
+                <goodwillChangeAmount>-5</goodwillChangeAmount>
+                <goodwillChangeFactionOf>$missionary</goodwillChangeFactionOf>
+                <goodwillChangeReason>QuestPawnLost</goodwillChangeReason>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_AnySignal">
+          <inSignals>
+            <li>lodgers.ChangedFaction</li>
+            <li>lodgers.ChangedHostFaction</li>
+          </inSignals>
+          <node Class="QuestNode_Filter_FactionNonPlayer">
+            <node Class="QuestNode_Sequence">
+              <nodes>
+                <li Class="QuestNode_Letter">
+                  <label>Missionary lost: {SUBJECT_definite}</label>
+                  <letterDef>NegativeEvent</letterDef>
+                  <text>{SUBJECT_definite}, the missionary you sheltered, has joined another faction. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+                </li>
+                <li Class="QuestNode_End">
+                  <outcome>Fail</outcome>
+                  <goodwillChangeAmount>-5</goodwillChangeAmount>
+                  <goodwillChangeFactionOf>$missionary</goodwillChangeFactionOf>
+                  <goodwillChangeReason>QuestPawnLost</goodwillChangeReason>
+                </li>
+              </nodes>
+            </node>
+          </node>
+        </li>
+
+        <li Class="QuestNode_End">
+          <inSignal>empire.BecameHostileToPlayer</inSignal>
+          <outcome>InvalidPreAcceptance</outcome>
+          <signalListenMode>NotYetAcceptedOnly</signalListenMode>
+        </li>
+        <li Class="QuestNode_Signal">
+          <inSignal>empire.BecameHostileToPlayer</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>Quest failed: [resolvedQuestName]</label>
+                <letterDef>NegativeEvent</letterDef>
+                <text>[empire_name] are now hostile towards you. You have failed the quest '[resolvedQuestName]'.</text>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Fail</outcome>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_Signal">
+          <inSignal>pickupShipThing.Destroyed</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>Shuttle destroyed</label>
+                <letterDef>NegativeEvent</letterDef>
+                <text>The shuttle sent to collect [missionary_nameDef] has been destroyed. [missionary_nameDef] will now leave on foot. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Fail</outcome>
+                <goodwillChangeAmount>-5</goodwillChangeAmount>
+                <goodwillChangeFactionOf>$missionary</goodwillChangeFactionOf>
+                <goodwillChangeReason>ShuttleDestroyed</goodwillChangeReason>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_Signal">
+          <inSignal>pickupShipThing.LeftBehind</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>Shuttle left behind</label>
+                <letterDef>NegativeEvent</letterDef>
+                <text>The shuttle sent to collect [missionary_nameDef] has been left behind. [missionary_nameDef] will now leave on foot.</text>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Fail</outcome>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_Signal">
+          <inSignal>pickupShipThing.SentSatisfied</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_GiveRewards">
+                <parms>
+                  <allowGoodwill>true</allowGoodwill>
+                  <allowRoyalFavor>true</allowRoyalFavor>
+                </parms>
+              </li>
+              <li Class="QuestNode_AddItemsReward">
+                <items>$tome</items>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Success</outcome>
+                <sendStandardLetter>true</sendStandardLetter>
+              </li>
+            </nodes>
+          </node>
+        </li>
+
+        <li Class="QuestNode_Signal">
+          <inSignal>pickupShipThing.SentUnsatisfied</inSignal>
+          <node Class="QuestNode_Sequence">
+            <nodes>
+              <li Class="QuestNode_Letter">
+                <label>Quest failed: [resolvedQuestName]</label>
+                <letterDef>NegativeEvent</letterDef>
+                <text>The shuttle sent to collect [missionary_nameDef] has departed without [missionary_objective]. [missionary_nameDef] will now leave on foot. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+              </li>
+              <li Class="QuestNode_End">
+                <outcome>Fail</outcome>
+                <goodwillChangeAmount>-5</goodwillChangeAmount>
+                <goodwillChangeFactionOf>$missionary</goodwillChangeFactionOf>
+                <goodwillChangeReason>MemberMissedShuttle</goodwillChangeReason>
+              </li>
+            </nodes>
+          </node>
+        </li>
+      </nodes>
+    </root>
+  </QuestScriptDef>
+
+</Defs>

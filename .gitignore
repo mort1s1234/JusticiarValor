@@ -1,0 +1,28 @@
+# Design documents (kept locally, not versioned)
+*.docx
+~$*
+
+# Build intermediates (Source/Directory.Build.props already redirects obj/ and bin/ to %TEMP%)
+[Oo]bj/
+[Bb]in/
+*.user
+*.suo
+.vs/
+.idea/
+.vscode/
+__pycache__/
+
+# Asset packs baked by RimWorld 1.7 (-BakeModAssetPacks / in-game Workshop upload)
+Assets.zip
+Assets.zip.*
+
+# Test and tool output
+Source/Tests/Output/
+*.log
+
+# Local runtime-Def investigation tools
+.rimsearcher/
+
+# Windows Explorer files
+Thumbs.db
+desktop.ini

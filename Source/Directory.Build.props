@@ -1,0 +1,13 @@
+<Project>
+  <!-- RimWorld 1.7 uploads every file of the mod folder to the Workshop, so nothing that is not shipped may be written
+       next to the sources: obj/ and bin/ of every project under Source/ go to %TEMP%\justiciarvalor-build\<project>.
+       The two shipped projects set their own OutputPath (1.6/Assemblies and 1.7/Assemblies). -->
+  <PropertyGroup>
+    <JVBuildRoot>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), 'justiciarvalor-build', '$(MSBuildProjectName)'))</JVBuildRoot>
+    <BaseIntermediateOutputPath>$(JVBuildRoot)\obj\</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(JVBuildRoot)\bin\</BaseOutputPath>
+    <JVModRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</JVModRoot>
+    <JVGameDir Condition="'$(JVGameDir)' == ''">$([System.IO.Path]::GetFullPath('$(JVModRoot)/../..'))</JVGameDir>
+    <JVWorkshopDir Condition="'$(JVWorkshopDir)' == ''">$([System.IO.Path]::GetFullPath('$(JVGameDir)/../../workshop/content/294100'))</JVWorkshopDir>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<!-- Justiciar Valor's psychic wave: a concussive blow. -->
+	<DamageDef ParentName="BluntBase">
+		<defName>MJV_PsychicConcussion</defName>
+		<label>psychic concussion</label>
+		<deathMessage>{0} was crushed by a psychic wave.</deathMessage>
+		<hediff>Crush</hediff>
+		<hediffSkin>Bruise</hediffSkin>
+		<hediffSolid>Crack</hediffSolid>
+		<armorCategory>Blunt</armorCategory>
+	</DamageDef>
+
+	<!-- The energy psyspear's psy-orbs: searing eltex energy. -->
+	<DamageDef>
+		<defName>MJV_PsyBurn</defName>
+		<label>psy-burn</label>
+		<workerClass>DamageWorker_AddInjury</workerClass>
+		<externalViolence>true</externalViolence>
+		<isRanged>true</isRanged>
+		<makesAnimalsFlee>true</makesAnimalsFlee>
+		<deathMessage>{0} was seared by a psy-orb.</deathMessage>
+		<hediff>Burn</hediff>
+		<armorCategory>Heat</armorCategory>
+		<minDamageToFragment>15</minDamageToFragment>
+		<defaultDamage>10</defaultDamage>
+		<defaultArmorPenetration>0.35</defaultArmorPenetration>
+		<impactSoundType>Electric</impactSoundType>
+		<combatLogRules>Damage_Flame</combatLogRules>
+	</DamageDef>
+
+</Defs>

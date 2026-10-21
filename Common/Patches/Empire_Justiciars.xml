@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+
+	<!-- Justiciars fight alongside the Empire's troops and guard its settlements. -->
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/FactionDef[defName="Empire"]/pawnGroupMakers/li[kindDef="Combat" or kindDef="Settlement"]/options</xpath>
+		<value>
+			<MJV_Justiciar>1.2</MJV_Justiciar>
+		</value>
+	</Operation>
+
+</Patch>

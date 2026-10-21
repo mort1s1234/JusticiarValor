@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- RimWorld 1.7 (Waylith, .NET 10) build: dotnet build Source/JusticiarValor/JusticiarValor.csproj -c Release
+       Output: 1.7/Assemblies/JusticiarValor.dll. The same sources build for 1.6 through JusticiarValor.1.6.csproj.
+       Game and Harmony paths default to this mod's location; override with -p:JVGameDir= / -p:JVHarmonyDir=. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>JusticiarValor</AssemblyName>
+    <RootNamespace>JusticiarValor</RootNamespace>
+    <OutputPath>$(JVModRoot)\1.7\Assemblies\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <DebugType>embedded</DebugType>
+    <Deterministic>true</Deterministic>
+    <Optimize>true</Optimize>
+    <RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
+    <WarningsAsErrors>RS0030</WarningsAsErrors>
+    <JVHarmonyDir Condition="'$(JVHarmonyDir)' == ''">$(JVWorkshopDir)\2009463077\1.7\Assemblies</JVHarmonyDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(JVGameDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Only for the UnityEngine types in RimWorld's own API signatures (Vector3, Color, Matrix4x4, Rect, Texture2D...),
+         used as data. BannedSymbols.txt keeps the Unity compatibility layer's services and operators out. -->
+    <Reference Include="UnityStubs">
+      <HintPath>$(JVGameDir)\UnityStubs.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(JVHarmonyDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" PrivateAssets="all" />
+    <AdditionalFiles Include="BannedSymbols.txt" />
+  </ItemGroup>
+</Project>

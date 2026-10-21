@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- After a sermon (JusticiarValor.LordJob_MJV_Sermon); the stage is forced: 0 for listeners of the imperial faith,
+       1 for the others. Scaled by how much of the sermon they heard. -->
+  <ThoughtDef>
+    <defName>MJV_HeardImperialSermon</defName>
+    <thoughtClass>Thought_Memory</thoughtClass>
+    <durationDays>1.5</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>inspiring sermon</label>
+        <description>The missionary spoke of our faith with such conviction. I feel uplifted.</description>
+        <baseMoodEffect>6</baseMoodEffect>
+      </li>
+      <li>
+        <label>heard an imperial sermon</label>
+        <description>A missionary preached the Empire's faith to us. Strange ideas, but well spoken, and they gave me a lot to think about.</description>
+        <baseMoodEffect>2</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+</Defs>

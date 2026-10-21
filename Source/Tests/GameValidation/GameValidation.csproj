@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- In-game validation for RimWorld 1.7. Built and loaded as a temporary test mod by ../Run-GameValidation.ps1, with the
+       shipped 1.7/Assemblies/JusticiarValor.dll as the assembly under test. Never part of the release. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>JusticiarValorValidation</AssemblyName>
+    <RootNamespace>JusticiarValorValidation</RootNamespace>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <DebugType>embedded</DebugType>
+    <JVHarmonyDir Condition="'$(JVHarmonyDir)' == ''">$(JVWorkshopDir)\2009463077\1.7\Assemblies</JVHarmonyDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(JVGameDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityStubs">
+      <HintPath>$(JVGameDir)\UnityStubs.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Waylith">
+      <HintPath>$(JVGameDir)\Waylith.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- LogLevel of Waylith.Logging.LogStream. -->
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
+      <HintPath>$(JVGameDir)\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(JVHarmonyDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="JusticiarValor">
+      <HintPath>$(JVModRoot)\1.7\Assemblies\JusticiarValor.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

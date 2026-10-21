@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+
+	<!-- Imperial traders now and then have a tome for sale. -->
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/TraderKindDef[defName="Orbital_Empire" or defName="Empire_Caravan_TraderGeneral" or defName="Base_Empire_Standard"]/stockGenerators</xpath>
+		<value>
+			<li Class="StockGenerator_SingleDef">
+				<thingDef>MJV_ImperialTome</thingDef>
+				<countRange>0~1</countRange>
+			</li>
+		</value>
+	</Operation>
+
+	<!-- Tribute collectors trade in royal favor: they take a tome as tribute worth its RoyalFavorValue. -->
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/TraderKindDef[defName="Empire_Caravan_TributeCollector"]/stockGenerators</xpath>
+		<value>
+			<li Class="StockGenerator_BuySingleDef">
+				<thingDef>MJV_ImperialTome</thingDef>
+			</li>
+		</value>
+	</Operation>
+
+</Patch>

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- RimWorld 1.6 (Unity, Mono) build of the same sources: dotnet build Source/JusticiarValor/JusticiarValor.1.6.csproj -c Release
+       Output: 1.6/Assemblies/JusticiarValor.dll. References come from Krafs.Rimworld.Ref 1.6.4871 (the 1.6 game's
+       assemblies) and Harmony's 1.6 assembly from the Steam Workshop; RIMWORLD_1_6 is defined. -->
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>JusticiarValor</AssemblyName>
+    <RootNamespace>JusticiarValor</RootNamespace>
+    <DefineConstants>$(DefineConstants);RIMWORLD_1_6</DefineConstants>
+    <OutputPath>$(JVModRoot)\1.6\Assemblies\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <!-- Mono on 1.6 does not read portable PDBs; nothing is written next to the DLL. -->
+    <DebugType>none</DebugType>
+    <Deterministic>true</Deterministic>
+    <Optimize>true</Optimize>
+    <RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
+    <JVHarmonyDir Condition="'$(JVHarmonyDir)' == ''">$(JVWorkshopDir)\2009463077\1.6\Assemblies</JVHarmonyDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" ExcludeAssets="runtime" />
+    <Reference Include="0Harmony">
+      <HintPath>$(JVHarmonyDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

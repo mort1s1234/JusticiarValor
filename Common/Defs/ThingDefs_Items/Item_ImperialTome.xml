@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<!-- Imperial tome. Sold to the Empire's tribute collectors it earns royal favor (RoyalFavorValue, see
+	     Patches/Traders_ImperialTome.xml); studied, it gives a random imperial techprint (CompUseEffect_ImperialBlueprint). -->
+	<ThingDef ParentName="ResourceBase">
+		<defName>MJV_ImperialTome</defName>
+		<label>imperial tome</label>
+		<description>A rare book of sacred imperial scriptures, bound in gilded leather. Imperial traders sometimes offer one, and they turn up as rewards and in forgotten places.\n\nAn imperial tribute collector accepts the tome as tribute worth a solid amount of royal favor. Alternatively, a colonist can study it to decipher the technical appendices hidden in its canon: studying it applies a techprint for a random project whose techprints the Empire holds.</description>
+		<thingClass>ThingWithComps</thingClass>
+		<techLevel>Spacer</techLevel>
+		<graphicData>
+			<texPath>Things/Item/Special/ImperialTome</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<drawSize>(0.9, 0.9)</drawSize>
+		</graphicData>
+		<stackLimit>1</stackLimit>
+		<tickerType>Never</tickerType>
+		<useHitPoints>true</useHitPoints>
+		<healthAffectsPrice>false</healthAffectsPrice>
+		<statBases>
+			<MaxHitPoints>60</MaxHitPoints>
+			<MarketValue>1400</MarketValue>
+			<Mass>1.2</Mass>
+			<Flammability>1</Flammability>
+			<DeteriorationRate>1.5</DeteriorationRate>
+			<Beauty>6</Beauty>
+			<RoyalFavorValue>6</RoyalFavorValue>
+		</statBases>
+		<thingCategories>
+			<li>ItemsMisc</li>
+		</thingCategories>
+		<tradeTags>
+			<li>ExoticMisc</li>
+			<li>MJV_ImperialTome</li>
+		</tradeTags>
+		<thingSetMakerTags>
+			<li>RewardStandardMidFreq</li>
+		</thingSetMakerTags>
+		<comps>
+			<li Class="CompProperties_Usable">
+				<useJob>UseItem</useJob>
+				<useLabel>Study {0_label}</useLabel>
+				<useDuration>2500</useDuration>
+			</li>
+			<li Class="JusticiarValor.CompProperties_UseEffectImperialBlueprint">
+				<factionCategoryTags>
+					<li>Empire</li>
+				</factionCategoryTags>
+			</li>
+			<li Class="CompProperties_UseEffectDestroySelf" />
+		</comps>
+	</ThingDef>
+
+</Defs>

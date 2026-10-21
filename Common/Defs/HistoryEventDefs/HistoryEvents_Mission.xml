@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- Reason of the Empire's goodwill gain when a sermon converts colonists. -->
+  <HistoryEventDef>
+    <defName>MJV_ConvertedToImperialFaith</defName>
+    <label>colonists converted to the imperial faith</label>
+  </HistoryEventDef>
+
+</Defs>

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<!-- Promachos helmet: severity = hostile pawns attacking or aiming at the wearer (set by CompThreatSense). -->
+	<HediffDef>
+		<defName>MJV_MurderousIntent</defName>
+		<label>sensed murderous intent</label>
+		<description>The wearer's Promachos helmet senses hostile intent aimed at them. With each such thought it feeds an extra surge of stimulation into the wearer's brain, quickening their reactions and movement. The more enemies take aim at the wearer, the stronger the surge.</description>
+		<hediffClass>HediffWithComps</hediffClass>
+		<defaultLabelColor>(0.55, 0.95, 0.85)</defaultLabelColor>
+		<isBad>false</isBad>
+		<initialSeverity>1</initialSeverity>
+		<maxSeverity>5</maxSeverity>
+		<everCurableByItem>false</everCurableByItem>
+		<stages>
+			<li>
+				<label>alert</label>
+				<capMods>
+					<li>
+						<capacity>Consciousness</capacity>
+						<offset>0.05</offset>
+					</li>
+					<li>
+						<capacity>Moving</capacity>
+						<offset>0.04</offset>
+					</li>
+				</capMods>
+				<statOffsets>
+					<MeleeDodgeChance>4</MeleeDodgeChance>
+				</statOffsets>
+				<statFactors>
+					<AimingDelayFactor>0.92</AimingDelayFactor>
+				</statFactors>
+			</li>
+			<li>
+				<minSeverity>1.5</minSeverity>
+				<label>keen</label>
+				<capMods>
+					<li>
+						<capacity>Consciousness</capacity>
+						<offset>0.10</offset>
+					</li>
+					<li>
+						<capacity>Moving</capacity>
+						<offset>0.08</offset>
+					</li>
+				</capMods>
+				<statOffsets>
+					<MeleeDodgeChance>8</MeleeDodgeChance>
+				</statOffsets>
+				<statFactors>
+					<AimingDelayFactor>0.84</AimingDelayFactor>
+				</statFactors>
+			</li>
+			<li>
+				<minSeverity>3.5</minSeverity>
+				<label>battle trance</label>
+				<capMods>
+					<li>
+						<capacity>Consciousness</capacity>
+						<offset>0.15</offset>
+					</li>
+					<li>
+						<capacity>Moving</capacity>
+						<offset>0.12</offset>
+					</li>
+				</capMods>
+				<statOffsets>
+					<MeleeDodgeChance>12</MeleeDodgeChance>
+					<MeleeHitChance>4</MeleeHitChance>
+				</statOffsets>
+				<statFactors>
+					<AimingDelayFactor>0.75</AimingDelayFactor>
+				</statFactors>
+			</li>
+		</stages>
+	</HediffDef>
+
+	<!-- Justiciar Valor: the daze its psychic wave leaves behind. -->
+	<HediffDef>
+		<defName>MJV_PsychicDaze</defName>
+		<label>psychic daze</label>
+		<description>Reeling from an eltex psychic wave. Movement and awareness are dulled for a few seconds.</description>
+		<hediffClass>HediffWithComps</hediffClass>
+		<defaultLabelColor>(0.75, 0.7, 1)</defaultLabelColor>
+		<isBad>true</isBad>
+		<everCurableByItem>false</everCurableByItem>
+		<stages>
+			<li>
+				<capMods>
+					<li>
+						<capacity>Moving</capacity>
+						<offset>-0.35</offset>
+					</li>
+					<li>
+						<capacity>Consciousness</capacity>
+						<offset>-0.1</offset>
+					</li>
+				</capMods>
+			</li>
+		</stages>
+		<comps>
+			<li Class="HediffCompProperties_Disappears">
+				<disappearsAfterTicks>270~330</disappearsAfterTicks>
+				<showRemainingTime>true</showRemainingTime>
+			</li>
+		</comps>
+	</HediffDef>
+
+	<!-- Energy psyspear: the slow a psy-orb leaves on the pawn it hits. -->
+	<HediffDef>
+		<defName>MJV_PsyOrbSlow</defName>
+		<label>psy-orb drag</label>
+		<description>A psy-orb's residual field clings to this creature's nerves, slowing its movement.</description>
+		<hediffClass>HediffWithComps</hediffClass>
+		<defaultLabelColor>(0.55, 0.95, 0.85)</defaultLabelColor>
+		<isBad>true</isBad>
+		<everCurableByItem>false</everCurableByItem>
+		<stages>
+			<li>
+				<capMods>
+					<li>
+						<capacity>Moving</capacity>
+						<offset>-0.3</offset>
+					</li>
+				</capMods>
+			</li>
+		</stages>
+		<comps>
+			<li Class="HediffCompProperties_Disappears">
+				<disappearsAfterTicks>180~240</disappearsAfterTicks>
+				<showRemainingTime>true</showRemainingTime>
+			</li>
+		</comps>
+	</HediffDef>
+
+	<!-- Promachos armor's Invictus: overdriven servos. The duration is set from the stored charge when cast. -->
+	<HediffDef>
+		<defName>MJV_InvictusOverdrive</defName>
+		<label>Invictus overdrive</label>
+		<description>The Promachos armor has dumped its stored psychic energy into its shield and servos. Its wearer moves and strikes at a blinding pace, leaving afterimages behind.</description>
+		<hediffClass>HediffWithComps</hediffClass>
+		<defaultLabelColor>(0.75, 0.7, 1)</defaultLabelColor>
+		<isBad>false</isBad>
+		<everCurableByItem>false</everCurableByItem>
+		<stages>
+			<li>
+				<statOffsets>
+					<MoveSpeed>2.6</MoveSpeed>
+					<MeleeDodgeChance>20</MeleeDodgeChance>
+					<MeleeHitChance>6</MeleeHitChance>
+				</statOffsets>
+				<statFactors>
+					<MeleeCooldownFactor>0.5</MeleeCooldownFactor>
+					<AimingDelayFactor>0.5</AimingDelayFactor>
+					<RangedCooldownFactor>0.6</RangedCooldownFactor>
+				</statFactors>
+			</li>
+		</stages>
+		<comps>
+			<li Class="HediffCompProperties_Disappears">
+				<disappearsAfterTicks>480</disappearsAfterTicks>
+				<showRemainingTime>true</showRemainingTime>
+			</li>
+			<li Class="JusticiarValor.HediffCompProperties_Afterimages">
+				<intervalTicks>3</intervalTicks>
+				<lifeSeconds>0.42</lifeSeconds>
+				<colors>
+					<li>(0.45, 0.95, 0.85, 1)</li>
+					<li>(0.35, 0.78, 1, 1)</li>
+					<li>(0.68, 0.52, 1, 1)</li>
+					<li>(1, 0.48, 0.78, 1)</li>
+				</colors>
+			</li>
+		</comps>
+	</HediffDef>
+
+</Defs>

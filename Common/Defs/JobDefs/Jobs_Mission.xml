@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <JobDef>
+    <defName>MJV_PreachSermon</defName>
+    <driverClass>JusticiarValor.JobDriver_MJV_DeliverSermon</driverClass>
+    <reportString>preaching the imperial faith.</reportString>
+    <casualInterruptible>false</casualInterruptible>
+    <neverShowWeapon>true</neverShowWeapon>
+  </JobDef>
+
+</Defs>
