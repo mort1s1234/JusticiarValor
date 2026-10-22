@@ -35,8 +35,13 @@ else {
     if (-not $PreviewTexture) {
         $PreviewTexture = Join-Path $modRoot 'Common\Textures\Things\Pawn\Humanlike\Apparel\PromachosArmor\PromachosArmor_Male_south.png'
     }
+    # The Celestial Pierce row draws the psyblade's own texture: its def's texPath, as in the game (FxAssets).
+    [xml]$weapons = Get-Content -LiteralPath (Join-Path $modRoot 'Common\Defs\ThingDefs_Misc\Weapons\EnergyPsyWeapons.xml') -Raw -Encoding utf8
+    $bladePath = ($weapons.Defs.ThingDef | Where-Object { $_.defName -eq 'MJV_MeleeWeapon_EnergyPsyblade' }).graphicData.texPath
+    if (-not $bladePath) { throw 'MJV_MeleeWeapon_EnergyPsyblade has no texPath' }
+    $bladeTexture = Join-Path $modRoot ('Common\Textures\' + $bladePath.Replace('/', '\') + '.png')
     $arguments += @('-executeMethod', 'JusticiarValorBundleBuilder.Preview', '-jvPreviewOut', "`"$PreviewOut`"", '-jvPreviewTexture', "`"$PreviewTexture`"",
-        '-jvTextureRoot', "`"$(Join-Path $modRoot 'Common\Textures\Effects\JusticiarValor\Piloto')`"")
+        '-jvTextureRoot', "`"$(Join-Path $modRoot 'Common\Textures\Effects\JusticiarValor\Piloto')`"", '-jvBladeTexture', "`"$bladeTexture`"")
 }
 $process = Start-Process -FilePath $UnityExe -ArgumentList $arguments -PassThru -WindowStyle Hidden
 if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {

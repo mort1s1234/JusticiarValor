@@ -5,7 +5,7 @@
 	<AbilityDef>
 		<defName>MJV_JusticiarValor</defName>
 		<label>Justiciar Valor</label>
-		<description>Channel an extra charge through the helmet's eltex until it resonates and releases a psychic wave around the wearer. The wave throws nearby enemies back, damages them and leaves them dazed.\n\nThe wearer of the Promachos helmet cannot be arrested while conscious: an attempt triggers Justiciar Valor at once, and the wearer takes it as an attack.</description>
+		<description>Channel an extra charge through the helmet's eltex until it resonates and releases a psychic wave around the wearer. The wave throws everyone nearby back, allies included, damages them and leaves them dazed.\n\nThe wearer of the Promachos helmet cannot be arrested while conscious: an attempt triggers Justiciar Valor at once, and the wearer takes it as an attack.</description>
 		<iconPath>UI/Abilities/MJV_JusticiarValor</iconPath>
 		<cooldownTicksRange>3600</cooldownTicksRange>
 		<targetRequired>false</targetRequired>
@@ -35,6 +35,7 @@
 		<comps>
 			<li Class="JusticiarValor.CompProperties_AbilityJusticiarValor">
 				<radius>4.9</radius>
+				<friendlyFire>true</friendlyFire>
 				<damageDef>MJV_PsychicConcussion</damageDef>
 				<damage>14</damage>
 				<armorPenetration>0.4</armorPenetration>
@@ -91,7 +92,7 @@
 	<AbilityDef>
 		<defName>MJV_CelestialPierce</defName>
 		<label>Celestial Pierce</label>
-		<description>Conjure a psychic blade from the psyblade's point and thrust it forward, impaling every foe in a line up to three cells away. The blade stops at walls.</description>
+		<description>Conjure a psychic blade from the psyblade's point and thrust it forward, impaling everyone in a line up to three cells away, allies included. The blade stops at walls.</description>
 		<iconPath>UI/Abilities/MJV_CelestialPierce</iconPath>
 		<cooldownTicksRange>600</cooldownTicksRange>
 		<hostile>true</hostile>
@@ -118,6 +119,7 @@
 			<li Class="JusticiarValor.CompProperties_AbilityCelestialPierce">
 				<length>3.6</length>
 				<halfWidth>0.45</halfWidth>
+				<friendlyFire>true</friendlyFire>
 				<damageDef>Stab</damageDef>
 				<damage>24</damage>
 				<armorPenetration>0.85</armorPenetration>

@@ -10,6 +10,9 @@ namespace JusticiarValor
     {
         public float radius = 4.9f;
 
+        // Whether the wave strikes everyone around the wearer, allies included, or only the wearer's foes.
+        public bool friendlyFire = true;
+
         public DamageDef damageDef;
 
         public float damage = 14f;
@@ -40,7 +43,7 @@ namespace JusticiarValor
     }
 
     // Justiciar Valor (Promachos helmet): the eltex resonates and releases a psychic wave around the wearer that throws
-    // enemies back, damages them and leaves them dazed.
+    // everyone around back, allies included, damages them and leaves them dazed.
     public class CompAbilityEffect_JusticiarValor : CompAbilityEffect
     {
         public new CompProperties_AbilityJusticiarValor Props => (CompProperties_AbilityJusticiarValor)props;
@@ -58,22 +61,43 @@ namespace JusticiarValor
             {
                 return false;
             }
-            List<Pawn> enemies = JVUtility.HostilePawnsAround(caster, caster.Position, caster.Map, Props.radius);
+            List<Pawn> caught = JusticiarValorWave.Victims(caster, Props, null);
             int standing = 0;
-            for (int i = 0; i < enemies.Count; i++)
+            bool threatened = false;
+            for (int i = 0; i < caught.Count; i++)
             {
-                Pawn enemy = enemies[i];
-                if (enemy.Downed)
+                Pawn pawn = caught[i];
+                if (JVUtility.IsAlly(caster, pawn))
+                {
+                    // The AI does not blast its own side.
+                    return false;
+                }
+                if (!pawn.HostileTo(caster) || pawn.Downed)
                 {
                     continue;
                 }
                 standing++;
-                if (enemy.Position.AdjacentTo8WayOrInside(caster.Position) && JVUtility.IsTargeting(enemy, caster))
+                threatened |= pawn.Position.AdjacentTo8WayOrInside(caster.Position) && JVUtility.IsTargeting(pawn, caster);
+            }
+            return threatened || standing >= Props.aiMinTargets;
+        }
+
+        // While the gizmo is hovered (the game draws the wave's radius): the allies it would strike.
+        public override void OnGizmoUpdate()
+        {
+            Pawn caster = parent.pawn;
+            if (caster?.Map == null || !Props.friendlyFire)
+            {
+                return;
+            }
+            List<Pawn> caught = JusticiarValorWave.Victims(caster, Props, null);
+            for (int i = 0; i < caught.Count; i++)
+            {
+                if (JVUtility.IsAlly(caster, caught[i]))
                 {
-                    return true;
+                    GenDraw.DrawTargetHighlight(caught[i]);
                 }
             }
-            return standing >= Props.aiMinTargets;
         }
     }
 
@@ -95,6 +119,30 @@ namespace JusticiarValor
             return new CompProperties_AbilityJusticiarValor();
         }
 
+        // Everyone the wave strikes around the caster: all but the caster with friendly fire, else the caster's foes.
+        // extraVictim is struck either way: an arrester.
+        public static List<Pawn> Victims(Pawn caster, CompProperties_AbilityJusticiarValor props, Pawn extraVictim)
+        {
+            var victims = new List<Pawn>();
+            Map map = caster.Map;
+            if (map == null)
+            {
+                return victims;
+            }
+            foreach (Thing thing in GenRadial.RadialDistinctThingsAround(caster.Position, map, props.radius, true))
+            {
+                if (thing is Pawn pawn && pawn != caster && !pawn.Dead && (props.friendlyFire || pawn == extraVictim || pawn.HostileTo(caster)))
+                {
+                    victims.Add(pawn);
+                }
+            }
+            if (extraVictim != null && extraVictim.Spawned && extraVictim.Map == map && !victims.Contains(extraVictim))
+            {
+                victims.Add(extraVictim);
+            }
+            return victims;
+        }
+
         // Releases the wave around the caster. extraVictim is hit even if not hostile: an arrester.
         public static void Release(Pawn caster, CompProperties_AbilityJusticiarValor props, Pawn extraVictim)
         {
@@ -111,36 +159,30 @@ namespace JusticiarValor
                 Find.CameraDriver.shaker.DoShake(0.6f);
             }
 
-            var victims = new List<Pawn>();
-            foreach (Thing thing in GenRadial.RadialDistinctThingsAround(caster.Position, map, props.radius, true))
-            {
-                if (thing is Pawn pawn && pawn != caster && !pawn.Dead && (pawn == extraVictim || pawn.HostileTo(caster)))
-                {
-                    victims.Add(pawn);
-                }
-            }
-            if (extraVictim != null && extraVictim.Spawned && extraVictim.Map == map && !victims.Contains(extraVictim))
-            {
-                victims.Add(extraVictim);
-            }
+            List<Pawn> victims = Victims(caster, props, extraVictim);
+            // The arrester is the one the wave answers; otherwise the closest foe (vanilla crossfire for third parties).
+            Pawn intended = extraVictim ?? JVUtility.ClosestFoe(caster, victims);
             for (int i = 0; i < victims.Count; i++)
             {
-                Hit(caster, victims[i], props);
+                Hit(caster, victims[i], props, intended);
             }
         }
 
-        private static void Hit(Pawn caster, Pawn victim, CompProperties_AbilityJusticiarValor props)
+        private static void Hit(Pawn caster, Pawn victim, CompProperties_AbilityJusticiarValor props, Pawn intended)
         {
             Map map = victim.Map;
             float angle = JVMath.AngleFlat(caster.DrawPos, victim.DrawPos);
             if (props.damageDef != null && props.damage > 0f)
             {
-                victim.TakeDamage(new DamageInfo(props.damageDef, props.damage, props.armorPenetration, angle, caster));
+                victim.TakeDamage(new DamageInfo(props.damageDef, props.damage, props.armorPenetration, angle, caster, null, null,
+                    DamageInfo.SourceCategory.ThingOrUnknown, intended));
             }
             if (victim.Dead || !victim.Spawned)
             {
                 return;
             }
+            // Whether the blow throws the victim back is settled before the daze, which must never decide it.
+            bool thrown = !victim.Downed && victim.BodySize <= props.maxKnockbackBodySize && !victim.InBed() && MJV_DefOf.PawnFlyer_Stun != null;
             if (props.dazeHediff != null)
             {
                 Hediff existing = victim.health.hediffSet.GetFirstHediffOfDef(props.dazeHediff);
@@ -150,7 +192,7 @@ namespace JusticiarValor
                 }
                 victim.health.AddHediff(props.dazeHediff);
             }
-            if (!victim.Downed && victim.BodySize <= props.maxKnockbackBodySize && !victim.InBed() && MJV_DefOf.PawnFlyer_Stun != null)
+            if (thrown)
             {
                 IntVec3 from = victim.Position;
                 IntVec3 dest = JVUtility.KnockbackCell(caster.Position, victim, props.knockbackDistance);

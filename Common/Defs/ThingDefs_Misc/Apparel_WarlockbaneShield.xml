@@ -86,7 +86,7 @@
 					<li>Hands</li>
 				</coveredBodyPartGroups>
 				<offHandGraphicData>
-					<texPath>Things/Item/Equipment/Shield/WarlockbaneShield</texPath>
+					<texPath>Things/Item/Equipment/Shield/MJV_WarlockbaneShield</texPath>
 					<graphicClass>Graphic_Single</graphicClass>
 					<drawSize>0.78</drawSize>
 				</offHandGraphicData>

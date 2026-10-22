@@ -76,7 +76,8 @@
 		</stages>
 	</HediffDef>
 
-	<!-- Justiciar Valor: the daze its psychic wave leaves behind. -->
+	<!-- Justiciar Valor: the daze its psychic wave leaves behind. Stat factors only: a capacity offset would down a
+	     wounded pawn (a hostile mech then lies there instead of dying, and gets up when the daze ends). -->
 	<HediffDef>
 		<defName>MJV_PsychicDaze</defName>
 		<label>psychic daze</label>
@@ -87,16 +88,10 @@
 		<everCurableByItem>false</everCurableByItem>
 		<stages>
 			<li>
-				<capMods>
-					<li>
-						<capacity>Moving</capacity>
-						<offset>-0.35</offset>
-					</li>
-					<li>
-						<capacity>Consciousness</capacity>
-						<offset>-0.1</offset>
-					</li>
-				</capMods>
+				<statFactors>
+					<MoveSpeed>0.65</MoveSpeed>
+					<AimingDelayFactor>1.2</AimingDelayFactor>
+				</statFactors>
 			</li>
 		</stages>
 		<comps>
@@ -107,7 +102,7 @@
 		</comps>
 	</HediffDef>
 
-	<!-- Energy psyspear: the slow a psy-orb leaves on the pawn it hits. -->
+	<!-- Energy psyspear: the slow a psy-orb leaves on the pawn it hits. A stat factor, like the psychic daze. -->
 	<HediffDef>
 		<defName>MJV_PsyOrbSlow</defName>
 		<label>psy-orb drag</label>
@@ -118,12 +113,9 @@
 		<everCurableByItem>false</everCurableByItem>
 		<stages>
 			<li>
-				<capMods>
-					<li>
-						<capacity>Moving</capacity>
-						<offset>-0.3</offset>
-					</li>
-				</capMods>
+				<statFactors>
+					<MoveSpeed>0.7</MoveSpeed>
+				</statFactors>
 			</li>
 		</stages>
 		<comps>

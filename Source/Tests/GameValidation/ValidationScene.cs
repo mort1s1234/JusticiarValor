@@ -137,6 +137,12 @@ namespace JusticiarValorValidation
         {
             Faction faction = Find.FactionManager.AllFactions.FirstOrDefault(f => !f.IsPlayer && f.def.humanlikeFaction && f.HostileTo(Faction.OfPlayer) && !f.Hidden)
                 ?? Find.FactionManager.AllFactions.First(f => f.HostileTo(Faction.OfPlayer));
+            return MakePawn(cell, faction, stun);
+        }
+
+        // A pawn of the faction for a check (removed by ClearExtras), stunned in place unless stun is false.
+        private Pawn MakePawn(IntVec3 cell, Faction faction, bool stun = true)
+        {
             var request = new PawnGenerationRequest(PawnKindDefOf.Colonist, faction, forceGenerateNewPawn: true, canGeneratePawnRelations: false);
             Pawn pawn = PawnGenerator.GeneratePawn(request);
             pawn.equipment?.DestroyAllEquipment();
@@ -154,6 +160,32 @@ namespace JusticiarValorValidation
             }
             extras.Add(pawn);
             return pawn;
+        }
+
+        // A mechanoid of the mechanoid faction (removed by ClearExtras), stunned in place; null without that kind or faction.
+        private Pawn MakeMech(string kindName, IntVec3 cell)
+        {
+            PawnKindDef kind = DefDatabase<PawnKindDef>.GetNamedSilentFail(kindName);
+            if (kind == null || Faction.OfMechanoids == null)
+            {
+                return null;
+            }
+            Pawn mech = PawnGenerator.GeneratePawn(new PawnGenerationRequest(kind, Faction.OfMechanoids, forceGenerateNewPawn: true));
+            GenSpawn.Spawn(mech, cell, map);
+            mech.stances.stunner.StunFor(100000, null, false, false, false);
+            extras.Add(mech);
+            return mech;
+        }
+
+        // Hits the pawn's legs until its Moving capacity is down to about `moving`, as a fight would.
+        private static void WoundLegs(Pawn pawn, float moving)
+        {
+            List<BodyPartRecord> legs = pawn.health.hediffSet.GetNotMissingParts()
+                .Where(part => part.def.tags.Contains(BodyPartTagDefOf.MovingLimbCore)).ToList();
+            for (int n = 0; n < 200 && legs.Count > 0 && !pawn.Dead && pawn.health.capacities.GetLevel(PawnCapacityDefOf.Moving) > moving; n++)
+            {
+                pawn.TakeDamage(new DamageInfo(DamageDefOf.Blunt, 1f, 99f, -1f, null, legs[n % legs.Count]));
+            }
         }
 
         private void ClearExtras()
@@ -189,6 +221,14 @@ namespace JusticiarValorValidation
 
         private static int Injuries(Pawn pawn) => pawn.health.hediffSet.hediffs.Count(h => h is Hediff_Injury);
 
+        // A pawn's injuries and what dealt them, to tell a stray hit from the effect under test.
+        private static string Wounds(Pawn pawn)
+        {
+            List<Hediff_Injury> injuries = pawn.health.hediffSet.hediffs.OfType<Hediff_Injury>().ToList();
+            return injuries.Count == 0 ? "" : " (" + string.Join(", ", injuries.Select(h => h.def.defName + " " + h.Severity.ToString("0.#")
+                + " from " + (h.sourceDef?.defName ?? "?"))) + ")";
+        }
+
         // ---------------------------------------------------------------------------------------------------------
         // Logic
 
@@ -219,9 +259,12 @@ namespace JusticiarValorValidation
                 && !FxAssets.SermonHalo.HasProperty("_MainTex"),
                 "the original shield, sermon halo and conversion shaders use no animation atlas");
 
+            // The starting colonists stay out of the checks: drafted, so they do not wander in, and holding their fire, or
+            // their guns would shoot at the checks' foes.
             foreach (Pawn colonist in map.mapPawns.FreeColonistsSpawned.ToList())
             {
                 colonist.drafter.Drafted = true;
+                colonist.drafter.FireAtWill = false;
             }
             center = FindOpenArea(map.mapPawns.FreeColonistsSpawned.First().Position, 9, 7);
             PrepareEffectStage(map, center, 12, 9);
@@ -261,26 +304,103 @@ namespace JusticiarValorValidation
             Check(shield != null && warlockbane != null, "the armor and the shield carry their comps");
 
             JusticiarValidation.Line("== Justiciar Valor");
+            // The spear's orbs would join in on the wave's victims.
+            synthesizer.AutoLaunch = false;
+            Check(new[] { MJV_DefOf.MJV_PsychicDaze, MJV_DefOf.MJV_PsyOrbSlow }.All(h => h.stages.All(s => s.capMods.NullOrEmpty())),
+                "the psychic daze and the psy-orb drag only slow: no capacity offset that could down a wounded pawn");
             var victims = new List<Pawn>
             {
                 MakeHostile(center + new IntVec3(2, 0, 0)),
                 MakeHostile(center + new IntVec3(-2, 0, 1)),
                 MakeHostile(center + new IntVec3(0, 0, -2))
             };
+            var valorComp = valor.CompOfType<CompAbilityEffect_JusticiarValor>();
+            bool aiWithFoesOnly = valorComp.AICanTargetNow(new LocalTargetInfo(justiciar));
+            string caught = string.Join(", ", JusticiarValorWave.Victims(justiciar, JusticiarValorWave.PropsFor(MJV_DefOf.MJV_JusticiarValor), null)
+                .Select(p => p.LabelShort + " (" + (p.Faction?.Name ?? "no faction") + (p.HostileTo(justiciar) ? ", hostile" : "") + ")"));
+            Pawn ally = MakePawn(center + new IntVec3(1, 0, 2), Faction.OfPlayer);
+            victims.Add(ally);
+            Check(aiWithFoesOnly && !valorComp.AICanTargetNow(new LocalTargetInfo(justiciar)),
+                "the AI releases the wave among foes, but not with an ally in it" + (aiWithFoesOnly ? "" : " (in the wave: " + caught + ")"));
+            // A neutral visitor caught along with the enemies, from a faction hostile to them too: vanilla crossfire.
+            Faction enemies = victims[0].Faction;
+            Faction neutral = Find.FactionManager.AllFactions.FirstOrDefault(f => !f.IsPlayer && !f.Hidden && !f.temporary && f.def.humanlikeFaction
+                && !f.HostileTo(Faction.OfPlayer) && f != Find.FactionManager.OfEmpire && f.HostileTo(enemies));
+            int goodwill0 = neutral?.PlayerGoodwill ?? 0;
+            if (neutral != null)
+            {
+                victims.Add(MakePawn(center + new IntVec3(-2, 0, -1), neutral));
+            }
             var before = victims.ToDictionary(v => v, v => (health: Health(v), distance: v.Position.DistanceTo(justiciar.Position)));
             int effectsBefore = Fx.ActiveEffectCount;
             valor.Activate(new LocalTargetInfo(justiciar), new LocalTargetInfo(justiciar));
             Check(EffectCount("PsychicWaveFx") >= 1 && Fx.ActiveEffectCount > effectsBefore, "Justiciar Valor spawns its shockwave effect");
-            Check(map.listerThings.ThingsOfDef(MJV_DefOf.PawnFlyer_Stun).Count >= 1, "Justiciar Valor throws enemies back (PawnFlyer_Stun)");
-            Check(victims.All(v => v.Dead || v.health.hediffSet.HasHediff(MJV_DefOf.MJV_PsychicDaze)), "every victim is dazed");
+            Check(map.listerThings.ThingsOfDef(MJV_DefOf.PawnFlyer_Stun).Count >= 1, "Justiciar Valor throws its victims back (PawnFlyer_Stun)");
+            Check(victims.All(v => v.Dead || v.health.hediffSet.HasHediff(MJV_DefOf.MJV_PsychicDaze)), "every victim is dazed, allies included");
+            Check(!justiciar.health.hediffSet.HasHediff(MJV_DefOf.MJV_PsychicDaze), "the wearer is spared");
             Ticks(200);
-            Check(victims.All(v => v.Dead || Health(v) < before[v].health), "every victim took damage");
+            Check(victims.All(v => v.Dead || Health(v) < before[v].health), "every victim took damage, allies included");
             // A victim the blow itself downed is not thrown (by design), only stunned.
             Check(victims.Where(v => !v.Dead && !v.Downed && v.Spawned).All(v => v.Position.DistanceTo(justiciar.Position) > before[v].distance + 0.9f),
                 "every victim still standing landed farther away (" + string.Join(", ", victims.Select(v => before[v].distance.ToString("0.0") + " -> "
                     + (v.Dead ? "dead" : v.Downed ? "downed" : v.Spawned ? v.Position.DistanceTo(justiciar.Position).ToString("0.0") : "in the air"))) + ")");
+            if (neutral != null)
+            {
+                Check(neutral.PlayerGoodwill == goodwill0, "a neutral visitor caught with the enemies costs no goodwill (crossfire)");
+            }
             Check(valor.OnCooldown, "Justiciar Valor goes on cooldown");
             ClearExtras();
+            // A mechanoid wounded as in a fight: a capacity-based daze used to down it, so it was neither thrown nor killed
+            // and got up again when the daze wore off. The blow's damage is left out: one that downs a mech kills it, as
+            // in vanilla.
+            Pawn mech = MakeMech("Mech_Lancer", center + new IntVec3(2, 0, 0));
+            if (mech != null)
+            {
+                WoundLegs(mech, 0.45f);
+                float moving0 = mech.health.capacities.GetLevel(PawnCapacityDefOf.Moving);
+                float distance0 = mech.Position.DistanceTo(justiciar.Position);
+                CompProperties_AbilityJusticiarValor props = JusticiarValorWave.PropsFor(MJV_DefOf.MJV_JusticiarValor);
+                JusticiarValorWave.Release(justiciar, new CompProperties_AbilityJusticiarValor
+                {
+                    radius = props.radius,
+                    dazeHediff = props.dazeHediff,
+                    knockbackDistance = props.knockbackDistance,
+                    maxKnockbackBodySize = props.maxKnockbackBodySize,
+                    stunTicks = props.stunTicks
+                }, null);
+                Ticks(200);
+                Check(!mech.Dead && !mech.Downed && mech.health.hediffSet.HasHediff(MJV_DefOf.MJV_PsychicDaze)
+                    && mech.Position.DistanceTo(justiciar.Position) > distance0 + 0.9f,
+                    "a wounded mechanoid is dazed and thrown back like the others, and stays up (moving " + moving0.ToString("0.00") + " -> "
+                    + mech.health.capacities.GetLevel(PawnCapacityDefOf.Moving).ToString("0.00") + ", " + distance0.ToString("0.0") + " -> "
+                    + (mech.Spawned ? mech.Position.DistanceTo(justiciar.Position).ToString("0.0") : "in the air") + ")");
+                ClearExtras();
+            }
+            else
+            {
+                JusticiarValidation.Line("SKIP no mechanoid to test");
+            }
+            if (neutral != null)
+            {
+                // With no enemy around, the wave is aimed at whoever it strikes: vanilla charges the visitor's faction.
+                FactionRelationKind relation0 = neutral.PlayerRelationKind;
+                goodwill0 = neutral.PlayerGoodwill;
+                MakePawn(center + new IntVec3(2, 0, 0), neutral);
+                JusticiarValorWave.Release(justiciar, JusticiarValorWave.PropsFor(MJV_DefOf.MJV_JusticiarValor), null);
+                Check(neutral.PlayerGoodwill < goodwill0, "the wave blasting a lone neutral visitor costs goodwill (" + goodwill0 + " -> " + neutral.PlayerGoodwill + ")");
+                neutral.TryAffectGoodwillWith(Faction.OfPlayer, goodwill0 - neutral.PlayerGoodwill, false, false);
+                if (neutral.PlayerRelationKind != relation0)
+                {
+                    neutral.SetRelationDirect(Faction.OfPlayer, relation0, false);
+                }
+                Ticks(200);
+                ClearExtras();
+            }
+            else
+            {
+                JusticiarValidation.Line("SKIP no neutral faction hostile to " + enemies?.Name + " for the goodwill checks");
+            }
+            synthesizer.AutoLaunch = true;
 
             JusticiarValidation.Line("== Murderous intent");
             Pawn aim1 = MakeHostile(center + new IntVec3(5, 0, 3));
@@ -357,10 +477,43 @@ namespace JusticiarValorValidation
             orbsField.SetValue(synthesizer, 0);
             Ticks(301);
             Check(synthesizer.Orbs == 1, "the psy-spear synthesizes an orb in five seconds (" + synthesizer.Orbs + ")");
+            Check(synthesizer.Deployed && MapComponent_JusticiarFx.IsRegistered(map, synthesizer), "the orbs are out around a drafted wielder");
             synthesizer.AutoLaunch = false;
             Ticks(301);
             Check(synthesizer.Orbs == 1, "nothing is synthesized while the auto-ability is off");
+            Check(!synthesizer.Deployed, "switching the auto-ability off takes the orbs back into the spear, where they are kept");
             synthesizer.AutoLaunch = true;
+            // Out of combat: an undrafted wielder at work keeps them inside, and nothing is drawn.
+            HostilityResponseMode response = spearman.playerSettings.hostilityResponse;
+            spearman.drafter.Drafted = false;
+            spearman.playerSettings.hostilityResponse = HostilityResponseMode.Ignore;
+            spearman.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Wait, 100000), JobCondition.InterruptForced);
+            Ticks(synthesizer.OrbProps.combatGraceTicks + 40);
+            yield return 2;
+            Check(!synthesizer.Deployed && !MapComponent_JusticiarFx.IsRegistered(map, synthesizer) && synthesizer.Orbs >= 1,
+                "out of combat the orbs stay inside the spear and nothing is drawn (" + synthesizer.Orbs + " kept)");
+            MakeHostile(spearman.Position + new IntVec3(0, 0, 9));
+            Ticks(31);
+            Check(synthesizer.Deployed, "an active threat nearby brings the orbs out without drafting");
+            ClearExtras();
+            spearman.playerSettings.hostilityResponse = response;
+            spearman.jobs.StopAll();
+            spearman.drafter.Drafted = true;
+            // Sleeping foes are left alone, as turrets leave them: a hit on a dormant mechanoid would wake it and its cluster.
+            orbsField.SetValue(synthesizer, 3);
+            Pawn dormant = MakeMech("Mech_Scyther", spearman.Position + new IntVec3(0, 0, 7));
+            CompCanBeDormant dormancy = dormant?.GetComp<CompCanBeDormant>();
+            if (dormancy != null)
+            {
+                dormancy.ToSleep();
+                Ticks(40);
+                Check(synthesizer.Orbs == 3 && !dormancy.Awake, "the orbs leave a dormant mechanoid alone (" + synthesizer.Orbs + " orbs)");
+            }
+            else
+            {
+                JusticiarValidation.Line("SKIP no dormant mechanoid to test");
+            }
+            ClearExtras();
             orbsField.SetValue(synthesizer, 3);
             var orbPosition = AccessTools.Method(typeof(CompPsyOrbSynthesizer), "OrbPosition");
             Vector3 slotBefore = (Vector3)orbPosition.Invoke(synthesizer, new object[] { spearman, 1, FxClock.Now });
@@ -369,6 +522,8 @@ namespace JusticiarValorValidation
             Check(JVMath.DistanceFlatSquared(slotBefore, slotAfter) < 0.000001f,
                 "remaining orbs keep their positions when another orb is fired");
             orbsField.SetValue(synthesizer, 3);
+            // The steps above may have launched an orb just now; this one measures a launch from a rested spear.
+            AccessTools.Field(typeof(CompPsyOrbSynthesizer), "launchCooldown").SetValue(synthesizer, 0);
             Pawn orbTarget = MakeHostile(spearman.Position + new IntVec3(0, 0, 7));
             float orbHealth = Health(orbTarget);
             Ticks(15);
@@ -380,6 +535,8 @@ namespace JusticiarValorValidation
             ClearExtras();
 
             JusticiarValidation.Line("== Celestial Pierce");
+            // The spear's orbs would join in on the foes around the line.
+            synthesizer.AutoLaunch = false;
             Check(ReferenceEquals(FxAssets.BladeFor(bladesman.equipment.Primary).mainTexture,
                 bladesman.equipment.Primary.Graphic.MatSingleFor(bladesman.equipment.Primary).mainTexture),
                 "the spectral blade uses the equipped sword's actual texture");
@@ -389,17 +546,32 @@ namespace JusticiarValorValidation
             // Manual tick batches do not update the renderer between ticks.
             bladesman.Drawer.tweener.ResetTweenedPosToRoot();
             Pawn inLine1 = MakeHostile(bladesman.Position + new IntVec3(1, 0, 0));
+            Pawn lineAlly = MakePawn(bladesman.Position + new IntVec3(2, 0, 0), Faction.OfPlayer);
             Pawn inLine2 = MakeHostile(bladesman.Position + new IntVec3(3, 0, 0));
+            Pawn dodger = MakeHostile(bladesman.Position + new IntVec3(4, 0, 0));
             Pawn aside = MakeHostile(bladesman.Position + new IntVec3(0, 0, 3));
+            var pierceComp = pierce.CompOfType<CompAbilityEffect_CelestialPierce>();
+            Check(!pierceComp.AICanTargetNow(new LocalTargetInfo(inLine2)) && pierceComp.AICanTargetNow(new LocalTargetInfo(aside)),
+                "the AI does not thrust through an ally, but does where only foes stand");
             // Measure damage directly: summary health also weights pre-existing and missing body parts.
             float h1 = inLine1.records.GetValue(RecordDefOf.DamageTaken);
+            float hAlly = lineAlly.records.GetValue(RecordDefOf.DamageTaken);
             float h2 = inLine2.records.GetValue(RecordDefOf.DamageTaken);
+            float hDodger = dodger.records.GetValue(RecordDefOf.DamageTaken);
             float h3 = aside.records.GetValue(RecordDefOf.DamageTaken);
             pierce.Activate(new LocalTargetInfo(inLine2), new LocalTargetInfo(inLine2));
             var strikes = map.GetComponent<MapComponent_JusticiarStrikes>();
-            Check(strikes.PendingCount == 3 && inLine1.records.GetValue(RecordDefOf.DamageTaken) - h1 < 0.0001f,
-                "the landing and both strikes wait for the blade to slam down and the crack to reach them (" + strikes.PendingCount + " pending)");
-            if (strikes.PendingCount != 3)
+            Check(strikes.PendingCount == 5 && inLine1.records.GetValue(RecordDefOf.DamageTaken) - h1 < 0.0001f,
+                "the landing and the four strikes on the line wait for the blade to slam down and the crack to reach them ("
+                + strikes.PendingCount + " pending)");
+            var pending = ((IList)AccessTools.Field(typeof(MapComponent_JusticiarStrikes), "pending").GetValue(strikes)).Cast<PendingStrike>();
+            Check(pending.Where(s => !s.landing).All(s => s.intendedTarget == inLine2),
+                "every strike is meant for the target, so anyone else on the line counts as crossfire");
+            // One foe steps off the line before the crack reaches it.
+            dodger.Position += new IntVec3(0, 0, -3);
+            dodger.Notify_Teleported();
+            dodger.Drawer.tweener.ResetTweenedPosToRoot();
+            if (strikes.PendingCount != 5)
             {
                 // What stood on the line: a wall shortens the reach, a foe off its cell is missed.
                 JusticiarValidation.Line("Line from " + bladesman.Position + " (draw " + bladesman.DrawPos + "), foes at " + inLine1.Position + " / "
@@ -417,9 +589,13 @@ namespace JusticiarValorValidation
             float damage2 = inLine2.records.GetValue(RecordDefOf.DamageTaken) - h2;
             Check(damage1 > 0f && damage2 > 0f && strikes.PendingCount == 0, "the fissure impales both foes in its line (damage "
                 + damage1 + ", " + damage2 + ")");
-            Check(Math.Abs(aside.records.GetValue(RecordDefOf.DamageTaken) - h3) < 0.0001f, "a foe beside the line is untouched");
+            Check(lineAlly.records.GetValue(RecordDefOf.DamageTaken) - hAlly > 0f, "and the ally standing between them");
+            Check(Math.Abs(dodger.records.GetValue(RecordDefOf.DamageTaken) - hDodger) < 0.0001f,
+                "a foe that left the line before the crack reached it escapes" + Wounds(dodger));
+            Check(Math.Abs(aside.records.GetValue(RecordDefOf.DamageTaken) - h3) < 0.0001f, "a foe beside the line is untouched" + Wounds(aside));
             Check(EffectCount("PierceHitFx") >= 1, "each struck foe bursts where the crack reaches it");
             ClearExtras();
+            synthesizer.AutoLaunch = true;
 
             JusticiarValidation.Line("== Warlockbane");
             Pawn warlock = MakeHostile(center + new IntVec3(0, 0, 6), stun: false);
@@ -578,11 +754,15 @@ namespace JusticiarValorValidation
             yield return 30;
             yield return JusticiarValidation.ShotPrefix + "baseline";
 
-            // Persistent: the shield bubble (drafted wearer, a fresh hit), three orbs around the spearman.
+            // Persistent: the shield bubble (drafted wearer, a fresh hit), three orbs out around the drafted spearman.
             justiciar.drafter.Drafted = true;
             CompPsychicShield shield = justiciar.WornComp<CompPsychicShield>();
             shield.KeepDisplaying();
+            spearman.drafter.Drafted = true;
+            synthesizer.AutoLaunch = true;
             orbsField.SetValue(synthesizer, 3);
+            // Long enough for all three to have come out of the spear.
+            Ticks(40);
             // An orb in flight: launched at an empty cell and moved a few ticks along (before the frozen effects spawn).
             var projectile = (Projectile)GenSpawn.Spawn(MJV_DefOf.MJV_Projectile_PsyOrb, spearman.Position, map);
             IntVec3 aim = spearman.Position + new IntVec3(9, 0, 0);

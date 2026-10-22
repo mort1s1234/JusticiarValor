@@ -5,6 +5,8 @@
 //
 //   Unity.exe -batchmode -quit -projectPath <project> -executeMethod JusticiarValorBundleBuilder.Build -jvOutput <mod>/1.6/AssetBundles
 //   Unity.exe -batchmode -quit -projectPath <project> -executeMethod JusticiarValorBundleBuilder.Preview -jvPreviewOut <png> [-jvPreviewTexture <png>]
+//       -jvTextureRoot <mod>/Common/Textures/Effects/JusticiarValor/Piloto -jvBladeTexture <the psyblade's texture png>
+//   (Invoke-Unity.ps1 -Task Preview passes them, the blade's from the psyblade def's texPath.)
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -142,6 +144,7 @@ public static class JusticiarValorBundleBuilder
         int width = Cell * columns;
         int height = Cell * rows.Count;
         string textureRoot = Arg("-jvTextureRoot");
+        string bladeTexture = Arg("-jvBladeTexture");
         var rt = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
         rt.Create();
         RenderTexture previous = RenderTexture.active;
@@ -163,9 +166,9 @@ public static class JusticiarValorBundleBuilder
             else if (material.HasProperty("_MainTex"))
             {
                 string atlasPath = effectName == "MJV_CelestialBlade"
-                    ? Path.GetFullPath(Path.Combine(textureRoot, "../../../Things/Item/Equipment/WeaponMelee/MJV_Xiphos.png"))
+                    ? bladeTexture
                     : Path.Combine(textureRoot ?? "", (SheetShaders.Contains(effectName) ? "Sheet" : effectName.Substring(4)) + ".png");
-                if (!File.Exists(atlasPath)) throw new FileNotFoundException("Missing effect texture", atlasPath);
+                if (string.IsNullOrEmpty(atlasPath) || !File.Exists(atlasPath)) throw new FileNotFoundException("Missing effect texture", atlasPath);
                 atlas = new Texture2D(2, 2, TextureFormat.RGBA32, false);
                 atlas.LoadImage(File.ReadAllBytes(atlasPath));
                 atlas.wrapMode = TextureWrapMode.Clamp;

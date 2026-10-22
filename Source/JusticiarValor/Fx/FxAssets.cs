@@ -20,8 +20,9 @@ namespace JusticiarValor
         public static readonly Material PsychicWave = Make(MJV_DefOf.MJV_PsychicWave, "PsychicWave", 3100);
         public static readonly Material PsychicShield = Make(MJV_DefOf.MJV_PsychicShield, 3105);
         public static readonly Material PsyOrb = Make(MJV_DefOf.MJV_PsyOrb, "PsyOrb", 3110);
+        // The psyblade's own texture, read from its def so that renaming the texture only takes the def's texPath.
         public static readonly Material CelestialBlade = Make(MJV_DefOf.MJV_CelestialBlade,
-            ContentFinder<Texture2D>.Get("Things/Item/Equipment/WeaponMelee/MJV_Xiphos"), 3115);
+            DefTexture(MJV_DefOf.MJV_MeleeWeapon_EnergyPsyblade), 3115);
         public static readonly Material AfterimageWake = Make(MJV_DefOf.MJV_InvictusBurst, "AfterimageWake", 3091);
 
         // Threat sense: the scan around the wearer (sheet) and the lock-on over each threat (Tech_GroundAOEIndicator).
@@ -81,6 +82,17 @@ namespace JusticiarValor
                 afterimageMaterials[atlas] = mat;
             }
             return mat;
+        }
+
+        // A thing def's texture: its graphic's, else the one at its texPath.
+        private static Texture DefTexture(ThingDef def)
+        {
+            Texture texture = def?.graphic?.MatSingle?.mainTexture;
+            if (texture is null && def?.graphicData?.texPath != null)
+            {
+                texture = ContentFinder<Texture2D>.Get(def.graphicData.texPath, false);
+            }
+            return texture;
         }
 
         private static Material Make(ShaderTypeDef def, string clip, int renderQueue)

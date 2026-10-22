@@ -14,7 +14,10 @@
 
 	<!-- Energy psyspear -->
 	<MJV_PsyOrbToggle>Psy-orbs</MJV_PsyOrbToggle>
-	<MJV_PsyOrbToggleDesc>While switched on, the energy psy-spear synthesizes psy-orbs (one every five seconds, up to three) and launches them at enemies within range on its own. Each orb sears what it hits and slows it for a few seconds.\n\nOrbs ready: {0} / {1}</MJV_PsyOrbToggleDesc>
+	<MJV_PsyOrbToggleDesc>While switched on, the energy psy-spear synthesizes psy-orbs (one every five seconds, up to three) and keeps them inside. When the wielder is drafted or fighting, the orbs come out to circle the wielder and are launched at enemies within range on their own. Each orb sears what it hits and slows it for a few seconds.\n\nOrbs ready: {0} / {1}</MJV_PsyOrbToggleDesc>
+
+	<!-- Energy psyblade -->
+	<MJV_PierceHitsAllies>Allies in the way: {0}</MJV_PierceHitsAllies>
 
 	<!-- Warlockbane shield -->
 	<MJV_Deflected>Deflected</MJV_Deflected>

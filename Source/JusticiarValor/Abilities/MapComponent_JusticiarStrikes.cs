@@ -6,17 +6,28 @@ using Vector3 = UnityEngine.Vector3;
 
 namespace JusticiarValor
 {
-    // A hit that lands a moment after its cast: Celestial Pierce strikes each foe when its fissure reaches them. A landing
+    // A hit that lands a moment after its cast: Celestial Pierce strikes each victim when its fissure reaches them. A landing
     // strike has no victim: it is the blade going into the ground at `cell`, heard and shaking the camera.
     public class PendingStrike : IExposable
     {
+        // How far off the line a victim may have moved and still be struck: the cells chosen at the cast reach about this
+        // far beyond the blade's half width.
+        private const float LineSlack = 0.8f;
+
         public bool landing;
         public IntVec3 cell;
         public float shake;
         public Pawn victim;
         public Pawn caster;
+        // The foe the blade was meant for, so a third party caught on the line is charged as vanilla crossfire.
+        public Thing intendedTarget;
         public int tick;
         public float angle;
+        // The line, from the wielder at the cast: origin, the blade's reach along `angle` and its half width.
+        // A strike saved before the line was kept has no reach and lands wherever its victim is.
+        public Vector3 origin;
+        public float reach;
+        public float halfWidth;
         public ThingDef weapon;
         public DamageDef damageDef;
         public float damage;
@@ -40,14 +51,30 @@ namespace JusticiarValor
                 return;
             }
             Vector3 at = victim.DrawPos;
+            if (reach > 0f && !OnLine(at))
+            {
+                return;
+            }
             IntVec3 where = victim.Position;
-            victim.TakeDamage(new DamageInfo(damageDef ?? DamageDefOf.Stab, damage, armorPenetration, angle, caster, null, weapon));
+            victim.TakeDamage(new DamageInfo(damageDef ?? DamageDefOf.Stab, damage, armorPenetration, angle, caster, null, weapon,
+                DamageInfo.SourceCategory.ThingOrUnknown, intendedTarget));
             if (!victim.Dead && victim.Spawned && stunTicks > 0)
             {
                 victim.stances?.stunner?.StunFor(stunTicks, caster, false, false, false);
             }
             MapComponent_JusticiarFx.Spawn(map, new PierceHitFx(at, angle));
             hitSound?.PlayOneShot(new TargetInfo(where, map));
+        }
+
+        // Whether a point still lies on the strip the crack runs along.
+        private bool OnLine(Vector3 at)
+        {
+            Vector3 dir = JVMath.Direction(angle);
+            float dx = at.x - origin.x;
+            float dz = at.z - origin.z;
+            float along = dx * dir.x + dz * dir.z;
+            float across = System.Math.Abs(dx * dir.z - dz * dir.x);
+            return along >= -LineSlack && along <= reach + LineSlack && across <= halfWidth + LineSlack;
         }
 
         public void ExposeData()
@@ -57,8 +84,12 @@ namespace JusticiarValor
             Scribe_Values.Look(ref shake, "shake");
             Scribe_References.Look(ref victim, "victim");
             Scribe_References.Look(ref caster, "caster");
+            Scribe_References.Look(ref intendedTarget, "intendedTarget");
             Scribe_Values.Look(ref tick, "tick");
             Scribe_Values.Look(ref angle, "angle");
+            Scribe_Values.Look(ref origin, "origin");
+            Scribe_Values.Look(ref reach, "reach");
+            Scribe_Values.Look(ref halfWidth, "halfWidth");
             Scribe_Defs.Look(ref weapon, "weapon");
             Scribe_Defs.Look(ref damageDef, "damageDef");
             Scribe_Values.Look(ref damage, "damage");
@@ -118,6 +149,10 @@ namespace JusticiarValor
                     if (strike.caster != null && strike.caster.Destroyed)
                     {
                         strike.caster = null;
+                    }
+                    if (strike.intendedTarget != null && strike.intendedTarget.Destroyed)
+                    {
+                        strike.intendedTarget = null;
                     }
                 }
             }

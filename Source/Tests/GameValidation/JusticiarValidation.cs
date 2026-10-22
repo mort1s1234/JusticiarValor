@@ -97,10 +97,12 @@ namespace JusticiarValorValidation
         }
 #endif
 
+        // A missing texture counts too: with only Harmony, VEF and this mod loaded, it is one of this mod's paths (a renamed
+        // file whose def still names the old one), and its message does not mention the mod.
         private static bool Mentions(string text)
         {
             return text != null && (text.IndexOf("Justiciar", StringComparison.OrdinalIgnoreCase) >= 0 || text.Contains("MJV_")
-                || text.IndexOf("magenta", StringComparison.OrdinalIgnoreCase) >= 0);
+                || text.IndexOf("magenta", StringComparison.OrdinalIgnoreCase) >= 0 || text.Contains("Could not load Texture2D"));
         }
 
         public static void Line(string text)
@@ -143,8 +145,9 @@ namespace JusticiarValorValidation
                     started = true;
                     routine = Run();
                 }
-                // Not while a save is loading: the world is not there yet (TickManager.CurTimeSpeed asks it).
-                if (Current.ProgramState == ProgramState.Playing && Find.World != null && Find.CurrentMap != null && !LongEventHandler.AnyEventNowOrWaiting)
+                // Not while a save is loading: the world is not there yet (TickManager.CurTimeSpeed asks it), and on 1.6
+                // Find.CurrentMap throws while the maps are being rebuilt, so the loading check comes first.
+                if (!LongEventHandler.AnyEventNowOrWaiting && Current.ProgramState == ProgramState.Playing && Find.World != null && Find.CurrentMap != null)
                 {
                     Find.TickManager.CurTimeSpeed = RunGame ? TimeSpeed.Normal : TimeSpeed.Paused;
                 }
@@ -298,7 +301,7 @@ namespace JusticiarValorValidation
                 Line("VERSE " + message.type + " " + message.text.Split('\n')[0].Trim());
             }
             bool engineErrors = entries.Any(e => (e.StartsWith("Error") || e.StartsWith("Critical") || e.StartsWith("Exception")) && Mentions(e));
-            Check(verse.Length == 0 && !engineErrors, "no engine or Verse warning or error mentions Justiciar Valor or the magenta fallback shader");
+            Check(verse.Length == 0 && !engineErrors, "no engine or Verse warning or error mentions Justiciar Valor, a missing texture or the magenta fallback shader");
             string result = recording ? "RECORDING" : "RUNTIME_VALIDATION";
             Line(failures == 0 ? result + "_PASSED" : $"{result}_FAILED ({failures} failures)");
             Root.Shutdown();

@@ -1,14 +1,17 @@
-"""Draws the ability and command icons of Justiciar Valor into Common/Textures/UI/Abilities.
+"""Draws draft ability and command icons of Justiciar Valor into %TEMP%/justiciarvalor-build/icon-drafts.
 
+The shipped icons in Common/Textures/UI/Abilities are Mortis's hand-drawn art, so this no longer writes there; the drafts
+go outside the mod folder, which RimWorld 1.7 uploads whole to the Workshop.
 The style follows the mod's art: thick black outlines, silver-white shapes and eltex mint accents. Each icon is drawn
 at 4x and downsampled for clean edges. Usage: python make_icons.py
 """
 import math
 import os
+import tempfile
 from PIL import Image, ImageDraw, ImageFilter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "..", "..", "Common", "Textures", "UI", "Abilities")
+OUT = os.path.join(tempfile.gettempdir(), "justiciarvalor-build", "icon-drafts")
 SIZE = 128
 S = 4  # supersampling
 W = SIZE * S

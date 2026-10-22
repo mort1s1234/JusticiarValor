@@ -5,7 +5,7 @@
 	<ThingDef ParentName="BaseMeleeWeapon_Sharp_Quality">
 		<defName>MJV_Weapon_EnergyPsySpear</defName>
 		<label>energy psy-spear</label>
-		<description>An ultra-tech spear built around eltex. It deals solid damage and has good armor penetration.\n\nAn internal energy system synthesizes psy-orbs that circle the wielder. While its auto-ability is switched on, the spear launches them at enemies on its own, like a turret: each orb sears what it hits and slows it down for a few seconds.</description>
+		<description>An ultra-tech spear built around eltex. It deals solid damage and has good armor penetration.\n\nAn internal energy system synthesizes psy-orbs and keeps them inside the spear. When its wielder is drafted or fighting, the orbs come out to circle them, and while the spear's auto-ability is switched on it launches them at enemies on its own, like a turret: each orb sears what it hits and slows it down for a few seconds.</description>
 		<possessionCount>1</possessionCount>
 		<tickerType>Normal</tickerType>
 		<graphicData>
@@ -152,7 +152,7 @@
 	<ThingDef ParentName="BaseMeleeWeapon_Sharp_Quality">
 		<defName>MJV_MeleeWeapon_EnergyPsyblade</defName>
 		<label>energy psyblade</label>
-		<description>An ultra-tech sword built around eltex. It deals solid damage, though its armor penetration is only moderate.\n\nIts wielder can use Celestial Pierce: the blade conjures a psychic glintblade from its point and thrusts it forward, impaling every foe up to three cells away.</description>
+		<description>An ultra-tech sword built around eltex. It deals solid damage, though its armor penetration is only moderate.\n\nIts wielder can use Celestial Pierce: the blade conjures a psychic glintblade from its point and thrusts it forward, impaling everyone in its path up to three cells away, friend or foe.</description>
 		<techLevel>Spacer</techLevel>
 		<graphicData>
 			<texPath>Things/Item/Equipment/WeaponMelee/MJV_Xiphos</texPath>
