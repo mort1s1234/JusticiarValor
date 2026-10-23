@@ -12,7 +12,7 @@
 		<graphicData>
 			<texPath>Things/Item/Equipment/Shield/MJV_WarlockbaneShield</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
-			<drawSize>(0.9, 0.9)</drawSize>
+			<drawSize>(1.2, 1.2)</drawSize>
 		</graphicData>
 		<statBases>
 			<WorkToMake>30000</WorkToMake>
@@ -88,7 +88,7 @@
 				<offHandGraphicData>
 					<texPath>Things/Item/Equipment/Shield/MJV_WarlockbaneShield</texPath>
 					<graphicClass>Graphic_Single</graphicClass>
-					<drawSize>0.78</drawSize>
+					<drawSize>0.88</drawSize>
 				</offHandGraphicData>
 				<offHandHoldOffset>
 					<northDefault>

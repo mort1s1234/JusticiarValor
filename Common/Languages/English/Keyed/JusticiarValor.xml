@@ -27,7 +27,7 @@
 	<MJV_TomeNoBlueprints>No unfinished project needs imperial techprints</MJV_TomeNoBlueprints>
 	<MJV_TomeNothingToLearn>{PAWN_nameDef} studied the imperial tome but found nothing the colony still needs.</MJV_TomeNothingToLearn>
 	<MJV_TomeStudiedLabel>Imperial blueprint</MJV_TomeStudiedLabel>
-	<MJV_TomeStudiedText>{PAWN_nameDef} has deciphered the technical appendices of an imperial tome and recovered a blueprint for {1}.\n\nTechprints applied: {2} / {3}</MJV_TomeStudiedText>
+	<MJV_TomeStudiedText>{PAWN_nameDef} has deciphered the technical appendices of an imperial auspex and recovered a blueprint for {1}.\n\nTechprints applied: {2} / {3}</MJV_TomeStudiedText>
 
 	<!-- Imperial missions: sermons -->
 	<MJV_ImperialFaithFallback>the imperial faith</MJV_ImperialFaithFallback>

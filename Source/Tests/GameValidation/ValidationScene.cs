@@ -639,14 +639,14 @@ namespace JusticiarValorValidation
                 .Where(p => p.TechprintCount > 0 && p.heldByFactionCategoryTags != null && p.heldByFactionCategoryTags.Contains("Empire")).ToList();
             Check(empireProjects.Contains(MJV_DefOf.MJV_JusticiarGear), "justiciar gear needs techprints held by the Empire");
             int techprints0 = empireProjects.Sum(p => Find.ResearchManager.GetTechprints(p));
-            Thing tome = GenSpawn.Spawn(ThingMaker.MakeThing(MJV_DefOf.MJV_ImperialTome), bladesman.Position + new IntVec3(1, 0, 0), map);
+            Thing tome = GenSpawn.Spawn(ThingMaker.MakeThing(MJV_DefOf.MJV_ImperialCodexAuspex), bladesman.Position + new IntVec3(1, 0, 0), map);
             tome.TryGetComp<CompUsable>().UsedBy(bladesman);
             Check(empireProjects.Sum(p => Find.ResearchManager.GetTechprints(p)) == techprints0 + 1, "studying the tome applies one imperial techprint");
             Check(tome.Destroyed, "the tome is used up");
-            Check(DefDatabase<TraderKindDef>.GetNamed("Empire_Caravan_TributeCollector").WillTrade(MJV_DefOf.MJV_ImperialTome),
+            Check(DefDatabase<TraderKindDef>.GetNamed("Empire_Caravan_TributeCollector").WillTrade(MJV_DefOf.MJV_ImperialCodexAuspex),
                 "imperial tribute collectors take the tome");
-            Check(Math.Abs(MJV_DefOf.MJV_ImperialTome.GetStatValueAbstract(StatDefOf.RoyalFavorValue) - 6f) < 0.001f, "the tome is worth 6 royal favor");
-            Check(DefDatabase<TraderKindDef>.GetNamed("Orbital_Empire").stockGenerators.Any(g => g.HandlesThingDef(MJV_DefOf.MJV_ImperialTome)),
+            Check(Math.Abs(MJV_DefOf.MJV_ImperialCodexAuspex.GetStatValueAbstract(StatDefOf.RoyalFavorValue) - 6f) < 0.001f, "the tome is worth 6 royal favor");
+            Check(DefDatabase<TraderKindDef>.GetNamed("Orbital_Empire").stockGenerators.Any(g => g.HandlesThingDef(MJV_DefOf.MJV_ImperialCodexAuspex)),
                 "imperial orbital traders stock the tome");
 
             JusticiarValidation.Line("== Empire");

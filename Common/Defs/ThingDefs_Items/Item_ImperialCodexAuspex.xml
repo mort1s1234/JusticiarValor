@@ -4,13 +4,13 @@
 	<!-- Imperial tome. Sold to the Empire's tribute collectors it earns royal favor (RoyalFavorValue, see
 	     Patches/Traders_ImperialTome.xml); studied, it gives a random imperial techprint (CompUseEffect_ImperialBlueprint). -->
 	<ThingDef ParentName="ResourceBase">
-		<defName>MJV_ImperialTome</defName>
-		<label>imperial tome</label>
-		<description>A rare book of sacred imperial scriptures, bound in gilded leather. Imperial traders sometimes offer one, and they turn up as rewards and in forgotten places.\n\nAn imperial tribute collector accepts the tome as tribute worth a solid amount of royal favor. Alternatively, a colonist can study it to decipher the technical appendices hidden in its canon: studying it applies a techprint for a random project whose techprints the Empire holds.</description>
+		<defName>MJV_ImperialCodexAuspex</defName>
+		<label>imperial codex-auspex</label>
+		<description>A heavy-duty tactical terminal carried by imperial Justiciars and the Imperial elite. Bound by active eltex circuits, it stores codified imperial scripture, judicial mandates, and lost high-tier tech schematics. Returning this terminal to the royal court grants substantial royal favor, or its data lattices can be analyzed at a research bench to unlock a lost imperial blueprint.</description>
 		<thingClass>ThingWithComps</thingClass>
 		<techLevel>Spacer</techLevel>
 		<graphicData>
-			<texPath>Things/Item/Special/MJV_ImperialTome</texPath>
+			<texPath>Things/Item/Special/MJV_ImperialCodexAuspex</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
 			<drawSize>(0.9, 0.9)</drawSize>
 		</graphicData>
@@ -20,19 +20,19 @@
 		<healthAffectsPrice>false</healthAffectsPrice>
 		<statBases>
 			<MaxHitPoints>60</MaxHitPoints>
-			<MarketValue>1400</MarketValue>
+			<MarketValue>1900</MarketValue>
 			<Mass>1.2</Mass>
 			<Flammability>1</Flammability>
 			<DeteriorationRate>1.5</DeteriorationRate>
 			<Beauty>6</Beauty>
-			<RoyalFavorValue>6</RoyalFavorValue>
+			<RoyalFavorValue>10</RoyalFavorValue>
 		</statBases>
 		<thingCategories>
 			<li>ItemsMisc</li>
 		</thingCategories>
 		<tradeTags>
 			<li>ExoticMisc</li>
-			<li>MJV_ImperialTome</li>
+			<li>MJV_ImperialCodexAuspex</li>
 		</tradeTags>
 		<thingSetMakerTags>
 			<li>RewardStandardMidFreq</li>
@@ -41,7 +41,7 @@
 			<li Class="CompProperties_Usable">
 				<useJob>UseItem</useJob>
 				<useLabel>Study {0_label}</useLabel>
-				<useDuration>2500</useDuration>
+				<useDuration>1500</useDuration>
 			</li>
 			<li Class="JusticiarValor.CompProperties_UseEffectImperialBlueprint">
 				<factionCategoryTags>

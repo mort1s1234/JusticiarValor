@@ -142,7 +142,7 @@
 	<ThingDef ParentName="ArmorHelmetMakeableBase">
 		<defName>MJV_Apparel_ArmorHelmetPromachosHelmet</defName>
 		<label>promachos helmet</label>
-		<description>An incredibly high-tech helmet made from ultra-durable plasteel using activated eltex. It scans its surroundings in real time for murderous intent directed at its wearer; with each such thought it delivers an extra surge of stimulation into the wearer's brain, quickening their reactions, movement and awareness.\n\nBy channeling an additional charge through the eltex, the helmet resonates and releases a psychic wave around the wearer - Justiciar Valor - that throws enemies back, damages them and leaves them dazed. Its wearer cannot be arrested while conscious: an attempt triggers Justiciar Valor at once.</description>
+		<description>An incredibly high-tech helmet made from ultra-durable plasteel using activated eltex. It scans its surroundings in real time for murderous intent directed at its wearer; with each such thought it delivers an extra surge of stimulation into the wearer's brain, quickening their reactions, movement and awareness.\n\nBy channeling an additional charge through the eltex, the helmet resonates and releases a psychic wave around the wearer - Justiciar Valor, that throws enemies back, damages them and leaves them dazed. Its wearer cannot be arrested while conscious: an attempt triggers Justiciar Valor at once.</description>
 		<techLevel>Spacer</techLevel>
 		<tickerType>Normal</tickerType>
 		<tradeTags>

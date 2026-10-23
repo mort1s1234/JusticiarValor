@@ -7,7 +7,7 @@
 		<label>Justiciar Valor</label>
 		<description>Channel an extra charge through the helmet's eltex until it resonates and releases a psychic wave around the wearer. The wave throws everyone nearby back, allies included, damages them and leaves them dazed.\n\nThe wearer of the Promachos helmet cannot be arrested while conscious: an attempt triggers Justiciar Valor at once, and the wearer takes it as an attack.</description>
 		<iconPath>UI/Abilities/MJV_JusticiarValor</iconPath>
-		<cooldownTicksRange>3600</cooldownTicksRange>
+		<cooldownTicksRange>800</cooldownTicksRange>
 		<targetRequired>false</targetRequired>
 		<hostile>true</hostile>
 		<casterMustBeCapableOfViolence>true</casterMustBeCapableOfViolence>

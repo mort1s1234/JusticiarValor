@@ -8,7 +8,7 @@
       <fixedParams>
         <filter>
           <thingDefs>
-            <li>MJV_ImperialTome</li>
+            <li>MJV_ImperialCodexAuspex</li>
           </thingDefs>
         </filter>
         <countRange>1</countRange>

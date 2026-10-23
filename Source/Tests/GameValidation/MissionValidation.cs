@@ -542,7 +542,7 @@ namespace JusticiarValorValidation
                 yield break;
             }
             Check(quest.PartsListForReading.OfType<QuestPart_Choice>().Any(c => c.choices.Any(ch => ch.rewards.OfType<Reward_Items>()
-                .Any(r => r.items.Any(t => t.def == MJV_DefOf.MJV_ImperialTome)))), "the sheltered missionary promises an imperial tome");
+                .Any(r => r.items.Any(t => t.def == MJV_DefOf.MJV_ImperialCodexAuspex)))), "the sheltered missionary promises an imperial tome");
             Check(quest.PartsListForReading.OfType<QuestPart_Incident>().Any(p => p.incident == IncidentDefOf.RaidEnemy), "a raid of pursuers is part of the quest");
             Accept(quest);
             Pawn missionary = null;
@@ -646,14 +646,14 @@ namespace JusticiarValorValidation
             {
                 yield break;
             }
-            int tomes0 = map.listerThings.ThingsOfDef(MJV_DefOf.MJV_ImperialTome).Count;
+            int tomes0 = map.listerThings.ThingsOfDef(MJV_DefOf.MJV_ImperialCodexAuspex).Count;
             missionary.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.EnterTransporter, shuttle), JobTag.Misc);
             foreach (object step in TickUntil(() => disgraced.State != QuestState.Ongoing, 4000))
             {
                 yield return step;
             }
             Check(disgraced.State == QuestState.EndedSuccess, "the disgraced sermon ends in success when the missionary leaves (" + disgraced.State + ")");
-            foreach (object step in TickUntil(() => map.listerThings.ThingsOfDef(MJV_DefOf.MJV_ImperialTome).Count > tomes0, 1500))
+            foreach (object step in TickUntil(() => map.listerThings.ThingsOfDef(MJV_DefOf.MJV_ImperialCodexAuspex).Count > tomes0, 1500))
             {
                 yield return step;
             }

@@ -12,7 +12,7 @@ namespace JusticiarValor
         public static ThingDef MJV_Weapon_EnergyPsySpear;
         public static ThingDef MJV_MeleeWeapon_EnergyPsyblade;
         public static ThingDef MJV_Apparel_WarlockbaneShield;
-        public static ThingDef MJV_ImperialTome;
+        public static ThingDef MJV_ImperialCodexAuspex;
         public static ThingDef MJV_Projectile_PsyOrb;
 
         // Core: the flyer the game uses for pawns that are thrown and land stunned.
