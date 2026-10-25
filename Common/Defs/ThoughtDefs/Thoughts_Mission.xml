@@ -11,13 +11,47 @@
     <stages>
       <li>
         <label>inspiring sermon</label>
-        <description>The missionary spoke of our faith with such conviction. I feel uplifted.</description>
+        <description>The justiciar spoke of our faith with such conviction. I feel uplifted.</description>
         <baseMoodEffect>6</baseMoodEffect>
       </li>
       <li>
         <label>heard an imperial sermon</label>
-        <description>A missionary preached the Empire's faith to us. Strange ideas, but well spoken, and they gave me a lot to think about.</description>
+        <description>A justiciar preached the Empire's faith to us. Strange ideas, but well spoken, and they gave me a lot to think about.</description>
         <baseMoodEffect>2</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+  <!-- The justiciar on a mission, when more of the colony came to his sermon than he asked for
+       (JusticiarValor.MissionRecord.RecordSermon). Scaled by the share of the colony beyond the minimum. -->
+  <ThoughtDef>
+    <defName>MJV_SermonWellAttended</defName>
+    <thoughtClass>Thought_Memory</thoughtClass>
+    <durationDays>3</durationDays>
+    <stackLimit>3</stackLimit>
+    <stackedEffectMultiplier>0.75</stackedEffectMultiplier>
+    <stages>
+      <li>
+        <label>sermon well attended</label>
+        <description>More of the colony gathered to hear me than I asked for. The Empire's word takes root here.</description>
+        <baseMoodEffect>10</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+  <!-- The justiciar on a mission, when the colony refused, ignored or cancelled one of his sermons
+       (JusticiarValor.MissionRecord.RecordRefusal). -->
+  <ThoughtDef>
+    <defName>MJV_SermonRefused</defName>
+    <thoughtClass>Thought_Memory</thoughtClass>
+    <durationDays>3</durationDays>
+    <stackLimit>5</stackLimit>
+    <stackedEffectMultiplier>0.8</stackedEffectMultiplier>
+    <stages>
+      <li>
+        <label>sermon refused</label>
+        <description>They would not gather to hear the word of the Empire. Such insolence will not go unreported.</description>
+        <baseMoodEffect>-6</baseMoodEffect>
       </li>
     </stages>
   </ThoughtDef>

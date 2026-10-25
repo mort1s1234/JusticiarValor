@@ -9,9 +9,9 @@ using Verse.AI.Group;
 
 namespace JusticiarValor
 {
-    // Checks that the Empire can send one of its missionaries to the quest's map and puts the Empire ("empire") and the
-    // name of its faith ("faithName") in the slate. With requireFaith the map needs at least minUnconverted colonists
-    // who do not follow the imperial faith (and Ideology).
+    // Checks that the Empire can send one of its justiciars on a mission to the quest's map and puts the Empire ("empire")
+    // and the name of its faith ("faithName") in the slate. With requireFaith the map needs at least minUnconverted
+    // colonists who do not follow the imperial faith (and Ideology).
     public class QuestNode_MJV_ImperialMission : QuestNode
     {
         public SlateRef<bool> requireFaith;
@@ -59,7 +59,7 @@ namespace JusticiarValor
         }
     }
 
-    // The faction the disgraced missionary failed to convert, now hunting him: the hostile humanlike faction with the
+    // The faction the disgraced justiciar failed to convert, now hunting him: the hostile humanlike faction with the
     // settlement nearest to the map.
     public class QuestNode_MJV_GetPursuers : QuestNode
     {
@@ -128,17 +128,18 @@ namespace JusticiarValor
         }
     }
 
-    // The lodging missionary's sermons, see QuestPart_MJV_LodgerSermons.
+
+    // The lodging justiciar's sermons, see QuestPart_MJV_LodgerSermons.
     public class QuestNode_MJV_LodgerSermons : QuestNode
     {
         public SlateRef<Pawn> preacher;
         public SlateRef<IntRange> intervalTicks;
         public SlateRef<IntRange> firstSermonDelayTicks;
-        public SlateRef<IntRange> sermonTicks;
-        public SlateRef<float> certaintyFactor;
-        public SlateRef<int> goodwillPerConvert;
         public SlateRef<float> callChance;
         public SlateRef<Thing> shuttle;
+
+        // How he preaches, what he asks of the colony and what it earns or costs with the Empire.
+        public SermonSettings sermon = new SermonSettings();
 
         [NoTranslate]
         public SlateRef<string> inSignalShuttleArrived;
@@ -160,33 +161,30 @@ namespace JusticiarValor
                 firstSermonDelayTicks = firstSermonDelayTicks.GetValue(slate),
                 callChance = callChance.GetValue(slate),
                 shuttle = shuttle.GetValue(slate),
-                sermonSignal = QuestGen.GenerateNewSignal("MJV_SermonEnded"),
+                settings = sermon?.Copy() ?? new SermonSettings(),
                 inSignalShuttleArrived = QuestGenUtility.HardcodedSignalWithQuestID(inSignalShuttleArrived.GetValue(slate)),
                 inSignalShuttleSent = QuestGenUtility.HardcodedSignalWithQuestID("pickupShipThing.SentSatisfied"),
                 inSignalShuttleSentUnsatisfied = QuestGenUtility.HardcodedSignalWithQuestID("pickupShipThing.SentUnsatisfied"),
                 outSignalColonyConverted = QuestGenUtility.HardcodedSignalWithQuestID(outSignalColonyConverted.GetValue(slate))
             };
-            part.settings.durationTicks = sermonTicks.GetValue(slate);
-            part.settings.certaintyFactor = certaintyFactor.GetValue(slate);
-            part.settings.goodwillPerConvert = goodwillPerConvert.GetValue(slate);
             QuestGen.quest.AddPart(part);
         }
     }
 
-    // The imperial mission, lodging: while the missionary (a quest lodger) stays with the colony he holds a sermon
-    // every so often. Once every colonist follows the imperial faith his work is done and the pickup shuttle is
-    // called early. When the shuttle comes there is a small chance that one of his converts has heard the call and
-    // leaves with him to serve the Empire (MentalState_MJV_CalledToService).
-    public class QuestPart_MJV_LodgerSermons : QuestPartActivable
+    // The imperial mission, lodging: while the justiciar (a quest lodger) stays with the colony he asks it for a sermon
+    // every so often (SermonRequests). Once every colonist follows the imperial faith his work is done and the pickup
+    // shuttle is called early. When the shuttle comes there is a small chance that one of his converts has heard the call
+    // and leaves with him to serve the Empire (MentalState_MJV_CalledToService). When he has left, what his sermons earned
+    // and cost is settled with the Empire (MissionRecord).
+    public class QuestPart_MJV_LodgerSermons : QuestPartActivable, IJusticiarMission
     {
         public Pawn preacher;
         public MapParent mapParent;
         public SermonSettings settings = new SermonSettings();
-        public IntRange intervalTicks = new IntRange(36000, 54000);
+        public IntRange intervalTicks = new IntRange(60000, 90000);
         public IntRange firstSermonDelayTicks = new IntRange(5000, 10000);
         public float callChance;
         public Thing shuttle;
-        public string sermonSignal;
         public string inSignalShuttleArrived;
         public string inSignalShuttleSent;
         public string inSignalShuttleSentUnsatisfied;
@@ -198,6 +196,9 @@ namespace JusticiarValor
         private List<Pawn> converts = new List<Pawn>();
         private Pawn called;
         private int sermonsHeld;
+        private SermonRequest request;
+        private MissionRecord record = new MissionRecord();
+        private int nextMoodSampleTick;
 
         public Pawn Called => called;
 
@@ -210,6 +211,14 @@ namespace JusticiarValor
             get => nextSermonTick;
             set => nextSermonTick = value;
         }
+
+        public Pawn Justiciar => preacher;
+
+        public SermonSettings Settings => settings;
+
+        public MissionRecord Record => record;
+
+        public SermonRequest Request => request;
 
         public override IEnumerable<GlobalTargetInfo> QuestLookTargets
         {
@@ -239,45 +248,123 @@ namespace JusticiarValor
             {
                 return;
             }
+            int now = Find.TickManager.TicksGame;
             MaintainCalling();
-            if (departing || colonyConverted || Find.TickManager.TicksGame < nextSermonTick)
+            if (now >= nextMoodSampleTick && preacher != null && preacher.Spawned)
+            {
+                nextMoodSampleTick = now + GenDate.TicksPerHour;
+                record.SampleMood(preacher);
+            }
+            if (request != null)
+            {
+                if (request.TicksLeft <= 0)
+                {
+                    Expire();
+                }
+                return;
+            }
+            if (departing || colonyConverted || now < nextSermonTick)
             {
                 return;
             }
             Map map = mapParent?.Map;
-            if (map == null || preacher == null || preacher.Map != map || preacher.GetLord() != null || preacher.InBed() || !SermonUtility.CanPreachNow(preacher, map))
+            if (map == null || preacher == null || preacher.Map != map || preacher.GetLord() != null || preacher.InBed()
+                || !SermonRequests.CanRequestNow(preacher, map))
             {
                 return;
             }
-            if (!SermonUtility.TryFindSermonSpot(preacher, preacher.Position, out IntVec3 spot))
+            request = SermonRequests.TryMakeRequest(preacher, preacher.Position, settings, quest);
+            if (request == null)
             {
-                nextSermonTick = Find.TickManager.TicksGame + 2500;
+                nextSermonTick = now + 2500;
+            }
+        }
+
+        private void Expire()
+        {
+            if (SermonRequests.ExpiryIsRefusal(this))
+            {
+                record.RecordRefusal(preacher);
+                Messages.Message("MJV_SermonRequestIgnored".Translate(preacher.Named("JUSTICIAR"), (-settings.refusalGoodwill).Named("PENALTY")),
+                    preacher, MessageTypeDefOf.NegativeEvent);
+                nextSermonTick = Find.TickManager.TicksGame + intervalTicks.RandomInRange;
+            }
+            else
+            {
+                Messages.Message("MJV_SermonRequestLapsed".Translate(preacher.Named("JUSTICIAR")), preacher, MessageTypeDefOf.NeutralEvent);
+                nextSermonTick = Find.TickManager.TicksGame + GenDate.TicksPerHour * 2;
+            }
+            request = null;
+        }
+
+        public void Answer(List<Pawn> congregation, int required, int eligible)
+        {
+            if (request == null)
+            {
                 return;
             }
-            SermonUtility.StartSermon(preacher, spot, settings, sermonSignal);
-            sermonsHeld++;
             nextSermonTick = Find.TickManager.TicksGame + intervalTicks.RandomInRange;
+            if (congregation == null)
+            {
+                request = null;
+                record.RecordRefusal(preacher);
+                Messages.Message("MJV_SermonRefused".Translate(preacher.Named("JUSTICIAR"), (-settings.refusalGoodwill).Named("PENALTY")),
+                    preacher, MessageTypeDefOf.NegativeEvent);
+                return;
+            }
+            IntVec3 spot = request.spot;
+            request = null;
+            SermonUtility.StartSermon(preacher, spot, settings, congregation, required, eligible);
+            sermonsHeld++;
+        }
+
+        public void Notify_SermonEnded(SermonResult result)
+        {
+            converts.AddRange(result.converts.Where(p => p != null && !converts.Contains(p)));
+            if (result.outcome == SermonOutcome.Held)
+            {
+                record.RecordSermon(preacher, settings, result.turnout);
+            }
+            else if (result.outcome == SermonOutcome.Cancelled)
+            {
+                record.RecordRefusal(preacher);
+            }
+            CheckColonyConverted();
+        }
+
+        public override IEnumerable<Gizmo> ExtraGizmos(ISelectable target)
+        {
+            IEnumerable<Gizmo> baseGizmos = base.ExtraGizmos(target);
+            if (baseGizmos != null)
+            {
+                foreach (Gizmo gizmo in baseGizmos)
+                {
+                    yield return gizmo;
+                }
+            }
+            if (target == preacher)
+            {
+                foreach (Gizmo gizmo in SermonRequests.Gizmos(this))
+                {
+                    yield return gizmo;
+                }
+            }
         }
 
         public override void Notify_QuestSignalReceived(Signal signal)
         {
             base.Notify_QuestSignalReceived(signal);
-            if (signal.tag == sermonSignal)
+            if (signal.tag == inSignalShuttleArrived)
             {
-                if (signal.args.TryGetArg("CONVERTS", out NamedArgument arg) && arg.arg is List<Pawn> newConverts)
-                {
-                    converts.AddRange(newConverts.Where(p => p != null && !converts.Contains(p)));
-                }
-                CheckColonyConverted();
-            }
-            else if (signal.tag == inSignalShuttleArrived)
-            {
+                // He is leaving: a sermon he was still waiting for is off.
                 departing = true;
+                request = null;
                 TryCall();
             }
             else if (signal.tag == inSignalShuttleSent)
             {
                 CompleteCalling();
+                record.Settle(preacher, settings, mapParent?.Map);
             }
             else if (signal.tag == inSignalShuttleSentUnsatisfied)
             {
@@ -293,8 +380,9 @@ namespace JusticiarValor
                 return;
             }
             colonyConverted = true;
+            request = null;
             Find.LetterStack.ReceiveLetter("MJV_MissionColonyConvertedLabel".Translate(),
-                "MJV_MissionColonyConvertedText".Translate(preacher.Named("PREACHER"), (ImperialFaith.Ideo?.name ?? string.Empty).Named("FAITH")),
+                "MJV_MissionColonyConvertedText".Translate(preacher.Named("PREACHER"), SermonRequests.FaithName.Named("FAITH")),
                 LetterDefOf.PositiveEvent, preacher, null, quest);
             if (!outSignalColonyConverted.NullOrEmpty())
             {
@@ -337,7 +425,7 @@ namespace JusticiarValor
             comp.requiredPawns.Add(pawn);
             called = pawn;
             Find.LetterStack.ReceiveLetter("MJV_CalledToServiceLabel".Translate(pawn.Named("PAWN")),
-                "MJV_CalledToServiceText".Translate(pawn.Named("PAWN"), preacher.Named("PREACHER"), (ImperialFaith.Ideo?.name ?? string.Empty).Named("FAITH")),
+                "MJV_CalledToServiceText".Translate(pawn.Named("PAWN"), preacher.Named("PREACHER"), SermonRequests.FaithName.Named("FAITH")),
                 LetterDefOf.NegativeEvent, new LookTargets(pawn, shuttle), null, quest);
         }
 
@@ -399,6 +487,7 @@ namespace JusticiarValor
         public override void Cleanup()
         {
             base.Cleanup();
+            request = null;
             CancelCalling();
         }
 
@@ -412,7 +501,6 @@ namespace JusticiarValor
             Scribe_Values.Look(ref firstSermonDelayTicks, "firstSermonDelayTicks");
             Scribe_Values.Look(ref callChance, "callChance", 0f);
             Scribe_References.Look(ref shuttle, "shuttle");
-            Scribe_Values.Look(ref sermonSignal, "sermonSignal");
             Scribe_Values.Look(ref inSignalShuttleArrived, "inSignalShuttleArrived");
             Scribe_Values.Look(ref inSignalShuttleSent, "inSignalShuttleSent");
             Scribe_Values.Look(ref inSignalShuttleSentUnsatisfied, "inSignalShuttleSentUnsatisfied");
@@ -423,9 +511,13 @@ namespace JusticiarValor
             Scribe_Collections.Look(ref converts, "converts", LookMode.Reference);
             Scribe_References.Look(ref called, "called");
             Scribe_Values.Look(ref sermonsHeld, "sermonsHeld", 0);
+            Scribe_Deep.Look(ref request, "request");
+            Scribe_Deep.Look(ref record, "record");
+            Scribe_Values.Look(ref nextMoodSampleTick, "nextMoodSampleTick", 0);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 settings ??= new SermonSettings();
+                record ??= new MissionRecord();
                 converts ??= new List<Pawn>();
                 converts.RemoveAll(p => p == null);
             }

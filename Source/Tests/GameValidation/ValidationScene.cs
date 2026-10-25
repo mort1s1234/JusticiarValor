@@ -6,6 +6,7 @@ using System.Reflection;
 using HarmonyLib;
 using JusticiarValor;
 using RimWorld;
+using RimWorld.QuestGen;
 using Verse;
 using Verse.AI;
 using Vector3 = UnityEngine.Vector3;
@@ -20,6 +21,7 @@ namespace JusticiarValorValidation
         private static readonly FieldInfo orbsField = AccessTools.Field(typeof(CompPsyOrbSynthesizer), "orbs");
         private static readonly FieldInfo chargeField = AccessTools.Field(typeof(CompPsychicShield), "charge");
         private static readonly FieldInfo energyField = AccessTools.Field(typeof(CompPsychicShield), "energy");
+        private static readonly FieldInfo lastDamageField = AccessTools.Field(typeof(CompPsychicShield), "lastDamageTick");
         private static readonly FieldInfo wlChargesField = AccessTools.Field(typeof(CompWarlockbane), "charges");
         private static int justiciarId, spearmanId, bladesmanId;
 
@@ -198,9 +200,27 @@ namespace JusticiarValorValidation
                 }
             }
             extras.Clear();
-            foreach (Thing flyer in map.listerThings.ThingsOfDef(MJV_DefOf.PawnFlyer_Stun).ToList())
+            foreach (Thing flyer in map.listerThings.ThingsOfDef(MJV_DefOf.MJV_PawnFlyer_Knockback).ToList())
             {
                 flyer.Destroy();
+            }
+        }
+
+        // Only the check's own pawns stand within reach: colonists are moved away, anyone else is removed.
+        private void ClearStrays(IntVec3 around, float radius, IEnumerable<Pawn> keep)
+        {
+            var kept = new HashSet<Pawn>(keep);
+            foreach (Pawn stray in GenRadial.RadialDistinctThingsAround(around, map, radius, true).OfType<Pawn>().Where(p => !kept.Contains(p)).ToList())
+            {
+                if (stray.IsColonist)
+                {
+                    stray.Position = CellFinder.RandomClosewalkCellNear(around + new IntVec3(0, 0, 16), map, 4);
+                    stray.Notify_Teleported();
+                }
+                else
+                {
+                    stray.Destroy();
+                }
             }
         }
 
@@ -275,6 +295,11 @@ namespace JusticiarValorValidation
             Pawn justiciar = MakeColonist(center);
             Pawn spearman = MakeColonist(center + new IntVec3(-6, 0, -4));
             Pawn bladesman = MakeColonist(center + new IntVec3(6, 0, -4));
+            // The armor's shield follows the wearer's psychic sensitivity: a psychically deaf justiciar would have none.
+            foreach (Trait trait in justiciar.story.traits.allTraits.Where(t => t.def.defName == "PsychicSensitivity").ToList())
+            {
+                justiciar.story.traits.RemoveTrait(trait);
+            }
             Wear(justiciar, MJV_DefOf.MJV_Apparel_ArmorHelmetPromachosHelmet);
             Wear(justiciar, MJV_DefOf.MJV_Apparel_PromachosArmor);
             Wear(justiciar, MJV_DefOf.MJV_Apparel_WarlockbaneShield);
@@ -314,12 +339,16 @@ namespace JusticiarValorValidation
                 MakeHostile(center + new IntVec3(-2, 0, 1)),
                 MakeHostile(center + new IntVec3(0, 0, -2))
             };
+            // Strays would change who the wave catches (a colony animal wandering by, a passing caravan).
+            ClearStrays(center, 8f, victims.Concat(new[] { justiciar, spearman, bladesman }));
             var valorComp = valor.CompOfType<CompAbilityEffect_JusticiarValor>();
             bool aiWithFoesOnly = valorComp.AICanTargetNow(new LocalTargetInfo(justiciar));
             string caught = string.Join(", ", JusticiarValorWave.Victims(justiciar, JusticiarValorWave.PropsFor(MJV_DefOf.MJV_JusticiarValor), null)
                 .Select(p => p.LabelShort + " (" + (p.Faction?.Name ?? "no faction") + (p.HostileTo(justiciar) ? ", hostile" : "") + ")"));
             Pawn ally = MakePawn(center + new IntVec3(1, 0, 2), Faction.OfPlayer);
             victims.Add(ally);
+            // Not stunned beforehand, so the stun it lands with is the wave's.
+            Pawn lander = MakeHostile(center + new IntVec3(-1, 0, -2), stun: false);
             Check(aiWithFoesOnly && !valorComp.AICanTargetNow(new LocalTargetInfo(justiciar)),
                 "the AI releases the wave among foes, but not with an ally in it" + (aiWithFoesOnly ? "" : " (in the wave: " + caught + ")"));
             // A neutral visitor caught along with the enemies, from a faction hostile to them too: vanilla crossfire.
@@ -331,14 +360,24 @@ namespace JusticiarValorValidation
             {
                 victims.Add(MakePawn(center + new IntVec3(-2, 0, -1), neutral));
             }
+            victims.Add(lander);
             var before = victims.ToDictionary(v => v, v => (health: Health(v), distance: v.Position.DistanceTo(justiciar.Position)));
             int effectsBefore = Fx.ActiveEffectCount;
             valor.Activate(new LocalTargetInfo(justiciar), new LocalTargetInfo(justiciar));
             Check(EffectCount("PsychicWaveFx") >= 1 && Fx.ActiveEffectCount > effectsBefore, "Justiciar Valor spawns its shockwave effect");
-            Check(map.listerThings.ThingsOfDef(MJV_DefOf.PawnFlyer_Stun).Count >= 1, "Justiciar Valor throws its victims back (PawnFlyer_Stun)");
+            List<PawnFlyer_MJV_Knockback> flyers = map.listerThings.ThingsOfDef(MJV_DefOf.MJV_PawnFlyer_Knockback).OfType<PawnFlyer_MJV_Knockback>().ToList();
+            CompProperties_AbilityJusticiarValor valorProps = JusticiarValorWave.PropsFor(MJV_DefOf.MJV_JusticiarValor);
+            Check(flyers.Count >= 1, "Justiciar Valor throws its victims back (MJV_PawnFlyer_Knockback)");
+            Check(flyers.All(f => f.instigator == justiciar && f.stunTicks >= valorProps.landingStunTicks.min && f.stunTicks <= valorProps.landingStunTicks.max),
+                "the thrown victims are to land stunned by the wearer (" + string.Join(", ", flyers.Select(f => f.stunTicks)) + " ticks)");
+            Pawn landerFlying = lander.Spawned ? null : lander;
             Check(victims.All(v => v.Dead || v.health.hediffSet.HasHediff(MJV_DefOf.MJV_PsychicDaze)), "every victim is dazed, allies included");
             Check(!justiciar.health.hediffSet.HasHediff(MJV_DefOf.MJV_PsychicDaze), "the wearer is spared");
-            Ticks(200);
+            Ticks(60);
+            Check(landerFlying == null || lander.Dead || lander.Downed || lander.Spawned && lander.stances.stunner.Stunned,
+                "a thrown victim is stunned where it lands (" + (lander.Dead ? "dead" : lander.Downed ? "downed" : lander.Spawned
+                    ? "stunned " + lander.stances.stunner.Stunned : "in the air") + ")");
+            Ticks(140);
             Check(victims.All(v => v.Dead || Health(v) < before[v].health), "every victim took damage, allies included");
             // A victim the blow itself downed is not thrown (by design), only stunned.
             Check(victims.Where(v => !v.Dead && !v.Downed && v.Spawned).All(v => v.Position.DistanceTo(justiciar.Position) > before[v].distance + 0.9f),
@@ -422,19 +461,40 @@ namespace JusticiarValorValidation
             JusticiarValidation.Line("== Psychic shield");
             Ticks(1);
             Pawn shooter = MakeHostile(center + new IntVec3(0, 0, 6));
+            float sensitivity = justiciar.GetStatValue(StatDefOf.PsychicSensitivity);
+            float max0 = shield.BaseEnergyMax;
+            Check(max0 > 0f && Math.Abs(max0 - Math.Min(sensitivity * shield.Props.energyPerSensitivity, shield.Props.energyMaxRange.max)) < 0.01f,
+                "the shield's maximum follows the wearer's psychic sensitivity (" + sensitivity.ToStringPercent() + " -> " + max0 + ")");
+            energyField.SetValue(shield, max0);
             float energy0 = shield.Energy;
             int injuries0 = Injuries(justiciar);
             justiciar.TakeDamage(new DamageInfo(DamageDefOf.Bullet, 20f, 0f, 180f, shooter));
             Check(Math.Abs(shield.Energy - (energy0 - 20f)) < 0.01f && Injuries(justiciar) == injuries0, "a 20-damage bullet is absorbed (" + energy0 + " -> " + shield.Energy + ")");
             Check(Math.Abs(shield.Charge - 20f) < 0.01f, "the absorbed damage is stored for Invictus (" + shield.Charge + ")");
+            // A blow struck in melee, as Verb_MeleeAttackDamage deals it: the attacker's weapon (its race, unarmed).
+            DamageWorker.DamageResult melee = justiciar.TakeDamage(new DamageInfo(DamageDefOf.Cut, 12f, 10f, 180f, shooter, null, shooter.def));
+            Check(melee.totalDamageDealt <= 0f && Math.Abs(shield.Energy - (energy0 - 32f)) < 0.01f && Math.Abs(shield.Charge - 32f) < 0.01f,
+                "a melee blow is absorbed and stored too (" + shield.Energy + ", charge " + shield.Charge + ")");
             // Bypass apparel and measure actual damage: a severed finger creates a missing-part
             // hediff rather than an Injury, so counting injuries is not a reliable shield assertion.
-            DamageWorker.DamageResult melee = justiciar.TakeDamage(new DamageInfo(DamageDefOf.Cut, 12f, 10f, 180f, shooter));
-            Check(melee.totalDamageDealt > 0f && Math.Abs(shield.Energy - (energy0 - 20f)) < 0.01f, "melee damage is not absorbed");
+            DamageWorker.DamageResult cut = justiciar.TakeDamage(new DamageInfo(DamageDefOf.Cut, 6f, 10f, 180f, shooter));
+            Check(cut.totalDamageDealt > 0f && Math.Abs(shield.Energy - (energy0 - 32f)) < 0.01f, "a cut that is no attack (no weapon, no tool) is not absorbed");
             justiciar.TakeDamage(new DamageInfo(DamageDefOf.Bomb, 400f, 0f, 180f, shooter));
             Check(shield.Resetting, "a hit beyond its energy breaks the shield");
             Ticks(2401);
-            Check(!shield.Resetting && Math.Abs(shield.Energy - 60f) < 1f, "the shield resets to 40% after its delay (" + shield.Energy + ")");
+            Check(!shield.Resetting && Math.Abs(shield.Energy - max0 * shield.Props.energyOnReset) < 1f,
+                "the shield resets to " + shield.Props.energyOnReset.ToStringPercent() + " after its delay (" + shield.Energy + ")");
+            // The stored charge fades once the wearer goes a while unhurt, and holds while hits keep coming.
+            chargeField.SetValue(shield, 50f);
+            lastDamageField.SetValue(shield, Find.TickManager.TicksGame);
+            Ticks(60);
+            Check(Math.Abs(shield.Charge - 50f) < 0.01f && !shield.ChargeDraining, "the stored charge holds right after the wearer was hurt");
+            lastDamageField.SetValue(shield, Find.TickManager.TicksGame - shield.Props.chargeDrainDelayTicks - 1);
+            Ticks(60);
+            Check(shield.ChargeDraining && Math.Abs(shield.Charge - (50f - shield.Props.chargeDrainPerSecond)) < 0.1f,
+                "the stored charge fades once the wearer has gone unhurt (50 -> " + shield.Charge + " in a second)");
+            justiciar.TakeDamage(new DamageInfo(DamageDefOf.Bullet, 5f, 0f, 180f, shooter));
+            Check(!shield.ChargeDraining, "a new hit stops the fading");
             ClearExtras();
             justiciar.health.RestorePart(justiciar.RaceProps.body.corePart);
 
@@ -446,8 +506,9 @@ namespace JusticiarValorValidation
             Hediff overdrive = justiciar.health.hediffSet.GetFirstHediffOfDef(MJV_DefOf.MJV_InvictusOverdrive);
             int ticksLeft = overdrive?.TryGetComp<HediffComp_Disappears>()?.ticksToDisappear ?? -1;
             Check(overdrive != null && ticksLeft == 600, "Invictus overdrives the wearer for 10 s at a full charge (" + ticksLeft + " ticks)");
-            Check(shield.Overdriven && Math.Abs(shield.EnergyMax - 225f) < 0.01f && Math.Abs(shield.Energy - 225f) < 0.01f && shield.Charge == 0f,
-                "Invictus spends the charge and overcharges the shield to 150%");
+            float overcharged = shield.BaseEnergyMax * shield.Props.overdriveEnergyFactor;
+            Check(shield.Overdriven && Math.Abs(shield.EnergyMax - overcharged) < 0.01f && Math.Abs(shield.Energy - overcharged) < 0.01f && shield.Charge == 0f,
+                "Invictus spends the charge and overcharges the shield to " + shield.Props.overdriveEnergyFactor.ToStringPercent() + " (" + shield.Energy + ")");
             Check(justiciar.GetStatValue(StatDefOf.MoveSpeed) > speed0 + 2f, "the overdrive speeds the wearer up (" + speed0 + " -> " + justiciar.GetStatValue(StatDefOf.MoveSpeed) + ")");
             Check(EffectCount("InvictusBurstFx") == 1, "Invictus plays its burst");
             yield return 5;
@@ -535,7 +596,7 @@ namespace JusticiarValorValidation
             ClearExtras();
 
             JusticiarValidation.Line("== Celestial Pierce");
-            // The spear's orbs would join in on the foes around the line.
+            // The spear's orbs would join in on the foes around the landing.
             synthesizer.AutoLaunch = false;
             Check(ReferenceEquals(FxAssets.BladeFor(bladesman.equipment.Primary).mainTexture,
                 bladesman.equipment.Primary.Graphic.MatSingleFor(bladesman.equipment.Primary).mainTexture),
@@ -545,60 +606,73 @@ namespace JusticiarValorValidation
                 + ", equipped angle " + bladesman.equipment.Primary.def.equippedAngleOffset);
             // Manual tick batches do not update the renderer between ticks.
             bladesman.Drawer.tweener.ResetTweenedPosToRoot();
-            Pawn inLine1 = MakeHostile(bladesman.Position + new IntVec3(1, 0, 0));
-            Pawn lineAlly = MakePawn(bladesman.Position + new IntVec3(2, 0, 0), Faction.OfPlayer);
-            Pawn inLine2 = MakeHostile(bladesman.Position + new IntVec3(3, 0, 0));
+            // The blade lands on `target`, three cells off; its area is the landing cell and the eight around it.
+            Pawn target = MakeHostile(bladesman.Position + new IntVec3(3, 0, 0));
+            Pawn beside = MakeHostile(bladesman.Position + new IntVec3(3, 0, 1));
+            Pawn areaAlly = MakePawn(bladesman.Position + new IntVec3(2, 0, -1), Faction.OfPlayer);
             Pawn dodger = MakeHostile(bladesman.Position + new IntVec3(4, 0, 0));
-            Pawn aside = MakeHostile(bladesman.Position + new IntVec3(0, 0, 3));
+            Pawn outside = MakeHostile(bladesman.Position + new IntVec3(0, 0, 3));
+            Pawn near = MakeHostile(bladesman.Position + new IntVec3(1, 0, -2));
+            // Strays would change who the blade catches, and whether the AI holds back for an ally; a wall or rock in the
+            // area would shield those behind it (as it should).
+            ClearStrays(bladesman.Position, 7f, new[] { justiciar, spearman, bladesman, target, beside, areaAlly, dodger, outside, near });
+            List<Building> walls = CellRect.CenteredOn(target.Position, 2).ClipInsideMap(map).Cells.Select(c => c.GetEdifice(map)).Where(b => b != null).ToList();
+            if (walls.Count > 0)
+            {
+                JusticiarValidation.Line("Cleared from around the landing: " + string.Join(", ", walls.Select(b => b.def.defName + " " + b.Position)));
+                PrepareEffectStage(map, target.Position, 2, 2);
+            }
             var pierceComp = pierce.CompOfType<CompAbilityEffect_CelestialPierce>();
-            Check(!pierceComp.AICanTargetNow(new LocalTargetInfo(inLine2)) && pierceComp.AICanTargetNow(new LocalTargetInfo(aside)),
-                "the AI does not thrust through an ally, but does where only foes stand");
+            Check(!pierceComp.AICanTargetNow(new LocalTargetInfo(target)) && pierceComp.AICanTargetNow(new LocalTargetInfo(outside)),
+                "the AI does not bring the blade down on an ally, but does where only foes stand");
             // Measure damage directly: summary health also weights pre-existing and missing body parts.
-            float h1 = inLine1.records.GetValue(RecordDefOf.DamageTaken);
-            float hAlly = lineAlly.records.GetValue(RecordDefOf.DamageTaken);
-            float h2 = inLine2.records.GetValue(RecordDefOf.DamageTaken);
+            float hTarget = target.records.GetValue(RecordDefOf.DamageTaken);
+            float hBeside = beside.records.GetValue(RecordDefOf.DamageTaken);
+            float hAlly = areaAlly.records.GetValue(RecordDefOf.DamageTaken);
             float hDodger = dodger.records.GetValue(RecordDefOf.DamageTaken);
-            float h3 = aside.records.GetValue(RecordDefOf.DamageTaken);
-            pierce.Activate(new LocalTargetInfo(inLine2), new LocalTargetInfo(inLine2));
+            float hOutside = outside.records.GetValue(RecordDefOf.DamageTaken);
+            float hNear = near.records.GetValue(RecordDefOf.DamageTaken);
+            pierce.Activate(new LocalTargetInfo(target), new LocalTargetInfo(target));
             var strikes = map.GetComponent<MapComponent_JusticiarStrikes>();
-            Check(strikes.PendingCount == 5 && inLine1.records.GetValue(RecordDefOf.DamageTaken) - h1 < 0.0001f,
-                "the landing and the four strikes on the line wait for the blade to slam down and the crack to reach them ("
-                + strikes.PendingCount + " pending)");
+            Check(strikes.PendingCount == 5 && target.records.GetValue(RecordDefOf.DamageTaken) - hTarget < 0.0001f,
+                "the landing and the four strikes around it wait for the blade to slam down (" + strikes.PendingCount + " pending)");
             var pending = ((IList)AccessTools.Field(typeof(MapComponent_JusticiarStrikes), "pending").GetValue(strikes)).Cast<PendingStrike>();
-            Check(pending.Where(s => !s.landing).All(s => s.intendedTarget == inLine2),
-                "every strike is meant for the target, so anyone else on the line counts as crossfire");
-            // One foe steps off the line before the crack reaches it.
-            dodger.Position += new IntVec3(0, 0, -3);
+            Check(pending.Where(s => !s.landing).All(s => s.intendedTarget == target),
+                "every strike is meant for the target, so anyone else around it counts as crossfire");
+            // One foe gets clear of the area before the blade lands.
+            dodger.Position += new IntVec3(3, 0, 0);
             dodger.Notify_Teleported();
             dodger.Drawer.tweener.ResetTweenedPosToRoot();
             if (strikes.PendingCount != 5)
             {
-                // What stood on the line: a wall shortens the reach, a foe off its cell is missed.
-                JusticiarValidation.Line("Line from " + bladesman.Position + " (draw " + bladesman.DrawPos + "), foes at " + inLine1.Position + " / "
-                    + inLine2.Position + " (spawned " + inLine2.Spawned + ", hostile " + inLine2.HostileTo(bladesman) + ")");
-                for (int dx = 1; dx <= 4; dx++)
-                {
-                    IntVec3 cell = bladesman.Position + new IntVec3(dx, 0, 0);
-                    JusticiarValidation.Line("  " + cell + " impassable " + cell.Impassable(map) + ": "
-                        + string.Join(", ", cell.GetThingList(map).Select(t => t.def.defName)));
-                }
+                // What stood in the area: a wall shields those behind it.
+                JusticiarValidation.Line("Landing at " + target.Position + " from " + bladesman.Position + ", pawns around it: "
+                    + string.Join(", ", GenRadial.RadialCellsAround(target.Position, 1.5f, true).SelectMany(c => c.GetThingList(map)).OfType<Pawn>()
+                        .Select(p => p.LabelShort + " " + p.Position)));
             }
             Check(EffectCount("CelestialPierceFx") == 1, "Celestial Pierce draws its blade and the broken ground");
             Ticks(75);
-            float damage1 = inLine1.records.GetValue(RecordDefOf.DamageTaken) - h1;
-            float damage2 = inLine2.records.GetValue(RecordDefOf.DamageTaken) - h2;
-            Check(damage1 > 0f && damage2 > 0f && strikes.PendingCount == 0, "the fissure impales both foes in its line (damage "
-                + damage1 + ", " + damage2 + ")");
-            Check(lineAlly.records.GetValue(RecordDefOf.DamageTaken) - hAlly > 0f, "and the ally standing between them");
+            float damageTarget = target.records.GetValue(RecordDefOf.DamageTaken) - hTarget;
+            float damageBeside = beside.records.GetValue(RecordDefOf.DamageTaken) - hBeside;
+            Check(damageTarget > 0f && damageBeside > 0f && strikes.PendingCount == 0, "the landing impales the target and the foe beside it (damage "
+                + damageTarget + ", " + damageBeside + ")");
+            Check(areaAlly.records.GetValue(RecordDefOf.DamageTaken) - hAlly > 0f, "and the ally standing in the area");
             Check(Math.Abs(dodger.records.GetValue(RecordDefOf.DamageTaken) - hDodger) < 0.0001f,
-                "a foe that left the line before the crack reached it escapes" + Wounds(dodger));
-            Check(Math.Abs(aside.records.GetValue(RecordDefOf.DamageTaken) - h3) < 0.0001f, "a foe beside the line is untouched" + Wounds(aside));
-            Check(EffectCount("PierceHitFx") >= 1, "each struck foe bursts where the crack reaches it");
+                "a foe that got clear before the blade landed escapes" + Wounds(dodger));
+            Check(Math.Abs(outside.records.GetValue(RecordDefOf.DamageTaken) - hOutside) < 0.0001f
+                && Math.Abs(near.records.GetValue(RecordDefOf.DamageTaken) - hNear) < 0.0001f,
+                "foes outside the area are untouched" + Wounds(outside) + Wounds(near));
+            Check(EffectCount("PierceHitFx") >= 1, "each struck pawn bursts where the shock reaches it");
             ClearExtras();
             synthesizer.AutoLaunch = true;
 
             JusticiarValidation.Line("== Warlockbane");
             Pawn warlock = MakeHostile(center + new IntVec3(0, 0, 6), stun: false);
+            // A psychically deaf warlock could not cast at all.
+            foreach (Trait trait in warlock.story.traits.allTraits.Where(t => t.def.defName == "PsychicSensitivity").ToList())
+            {
+                warlock.story.traits.RemoveTrait(trait);
+            }
             PawnUtility.ChangePsylinkLevel(warlock, 1, false);
             AbilityDef stunDef = DefDatabase<AbilityDef>.GetNamed("Stun");
             warlock.abilities.GainAbility(stunDef);
@@ -634,20 +708,20 @@ namespace JusticiarValorValidation
                 }
             }
 
-            JusticiarValidation.Line("== Imperial tome");
+            JusticiarValidation.Line("== Imperial codex-auspex");
             List<ResearchProjectDef> empireProjects = DefDatabase<ResearchProjectDef>.AllDefs
                 .Where(p => p.TechprintCount > 0 && p.heldByFactionCategoryTags != null && p.heldByFactionCategoryTags.Contains("Empire")).ToList();
             Check(empireProjects.Contains(MJV_DefOf.MJV_JusticiarGear), "justiciar gear needs techprints held by the Empire");
             int techprints0 = empireProjects.Sum(p => Find.ResearchManager.GetTechprints(p));
             Thing tome = GenSpawn.Spawn(ThingMaker.MakeThing(MJV_DefOf.MJV_ImperialCodexAuspex), bladesman.Position + new IntVec3(1, 0, 0), map);
             tome.TryGetComp<CompUsable>().UsedBy(bladesman);
-            Check(empireProjects.Sum(p => Find.ResearchManager.GetTechprints(p)) == techprints0 + 1, "studying the tome applies one imperial techprint");
-            Check(tome.Destroyed, "the tome is used up");
+            Check(empireProjects.Sum(p => Find.ResearchManager.GetTechprints(p)) == techprints0 + 1, "studying the codex-auspex applies one imperial techprint");
+            Check(tome.Destroyed, "the codex-auspex is used up");
             Check(DefDatabase<TraderKindDef>.GetNamed("Empire_Caravan_TributeCollector").WillTrade(MJV_DefOf.MJV_ImperialCodexAuspex),
-                "imperial tribute collectors take the tome");
-            Check(Math.Abs(MJV_DefOf.MJV_ImperialCodexAuspex.GetStatValueAbstract(StatDefOf.RoyalFavorValue) - 6f) < 0.001f, "the tome is worth 6 royal favor");
+                "imperial tribute collectors take the codex-auspex");
+            Check(Math.Abs(MJV_DefOf.MJV_ImperialCodexAuspex.GetStatValueAbstract(StatDefOf.RoyalFavorValue) - 10f) < 0.001f, "the codex-auspex is worth 10 royal favor");
             Check(DefDatabase<TraderKindDef>.GetNamed("Orbital_Empire").stockGenerators.Any(g => g.HandlesThingDef(MJV_DefOf.MJV_ImperialCodexAuspex)),
-                "imperial orbital traders stock the tome");
+                "imperial orbital traders stock the codex-auspex");
 
             JusticiarValidation.Line("== Empire");
             Check(FactionDefOf.Empire.pawnGroupMakers.Where(m => m.kindDef == PawnGroupKindDefOf.Combat).All(m => m.options.Any(o => o.kind == MJV_DefOf.MJV_Justiciar)),
@@ -663,7 +737,48 @@ namespace JusticiarValorValidation
                 ThingDef weapon = generated.equipment.Primary?.def;
                 Check(weapon == MJV_DefOf.MJV_Weapon_EnergyPsySpear || weapon == MJV_DefOf.MJV_MeleeWeapon_EnergyPsyblade,
                     "a generated justiciar wields an energy psy-spear or psyblade (" + weapon?.defName + ")");
+                // Its Social range is 10~16; genes can shift the level, but never take the conversion power away.
+                Check(!generated.WorkTagIsDisabled(WorkTags.Social) && generated.GetStatValue(StatDefOf.ConversionPower) > 0f,
+                    "a generated justiciar can preach (Social " + generated.skills.GetSkill(SkillDefOf.Social).Level + ", conversion power "
+                    + generated.GetStatValue(StatDefOf.ConversionPower).ToStringPercent() + ")");
                 generated.Destroy();
+
+                foreach (string traderKind in new[] { "Empire_Caravan_TributeCollector", "Empire_Caravan_TraderGeneral" })
+                {
+                    TraderKindDef kind = DefDatabase<TraderKindDef>.GetNamedSilentFail(traderKind);
+                    if (kind == null)
+                    {
+                        continue;
+                    }
+                    List<Pawn> caravan = PawnGroupMakerUtility.GeneratePawns(new PawnGroupMakerParms
+                    {
+                        groupKind = PawnGroupKindDefOf.Trader,
+                        faction = empire,
+                        traderKind = kind,
+                        tile = map.Tile,
+                        points = 1000f
+                    }).ToList();
+                    Pawn trader = caravan.FirstOrDefault(p => p.trader?.traderKind == kind);
+                    bool tribute = kind.category == Patch_ImperialJusticiars.TributeCollectorCategory;
+                    Check(trader != null && (trader.kindDef == MJV_DefOf.MJV_Justiciar) == tribute,
+                        (tribute ? "a justiciar leads the tribute collector's caravan" : "an ordinary imperial caravan keeps its trader")
+                        + " (" + trader?.kindDef.defName + ")");
+                    foreach (Pawn pawn in caravan)
+                    {
+                        pawn.Destroy();
+                    }
+                }
+                Check(Harmony.GetPatchInfo(Patch_ImperialJusticiars.BestowingRunIntMethod())?.Transpilers.Any(p => p.owner == JusticiarValorMod.HarmonyId) == true,
+                    "the bestowing ceremony's escort is patched");
+                Patch_ImperialJusticiars.BestowingRunIntPrefix();
+                List<PawnKindDef> escort = Enumerable.Range(0, 6).Select(_ => Patch_ImperialJusticiars.BestowerEscortKind()).ToList();
+                Check(escort.Count(k => k == MJV_DefOf.MJV_Justiciar) == Patch_ImperialJusticiars.JusticiarsInBestowerEscort
+                    && escort.Count(k => k == PawnKindDefOf.Empire_Fighter_Janissary) == 6 - Patch_ImperialJusticiars.JusticiarsInBestowerEscort,
+                    "two of the bestower's six guards are justiciars (" + string.Join(", ", escort.Select(k => k.defName)) + ")");
+                QuestScriptDef ascent = DefDatabase<QuestScriptDef>.GetNamedSilentFail("EndGame_RoyalAscent");
+                List<QuestNode_GeneratePawn> ascentPawns = (ascent?.root as QuestNode_Sequence)?.nodes.OfType<QuestNode_GeneratePawn>().ToList();
+                Check(ascentPawns != null && ascentPawns.Any(n => n.kindDef.GetValue(new Slate()) == MJV_DefOf.MJV_Justiciar && n.forbidAnyTitle.GetValue(new Slate())),
+                    "a justiciar without a title travels with the High Stellarch");
             }
             else
             {
@@ -688,6 +803,7 @@ namespace JusticiarValorValidation
             }
             energyField.SetValue(shield, shield.EnergyMax);
             chargeField.SetValue(shield, 77f);
+            lastDamageField.SetValue(shield, Find.TickManager.TicksGame);
             orbsField.SetValue(synthesizer, 3);
             wlChargesField.SetValue(warlockbane, 1);
             savedCharge = shield.Charge;
@@ -745,6 +861,15 @@ namespace JusticiarValorValidation
                 actors[i].Drawer.tweener.ResetTweenedPosToRoot();
             }
             ((IList)effectsField.GetValue(Fx)).Clear();
+            foreach (Pawn actor in actors)
+            {
+                actor.health.Reset();
+            }
+            if (spearman.equipment.Primary?.def != MJV_DefOf.MJV_Weapon_EnergyPsySpear)
+            {
+                JusticiarValidation.Line("The spearman had lost his psy-spear (" + (spearman.equipment.Primary?.def.defName ?? "nothing") + "): wielding a new one");
+                Wield(spearman, MJV_DefOf.MJV_Weapon_EnergyPsySpear);
+            }
             var synthesizer = spearman.equipment.Primary.TryGetComp<CompPsyOrbSynthesizer>();
             synthesizer.AutoLaunch = false;
             orbsField.SetValue(synthesizer, 0);
@@ -803,6 +928,24 @@ namespace JusticiarValorValidation
             Spawn(new SermonHaloFadeFx(Offset(c, -4f, 2f), 5.2f, 0.3f, 1f), 0f);
             yield return 15;
             yield return JusticiarValidation.ShotPrefix + "missions";
+
+            // The justiciar's gear up close, as drafted justiciars face the player: the psy-spear in hand and the
+            // warlockbane shield on the arm, drawn under the spear but over the armor and the helmet.
+            ((IList)effectsField.GetValue(Fx)).Clear();
+            Wield(justiciar, MJV_DefOf.MJV_Weapon_EnergyPsySpear);
+            justiciar.equipment.Primary.TryGetComp<CompPsyOrbSynthesizer>().AutoLaunch = false;
+            justiciar.drafter.Drafted = true;
+            // A pawn without a job draws no weapon: the drafted justiciar stands in his combat wait.
+            justiciar.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Wait_Combat), JobCondition.InterruptForced);
+            Ticks(1);
+            justiciar.Rotation = Rot4.South;
+            justiciar.Drawer.tweener.ResetTweenedPosToRoot();
+            Find.CameraDriver.SetRootPosAndSize(justiciar.DrawPos, 3f);
+            yield return 15;
+            justiciar.Rotation = Rot4.South;
+            Check(justiciar.CurJob != null && justiciar.equipment.Primary?.def == MJV_DefOf.MJV_Weapon_EnergyPsySpear,
+                "the gear close-up shows the drafted justiciar with his spear (" + justiciar.CurJobDef?.defName + ")");
+            yield return JusticiarValidation.ShotPrefix + "gear-south";
         }
 
         private static Vector3 Offset(Vector3 v, float dx, float dz) => new Vector3(v.x + dx, v.y, v.z + dz);

@@ -7,8 +7,10 @@
 	<!-- Promachos armor -->
 	<MJV_ShieldEnergy>{0} / {1}</MJV_ShieldEnergy>
 	<MJV_ShieldResetting>Resetting</MJV_ShieldResetting>
+	<MJV_ShieldNoSensitivity>No psychic sensitivity</MJV_ShieldNoSensitivity>
 	<MJV_InvictusCharge>Invictus {0}</MJV_InvictusCharge>
-	<MJV_PromachosArmorTip>Psychic shield: absorbs gunfire, projectiles and blasts, but not melee attacks. It recharges a few seconds after the last hit, and resets some time after it breaks.\n\nInvictus: every hit the shield absorbs stores energy for the Invictus ability.</MJV_PromachosArmorTip>
+	<MJV_InvictusChargeFading>Invictus {0} (fading)</MJV_InvictusChargeFading>
+	<MJV_PromachosArmorTip>Psychic shield: absorbs gunfire, projectiles, blasts and blows struck in melee. Its strength follows the wearer's psychic sensitivity ({0}): {1} energy for every 100%. It recharges a few seconds after the last hit, and resets some time after it breaks.\n\nInvictus: every hit the shield absorbs stores energy for the Invictus ability. The stored energy fades once the wearer has gone {2} seconds without taking damage.</MJV_PromachosArmorTip>
 	<MJV_InvictusNoArmor>Needs a Promachos armor's psychic shield</MJV_InvictusNoArmor>
 	<MJV_InvictusNotCharged>Not enough stored energy ({0}, needs {1}). The psychic shield stores energy from the hits it absorbs.</MJV_InvictusNotCharged>
 
@@ -17,37 +19,82 @@
 	<MJV_PsyOrbToggleDesc>While switched on, the energy psy-spear synthesizes psy-orbs (one every five seconds, up to three) and keeps them inside. When the wielder is drafted or fighting, the orbs come out to circle the wielder and are launched at enemies within range on their own. Each orb sears what it hits and slows it for a few seconds.\n\nOrbs ready: {0} / {1}</MJV_PsyOrbToggleDesc>
 
 	<!-- Energy psyblade -->
-	<MJV_PierceHitsAllies>Allies in the way: {0}</MJV_PierceHitsAllies>
+	<MJV_PierceHitsAllies>Allies in the area: {0}</MJV_PierceHitsAllies>
 
 	<!-- Warlockbane shield -->
 	<MJV_Deflected>Deflected</MJV_Deflected>
 	<MJV_WarlockbaneTip>Warlockbane: turns aside hostile psycasts aimed at the bearer and stuns their caster with the backlash. Each deflection spends a charge; charges come back slowly.\n\nCharges: {0} / {1}</MJV_WarlockbaneTip>
 
-	<!-- Imperial tome -->
+	<!-- Imperial codex-auspex -->
 	<MJV_TomeNoBlueprints>No unfinished project needs imperial techprints</MJV_TomeNoBlueprints>
-	<MJV_TomeNothingToLearn>{PAWN_nameDef} studied the imperial tome but found nothing the colony still needs.</MJV_TomeNothingToLearn>
+	<MJV_TomeNothingToLearn>{PAWN_nameDef} analyzed the imperial codex-auspex but found nothing the colony still needs.</MJV_TomeNothingToLearn>
 	<MJV_TomeStudiedLabel>Imperial blueprint</MJV_TomeStudiedLabel>
-	<MJV_TomeStudiedText>{PAWN_nameDef} has deciphered the technical appendices of an imperial auspex and recovered a blueprint for {1}.\n\nTechprints applied: {2} / {3}</MJV_TomeStudiedText>
+	<MJV_TomeStudiedText>{PAWN_nameDef} has decoded the data lattices of an imperial codex-auspex and recovered a blueprint for {1}.\n\nTechprints applied: {2} / {3}</MJV_TomeStudiedText>
 
 	<!-- Imperial missions: sermons -->
 	<MJV_ImperialFaithFallback>the imperial faith</MJV_ImperialFaithFallback>
-	<MJV_SermonStarted>{PREACHER_nameDef} has begun a sermon of {FAITH}. Colonists who are free to will gather to listen.</MJV_SermonStarted>
+	<MJV_SermonStarted>{PREACHER_nameDef} has begun a sermon of {FAITH}. The colonists called to it gather to listen.</MJV_SermonStarted>
 	<MJV_SermonFinished>{PREACHER_nameDef} has finished preaching. Listeners: {COUNT}.</MJV_SermonFinished>
 	<MJV_SermonInterrupted>{PREACHER_nameDef}'s sermon was interrupted.</MJV_SermonInterrupted>
+	<MJV_SermonCancelled>{PREACHER_nameDef}'s sermon was cancelled. {PREACHER_nameDef} takes it as a refusal.</MJV_SermonCancelled>
 	<MJV_SermonConvertsLabel>Converts to the imperial faith</MJV_SermonConvertsLabel>
 	<MJV_SermonConvertsText>{PREACHER_nameDef}'s sermon has moved some of your colonists to take up {FAITH}:\n\n{CONVERTS}\n\nThe Empire looks kindly on every new believer.</MJV_SermonConvertsText>
 	<MJV_LordReportPreaching>Preaching the imperial faith.</MJV_LordReportPreaching>
 	<MJV_LordReportListening>Listening to {PREACHER_nameDef}'s sermon.</MJV_LordReportListening>
+	<MJV_LordReportAwaitingAnswer>Waiting for the colony to assemble for a sermon.</MJV_LordReportAwaitingAnswer>
+	<MJV_SermonNoDrafting>{PAWN_nameDef} is attending {PREACHER_nameDef}'s sermon and cannot be drafted while the colony is safe.</MJV_SermonNoDrafting>
+	<MJV_CommandLeaveSermon>Leave sermon</MJV_CommandLeaveSermon>
+	<MJV_CommandLeaveSermonDesc>{PAWN_nameDef} leaves the sermon. If fewer than {REQUIRED} listeners remain (now {LISTENING}), the sermon is cancelled, which counts as a refusal.</MJV_CommandLeaveSermonDesc>
+	<MJV_CommandCancelSermon>Cancel sermon</MJV_CommandCancelSermon>
+	<MJV_CommandCancelSermonDesc>Call off {PREACHER_nameDef}'s sermon. {PREACHER_nameDef} will take it as a refusal: -{PENALTY} goodwill with the Empire when {PREACHER_pronoun} returns.</MJV_CommandCancelSermonDesc>
+	<MJV_ConfirmCancelSermon>Cancel {PREACHER_nameDef}'s sermon?\n\n{PREACHER_nameDef} will take it as a refusal, and it will cost you {PENALTY} goodwill with the Empire when {PREACHER_pronoun} returns.</MJV_ConfirmCancelSermon>
 
-	<!-- Imperial missions: the visiting missionary -->
-	<MJV_MissionaryArrivedSolo>{PREACHER_nameFull}, a missionary of {FAITH}, has come from {FACTION_name} to preach the imperial faith at your colony.</MJV_MissionaryArrivedSolo>
-	<MJV_MissionaryArrivedEscorted>{PREACHER_nameFull}, a missionary of {FAITH}, has come from {FACTION_name} to preach the imperial faith at your colony. For protection, {PREACHER_nameDef} travels with {COUNT} {ESCORT}.</MJV_MissionaryArrivedEscorted>
-	<MJV_MissionaryArrivedExplain>{PREACHER_nameDef} will stay for about {DURATION} and hold sermons. Colonists whose schedule allows recreation will gather to listen, and every sermon shakes the certainty of those who do not share the imperial faith; those whose certainty breaks will convert. {FACTION_name} will look kindly on every convert.\n\nIf you would rather your people kept their faith, keep them busy while {PREACHER_nameDef} preaches.</MJV_MissionaryArrivedExplain>
+	<!-- Imperial missions: a sermon requested -->
+	<MJV_SermonRequestedLabel>Sermon requested: {JUSTICIAR_nameDef}</MJV_SermonRequestedLabel>
+	<MJV_SermonRequestedText>{JUSTICIAR_nameDef} asks your colony to assemble for a sermon of {FAITH}.\n\nSelect {JUSTICIAR_nameDef} and choose "Hold sermon" to call your colonists: at least {REQUIRED} of your {ELIGIBLE} conscious colonists must attend. Every colonist beyond that pleases {JUSTICIAR_objective}: a sermon the whole colony hears earns {BONUS} goodwill with the Empire when {JUSTICIAR_pronoun} returns.\n\nYou may refuse, but {JUSTICIAR_nameDef} will take offense, and it will cost you {PENALTY} goodwill with the Empire when {JUSTICIAR_pronoun} returns. {JUSTICIAR_nameDef} waits {TIME} for your answer; silence counts as a refusal.</MJV_SermonRequestedText>
+	<MJV_CommandHoldSermon>Hold sermon</MJV_CommandHoldSermon>
+	<MJV_CommandHoldSermonDesc>Choose the colonists who will hear {JUSTICIAR_nameDef}'s sermon. {JUSTICIAR_nameDef} waits {TIME} more for your answer.</MJV_CommandHoldSermonDesc>
+	<MJV_CommandRefuseSermon>Refuse sermon</MJV_CommandRefuseSermon>
+	<MJV_CommandRefuseSermonDesc>Refuse {JUSTICIAR_nameDef}'s sermon. {JUSTICIAR_nameDef} will take offense, and it will cost you {PENALTY} goodwill with the Empire when {JUSTICIAR_pronoun} returns.</MJV_CommandRefuseSermonDesc>
+	<MJV_ConfirmRefuseSermon>Refuse {JUSTICIAR_nameDef}'s sermon?\n\n{JUSTICIAR_nameDef} will take offense, and it will cost you {PENALTY} goodwill with the Empire when {JUSTICIAR_pronoun} returns.</MJV_ConfirmRefuseSermon>
+	<MJV_SermonRefused>The colony refused {JUSTICIAR_nameDef}'s sermon. The Empire will hear of it when {JUSTICIAR_pronoun} returns (-{PENALTY} goodwill).</MJV_SermonRefused>
+	<MJV_SermonRequestIgnored>{JUSTICIAR_nameDef} waited in vain for the colony to assemble, and takes the silence as a refusal (-{PENALTY} goodwill when {JUSTICIAR_pronoun} returns).</MJV_SermonRequestIgnored>
+	<MJV_SermonRequestLapsed>{JUSTICIAR_nameDef}'s request for a sermon has lapsed: the colony was in no state to hold it.</MJV_SermonRequestLapsed>
+	<MJV_SermonJusticiarUnavailable>{JUSTICIAR_nameDef} cannot preach right now.</MJV_SermonJusticiarUnavailable>
+	<MJV_SermonDanger>Not while the colony is in danger.</MJV_SermonDanger>
+	<MJV_SermonOtherGathering>Another gathering or ritual is under way.</MJV_SermonOtherGathering>
+	<MJV_SermonNobodyToListen>None of your colonists can attend.</MJV_SermonNobodyToListen>
+	<MJV_AlertSermonRequested>Sermon requested</MJV_AlertSermonRequested>
+	<MJV_AlertSermonRequestedDesc>A justiciar is waiting for your colony to assemble for a sermon. Select the justiciar to hold the sermon or refuse it; a request left unanswered counts as a refusal.\n\n{0}</MJV_AlertSermonRequestedDesc>
+
+	<!-- Imperial missions: the sermon's ritual window -->
+	<MJV_SermonRitualLabel>Sermon of {0}</MJV_SermonRitualLabel>
+	<MJV_SermonBegin>Begin sermon</MJV_SermonBegin>
+	<MJV_SermonDialogDesc>{JUSTICIAR_nameDef} will preach {FAITH} to your colonists. At least {REQUIRED} of your {ELIGIBLE} conscious colonists must attend. Those who attend cannot be drafted while the colony is safe, and every listener whose certainty breaks converts to the imperial faith.</MJV_SermonDialogDesc>
+	<MJV_SermonDialogRules>Every colonist beyond the minimum pleases {JUSTICIAR_nameDef}: a sermon the whole colony hears earns {BONUS} goodwill with the Empire when {JUSTICIAR_pronoun} returns. Cancelling the sermon, or sending listeners away until fewer than the minimum remain, counts as a refusal: -{PENALTY} goodwill when {JUSTICIAR_pronoun} returns.</MJV_SermonDialogRules>
+	<MJV_SermonAttendanceLabel>Attendance</MJV_SermonAttendanceLabel>
+	<MJV_SermonSatisfactionLabel>{JUSTICIAR_nameDef}'s satisfaction</MJV_SermonSatisfactionLabel>
+	<MJV_SermonNeedsCongregation>At least {0} of {1} conscious colonists must attend ({2} chosen).</MJV_SermonNeedsCongregation>
+	<MJV_SermonCongregationFactor>Congregation</MJV_SermonCongregationFactor>
+	<MJV_SermonBelowMinimum>needs {0}</MJV_SermonBelowMinimum>
+	<MJV_SermonTurnoutBonus>+{0} goodwill</MJV_SermonTurnoutBonus>
+	<MJV_SermonCongregationTip>The justiciar asks for at least {0} of your {1} conscious colonists. Everyone beyond that pleases him: his satisfaction is the share of the colony beyond the minimum that attends, and the sermon earns that share of the full goodwill bonus when he returns to the Empire.</MJV_SermonCongregationTip>
+
+	<!-- Imperial missions: the visiting justiciar -->
+	<MJV_MissionaryArrivedSolo>{PREACHER_nameFull}, a justiciar of {FAITH}, has come from {FACTION_name} on a mission to bring the imperial faith to your colony.</MJV_MissionaryArrivedSolo>
+	<MJV_MissionaryArrivedEscorted>{PREACHER_nameFull}, a justiciar of {FAITH}, has come from {FACTION_name} on a mission to bring the imperial faith to your colony. {PREACHER_nameDef} travels with {COUNT} {ESCORT}.</MJV_MissionaryArrivedEscorted>
+	<MJV_MissionaryArrivedExplain>{PREACHER_nameDef} will stay for about {DURATION}. Now and then {PREACHER_pronoun} will ask your colony to assemble for a sermon: you must call at least {FRACTION} of your conscious colonists to hear it, or refuse. Every sermon shakes the certainty of those who do not share the imperial faith; those whose certainty breaks will convert, and {FACTION_name} will look kindly on every convert ({GOODWILL} goodwill each).\n\nA congregation larger than {PREACHER_nameDef} asked for pleases {PREACHER_objective}, and {FACTION_name} will hear of it when {PREACHER_pronoun} returns. Every sermon you refuse or cancel will cost you {PENALTY} goodwill with {FACTION_name} when {PREACHER_pronoun} returns. Hold all of {PREACHER_possessive} sermons and keep {PREACHER_objective} content, and {PREACHER_nameDef} will leave you an imperial codex-auspex.</MJV_MissionaryArrivedExplain>
 	<MJV_MissionaryLeaving>{PREACHER_nameDef} has finished {PREACHER_possessive} mission and is leaving.</MJV_MissionaryLeaving>
 	<MJV_MissionaryLeavingConverted>Your whole colony now follows {FAITH}. {PREACHER_nameDef} considers {PREACHER_possessive} work here done and is leaving.</MJV_MissionaryLeavingConverted>
-	<MJV_MissionEscortLeaving>Without their missionary, the escort from {0} is going home.</MJV_MissionEscortLeaving>
+	<MJV_MissionEscortLeaving>Without their justiciar, the escort from {0} is going home.</MJV_MissionEscortLeaving>
 
-	<!-- Imperial missions: the lodging missionary -->
+	<!-- Imperial missions: what a justiciar's mission earned and cost, when he returns to the Empire -->
+	<MJV_MissionSettledLabel>Mission over: {JUSTICIAR_nameDef}</MJV_MissionSettledLabel>
+	<MJV_MissionSettledText>{JUSTICIAR_nameDef} has returned to {FACTION_name} and reported on {JUSTICIAR_possessive} mission.\n\nSermons held: {HELD}. For the congregations beyond {JUSTICIAR_possessive} minimum: {BONUS} goodwill.\nSermons refused or cancelled: {REFUSED}. {PENALTY} goodwill.</MJV_MissionSettledText>
+	<MJV_MissionSettledCodex>Pleased with your colony's hospitality, {JUSTICIAR_nameDef} has left you an imperial codex-auspex. It is on its way by drop pod.</MJV_MissionSettledCodex>
+	<MJV_MissionSettledNoCodex>{JUSTICIAR_nameDef} was not content enough with {JUSTICIAR_possessive} stay to leave a gift: a justiciar who heard no refusal and whose mood stayed above {1} on average leaves an imperial codex-auspex.</MJV_MissionSettledNoCodex>
+
+	<!-- Imperial missions: the lodging justiciar -->
 	<MJV_MissionColonyConvertedLabel>Mission accomplished</MJV_MissionColonyConvertedLabel>
 	<MJV_MissionColonyConvertedText>Your whole colony now follows {FAITH}. {PREACHER_nameDef} considers {PREACHER_possessive} work here done: the imperial shuttle has been called to collect {PREACHER_objective} early.</MJV_MissionColonyConvertedText>
 	<MJV_CalledToServiceLabel>Called to service: {PAWN_nameDef}</MJV_CalledToServiceLabel>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 
-  <!-- The imperial tome a sheltered missionary leaves as thanks (quest MJV_DisgracedSermon). -->
+  <!-- The imperial codex-auspex a sheltered justiciar leaves as thanks (quest MJV_DisgracedSermon). -->
   <ThingSetMakerDef>
-    <defName>MJV_Reward_ImperialTome</defName>
+    <defName>MJV_Reward_ImperialCodexAuspex</defName>
     <root Class="ThingSetMaker_StackCount">
       <fixedParams>
         <filter>

@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 
-	<!-- Imperial tome. Sold to the Empire's tribute collectors it earns royal favor (RoyalFavorValue, see
-	     Patches/Traders_ImperialTome.xml); studied, it gives a random imperial techprint (CompUseEffect_ImperialBlueprint). -->
+	<!-- Imperial codex-auspex. Sold to the Empire's tribute collectors it earns royal favor (RoyalFavorValue, see
+	     Patches/Traders_ImperialCodexAuspex.xml); studied by a colonist where it lies, it gives a random imperial techprint
+	     (CompUseEffect_ImperialBlueprint). A justiciar leaves one after a mission he was treated well on (MissionRecord). -->
 	<ThingDef ParentName="ResourceBase">
 		<defName>MJV_ImperialCodexAuspex</defName>
 		<label>imperial codex-auspex</label>
-		<description>A heavy-duty tactical terminal carried by imperial Justiciars and the Imperial elite. Bound by active eltex circuits, it stores codified imperial scripture, judicial mandates, and lost high-tier tech schematics. Returning this terminal to the royal court grants substantial royal favor, or its data lattices can be analyzed at a research bench to unlock a lost imperial blueprint.</description>
+		<description>A heavy-duty tactical terminal carried by imperial Justiciars and the Imperial elite. Bound by active eltex circuits, it stores codified imperial scripture, judicial mandates, and lost high-tier tech schematics. Returning this terminal to the royal court grants substantial royal favor, or a colonist can analyze its data lattices to unlock a lost imperial blueprint.</description>
 		<thingClass>ThingWithComps</thingClass>
 		<techLevel>Spacer</techLevel>
 		<graphicData>

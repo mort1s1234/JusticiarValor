@@ -19,7 +19,7 @@ namespace JusticiarValor
 
         public float armorPenetration = 0.4f;
 
-        // How far the wave throws enemies; they land stunned (PawnFlyer_Stun).
+        // How far the wave throws enemies (MJV_PawnFlyer_Knockback).
         public float knockbackDistance = 3f;
 
         // Heavier pawns are only staggered.
@@ -27,6 +27,9 @@ namespace JusticiarValor
 
         // Stun for pawns that were not thrown.
         public IntRange stunTicks = new IntRange(60, 120);
+
+        // Stun of the thrown ones, from when they land.
+        public IntRange landingStunTicks = new IntRange(120, 180);
 
         // The daze that slows the wave's victims afterwards.
         public HediffDef dazeHediff;
@@ -182,7 +185,7 @@ namespace JusticiarValor
                 return;
             }
             // Whether the blow throws the victim back is settled before the daze, which must never decide it.
-            bool thrown = !victim.Downed && victim.BodySize <= props.maxKnockbackBodySize && !victim.InBed() && MJV_DefOf.PawnFlyer_Stun != null;
+            bool thrown = !victim.Downed && victim.BodySize <= props.maxKnockbackBodySize && !victim.InBed() && MJV_DefOf.MJV_PawnFlyer_Knockback != null;
             if (props.dazeHediff != null)
             {
                 Hediff existing = victim.health.hediffSet.GetFirstHediffOfDef(props.dazeHediff);
@@ -198,9 +201,15 @@ namespace JusticiarValor
                 IntVec3 dest = JVUtility.KnockbackCell(caster.Position, victim, props.knockbackDistance);
                 if (dest != from)
                 {
-                    PawnFlyer flyer = PawnFlyer.MakeFlyer(MJV_DefOf.PawnFlyer_Stun, victim, dest, null, null);
+                    PawnFlyer flyer = PawnFlyer.MakeFlyer(MJV_DefOf.MJV_PawnFlyer_Knockback, victim, dest, null, null);
                     if (flyer != null)
                     {
+                        // Stunned where it lands, by the wave.
+                        if (flyer is PawnFlyer_MJV_Knockback knockback)
+                        {
+                            knockback.instigator = caster;
+                            knockback.stunTicks = props.landingStunTicks.RandomInRange;
+                        }
                         GenSpawn.Spawn(flyer, from, map);
                         return;
                     }

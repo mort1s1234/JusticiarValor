@@ -17,6 +17,9 @@ namespace JusticiarValor
         public static readonly Texture2D EmptyBar = SolidColorMaterials.NewSolidColorTexture(new Color(0f, 0f, 0f, 0f));
         public static readonly Texture2D PipFull = SolidColorMaterials.NewSolidColorTexture(FxPalette.Sage);
         public static readonly Texture2D PipEmpty = SolidColorMaterials.NewSolidColorTexture(new Color(0.20f, 0.24f, 0.22f));
+        // The justiciar's sermon (SermonRequests): hold it, refuse it, leave or call it off. Royalty's own ceremony icon.
+        public static readonly Texture2D SermonHold = ContentFinder<Texture2D>.Get("UI/Icons/Rituals/BestowCeremony");
+        public static readonly Texture2D SermonRefuse = ContentFinder<Texture2D>.Get("UI/Designators/Cancel");
     }
 
     // Promachos armor: the psychic shield's energy and the energy stored for Invictus.
@@ -44,18 +47,30 @@ namespace JusticiarValor
             Text.Font = GameFont.Tiny;
             Widgets.Label(labelRect, shield.parent.LabelCap);
 
-            Widgets.FillableBar(shieldRect, JVMath.Clamp01(shield.Energy / shield.EnergyMax),
+            float max = shield.EnergyMax;
+            Widgets.FillableBar(shieldRect, max > 0f ? JVMath.Clamp01(shield.Energy / max) : 0f,
                 shield.Overdriven ? GizmoTextures.OverdriveBar : GizmoTextures.ShieldBar, GizmoTextures.EmptyBar, false);
             Widgets.FillableBar(chargeRect, shield.ChargeFraction, GizmoTextures.ChargeBar, GizmoTextures.EmptyBar, false);
             Text.Anchor = TextAnchor.MiddleCenter;
-            Widgets.Label(shieldRect, shield.Resetting
-                ? (string)"MJV_ShieldResetting".Translate()
-                : "MJV_ShieldEnergy".Translate(shield.Energy.ToString("F0"), shield.EnergyMax.ToString("F0")).Resolve());
-            Widgets.Label(chargeRect, "MJV_InvictusCharge".Translate(shield.ChargeFraction.ToStringPercent()).Resolve());
+            Widgets.Label(shieldRect, max <= 0f ? (string)"MJV_ShieldNoSensitivity".Translate()
+                : shield.Resetting ? (string)"MJV_ShieldResetting".Translate()
+                : "MJV_ShieldEnergy".Translate(shield.Energy.ToString("F0"), max.ToString("F0")).Resolve());
+            Widgets.Label(chargeRect, (shield.ChargeDraining ? "MJV_InvictusChargeFading" : "MJV_InvictusCharge")
+                .Translate(shield.ChargeFraction.ToStringPercent()).Resolve());
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
-            TooltipHandler.TipRegion(inner, "MJV_PromachosArmorTip".Translate());
+            TooltipHandler.TipRegion(inner, new TipSignal(Tip, shield.parent.thingIDNumber ^ 0x4D4A56));
             return new GizmoResult(GizmoState.Clear);
+        }
+
+        // Built only while the gizmo is hovered.
+        private string Tip()
+        {
+            Pawn wearer = shield.Wearer;
+            float sensitivity = wearer?.GetStatValue(StatDefOf.PsychicSensitivity) ?? 1f;
+            CompProperties_PsychicShield props = shield.Props;
+            return "MJV_PromachosArmorTip".Translate(sensitivity.ToStringPercent(), props.energyPerSensitivity.ToString("F0"),
+                (props.chargeDrainDelayTicks / 60f).ToString("0.#"));
         }
     }
 

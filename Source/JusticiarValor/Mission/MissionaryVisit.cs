@@ -10,31 +10,24 @@ namespace JusticiarValor
     {
         public IntVec3 spot = IntVec3.Invalid;
         public int ticks;
-        public bool started;
 
         public override void ExposeData()
         {
             Scribe_Values.Look(ref spot, "spot", IntVec3.Invalid);
             Scribe_Values.Look(ref ticks, "ticks", 0);
-            Scribe_Values.Look(ref started, "started", false);
         }
     }
 
-    // A visiting missionary holds a sermon: he walks to a gathering spot of the colony and preaches, his escort
-    // keeps close. The colonists' side of it is the LordJob_MJV_Sermon this toil starts once he is in place.
+    // A visiting justiciar preaches the sermon the colony agreed to: he walks to its spot and preaches there, his escort
+    // keeps close. The colonists' side of it is the LordJob_MJV_Sermon started with the player's answer; this toil ends
+    // with it.
     public class LordToil_MJV_Preach : LordToil
     {
-        private const int GiveUpTicks = 3000;
-
         private readonly Pawn preacher;
-        private readonly IntVec3 fallbackSpot;
-        private readonly SermonSettings settings;
 
-        public LordToil_MJV_Preach(Pawn preacher, IntVec3 fallbackSpot, SermonSettings settings)
+        public LordToil_MJV_Preach(Pawn preacher)
         {
             this.preacher = preacher;
-            this.fallbackSpot = fallbackSpot;
-            this.settings = settings;
             data = new LordToilData_MJV_Preach();
         }
 
@@ -46,8 +39,7 @@ namespace JusticiarValor
         {
             base.Init();
             Data.ticks = 0;
-            Data.started = false;
-            Data.spot = preacher != null && preacher.Spawned && SermonUtility.TryFindSermonSpot(preacher, fallbackSpot, out IntVec3 spot) ? spot : IntVec3.Invalid;
+            Data.spot = SermonUtility.SermonOf(preacher)?.Spot ?? IntVec3.Invalid;
         }
 
         public override void UpdateAllDuties()
@@ -70,37 +62,21 @@ namespace JusticiarValor
         public override void LordToilTick()
         {
             Data.ticks++;
-            if (!Data.spot.IsValid)
-            {
-                lord.ReceiveMemo(SermonUtility.MemoSermonEnded);
-                return;
-            }
-            if (!Data.started)
-            {
-                if (LordToil_MJV_Sermon.IsPreaching(preacher, Data.spot))
-                {
-                    Data.started = true;
-                    SermonUtility.StartSermon(preacher, Data.spot, settings, null);
-                }
-                else if (Data.ticks > GiveUpTicks)
-                {
-                    lord.ReceiveMemo(SermonUtility.MemoSermonEnded);
-                }
-                return;
-            }
             // The sermon reports its end with the memo; this only catches one that vanished without concluding.
-            if (Data.ticks % 250 == 0 && SermonUtility.SermonOf(preacher) == null)
+            if (!Data.spot.IsValid || Data.ticks % 250 == 0 && SermonUtility.SermonOf(preacher) == null)
             {
                 lord.ReceiveMemo(SermonUtility.MemoSermonEnded);
             }
         }
     }
 
-    // An imperial missionary visiting the colony, alone or with an escort of justiciars: like other visitors he
-    // waits near the colony, and from time to time he holds a sermon. He leaves when his visit is over, or early once
-    // the whole colony follows the imperial faith.
-    public class LordJob_MJV_MissionaryVisit : LordJob
+    // A justiciar visiting the colony on a mission, alone or with an escort: like other visitors he waits near the colony,
+    // and now and then he asks the colony for a sermon (SermonRequests). He leaves when his visit is over, or early once the
+    // whole colony follows the imperial faith, and then settles with the Empire what his sermons earned and cost.
+    public class LordJob_MJV_MissionaryVisit : LordJob, IJusticiarMission
     {
+        public const string MemoSermonAccepted = "MJV_SermonAccepted";
+
         private Faction faction;
         private IntVec3 chillSpot;
         private Pawn preacher;
@@ -108,6 +84,9 @@ namespace JusticiarValor
         private IntRange sermonIntervalTicks;
         private int nextSermonTick;
         private int leaveTick;
+        private SermonRequest request;
+        private MissionRecord record = new MissionRecord();
+        private int nextMoodSampleTick;
 
         public StateGraph exitSubgraph;
 
@@ -138,13 +117,21 @@ namespace JusticiarValor
             set => nextSermonTick = value;
         }
 
+        public Pawn Justiciar => preacher;
+
+        public SermonSettings Settings => settings;
+
+        public MissionRecord Record => record;
+
+        public SermonRequest Request => request;
+
         public override StateGraph CreateGraph()
         {
             var graph = new StateGraph();
             LordToil travel = graph.StartingToil = graph.AttachSubgraph(new LordJob_Travel(chillSpot).CreateGraph()).StartingToil;
             var wait = new LordToil_DefendPoint(chillSpot);
             graph.AddToil(wait);
-            var preach = new LordToil_MJV_Preach(preacher, chillSpot, settings);
+            var preach = new LordToil_MJV_Preach(preacher);
             graph.AddToil(preach);
             var takeWounded = new LordToil_TakeWoundedGuest();
             graph.AddToil(takeWounded);
@@ -155,14 +142,16 @@ namespace JusticiarValor
             graph.AddToil(exitDigging);
             string pawnsPlural = faction?.def.pawnsPlural.CapitalizeFirst() ?? string.Empty;
             string factionName = faction?.Name ?? string.Empty;
+            // Whatever ends the visit, a pending request goes with it.
+            var dropRequest = new TransitionAction_Custom(() => request = null);
 
             var arrived = new Transition(travel, wait);
             arrived.AddTrigger(new Trigger_Memo("TravelArrived"));
             graph.AddTransition(arrived);
 
+            // The colony agreed to a sermon (Answer has started it): he goes to preach.
             var startSermon = new Transition(wait, preach);
-            startSermon.AddTrigger(new Trigger_TickCondition(SermonDue, 120));
-            startSermon.AddPreAction(new TransitionAction_Custom(() => nextSermonTick = Find.TickManager.TicksGame + sermonIntervalTicks.RandomInRange));
+            startSermon.AddTrigger(new Trigger_Memo(MemoSermonAccepted));
             startSermon.AddPostAction(new TransitionAction_EndAllJobs());
             graph.AddTransition(startSermon);
 
@@ -175,6 +164,7 @@ namespace JusticiarValor
             dangerousTemperature.AddTrigger(new Trigger_PawnExperiencingDangerousTemperatures());
             dangerousTemperature.AddPreAction(new TransitionAction_Message("MessageVisitorsDangerousTemperature".Translate(pawnsPlural, factionName)));
             dangerousTemperature.AddPreAction(new TransitionAction_EnsureHaveExitDestination());
+            dangerousTemperature.AddPreAction(dropRequest);
             dangerousTemperature.AddPostAction(new TransitionAction_EndAllJobs());
             graph.AddTransition(dangerousTemperature);
 
@@ -183,6 +173,7 @@ namespace JusticiarValor
             anomalousWeather.AddTrigger(new Trigger_PawnExperiencingAnomalousWeather());
             anomalousWeather.AddPreAction(new TransitionAction_Message("MessageVisitorsAnomalousWeather".Translate(pawnsPlural, factionName)));
             anomalousWeather.AddPreAction(new TransitionAction_EnsureHaveExitDestination());
+            anomalousWeather.AddPreAction(dropRequest);
             anomalousWeather.AddPostAction(new TransitionAction_EndAllJobs());
             graph.AddTransition(anomalousWeather);
 
@@ -191,6 +182,7 @@ namespace JusticiarValor
             trapped.AddSources(exitSubgraph.lordToils);
             trapped.AddTrigger(new Trigger_PawnCannotReachMapEdge());
             trapped.AddPreAction(new TransitionAction_Message("MessageVisitorsTrappedLeaving".Translate(pawnsPlural, factionName)));
+            trapped.AddPreAction(dropRequest);
             graph.AddTransition(trapped);
 
             var freed = new Transition(exitDigging, exit);
@@ -203,31 +195,35 @@ namespace JusticiarValor
             wounded.AddSource(preach);
             wounded.AddTrigger(new Trigger_WoundedGuestPresent());
             wounded.AddPreAction(new TransitionAction_Message("MessageVisitorsTakingWounded".Translate(pawnsPlural, factionName)));
+            wounded.AddPreAction(dropRequest);
             graph.AddTransition(wounded);
 
             var hostile = new Transition(wait, exitDefending);
             hostile.AddSources(takeWounded, travel, preach);
             hostile.AddTrigger(new Trigger_BecamePlayerEnemy());
             hostile.AddPreAction(new TransitionAction_SetDefendLocalGroup());
+            hostile.AddPreAction(dropRequest);
             hostile.AddPostAction(new TransitionAction_WakeAll());
             hostile.AddPostAction(new TransitionAction_EndAllJobs());
             graph.AddTransition(hostile);
 
-            // Without the missionary there is no mission: his escort goes home.
+            // Without the justiciar there is no mission: his escort goes home.
             var preacherLost = new Transition(wait, exit);
             preacherLost.AddSources(travel, preach);
             preacherLost.AddTrigger(new Trigger_PawnLost(PawnLostCondition.Undefined, preacher));
             preacherLost.AddPreAction(new TransitionAction_Message("MJV_MissionEscortLeaving".Translate(factionName)));
             preacherLost.AddPreAction(new TransitionAction_EnsureHaveExitDestination());
+            preacherLost.AddPreAction(dropRequest);
             preacherLost.AddPostAction(new TransitionAction_EndAllJobs());
             graph.AddTransition(preacherLost);
 
             var converted = new Transition(wait, exit);
             converted.AddTrigger(new Trigger_TickCondition(() => ImperialFaith.ColonyConverted(Map), 250));
             converted.AddPreAction(new TransitionAction_Custom(() => Messages.Message(
-                "MJV_MissionaryLeavingConverted".Translate(preacher.Named("PREACHER"), (ImperialFaith.Ideo?.name ?? string.Empty).Named("FAITH")),
+                "MJV_MissionaryLeavingConverted".Translate(preacher.Named("PREACHER"), SermonRequests.FaithName.Named("FAITH")),
                 preacher, MessageTypeDefOf.PositiveEvent)));
             converted.AddPreAction(new TransitionAction_EnsureHaveExitDestination());
+            converted.AddPreAction(new TransitionAction_Custom(Depart));
             converted.AddPostAction(new TransitionAction_WakeAll());
             graph.AddTransition(converted);
 
@@ -237,20 +233,134 @@ namespace JusticiarValor
             visitOver.AddPreAction(new TransitionAction_Custom(() => Messages.Message("MJV_MissionaryLeaving".Translate(preacher.Named("PREACHER")),
                 preacher, MessageTypeDefOf.NeutralEvent)));
             visitOver.AddPreAction(new TransitionAction_EnsureHaveExitDestination());
+            visitOver.AddPreAction(new TransitionAction_Custom(Depart));
             visitOver.AddPostAction(new TransitionAction_WakeAll());
             graph.AddTransition(visitOver);
             return graph;
         }
 
+        // He sets off back to the Empire: what his sermons earned and cost is settled now.
+        private void Depart()
+        {
+            request = null;
+            record.Settle(preacher, settings, Map);
+        }
+
+        public override void LordJobTick()
+        {
+            base.LordJobTick();
+            int now = Find.TickManager.TicksGame;
+            if (now >= nextMoodSampleTick)
+            {
+                nextMoodSampleTick = now + GenDate.TicksPerHour;
+                record.SampleMood(preacher);
+            }
+            if (now % 60 != 0)
+            {
+                return;
+            }
+            if (request != null)
+            {
+                if (request.TicksLeft <= 0)
+                {
+                    Expire();
+                }
+            }
+            else if (lord.CurLordToil is LordToil_DefendPoint && SermonDue())
+            {
+                // He waits for the answer at most until shortly before he has to leave.
+                request = SermonRequests.TryMakeRequest(preacher, chillSpot, settings, null, leaveTick - now - LeaveMarginTicks);
+                if (request == null)
+                {
+                    nextSermonTick = now + GenDate.TicksPerHour;
+                }
+            }
+        }
+
+        // He does not ask for a sermon he would have to leave in the middle of: one lasts under an hour of preaching.
+        private const int LeaveMarginTicks = 2500;
+
         private bool SermonDue()
         {
-            return Find.TickManager.TicksGame >= nextSermonTick && Find.TickManager.TicksGame < leaveTick - 2500
-                && SermonUtility.CanPreachNow(preacher, Map);
+            int now = Find.TickManager.TicksGame;
+            return now >= nextSermonTick && now < leaveTick - LeaveMarginTicks * 2 && SermonRequests.CanRequestNow(preacher, Map);
+        }
+
+        private void Expire()
+        {
+            if (SermonRequests.ExpiryIsRefusal(this))
+            {
+                record.RecordRefusal(preacher);
+                Messages.Message("MJV_SermonRequestIgnored".Translate(preacher.Named("JUSTICIAR"), (-settings.refusalGoodwill).Named("PENALTY")),
+                    preacher, MessageTypeDefOf.NegativeEvent);
+                nextSermonTick = Find.TickManager.TicksGame + sermonIntervalTicks.RandomInRange;
+            }
+            else
+            {
+                Messages.Message("MJV_SermonRequestLapsed".Translate(preacher.Named("JUSTICIAR")), preacher, MessageTypeDefOf.NeutralEvent);
+                nextSermonTick = Find.TickManager.TicksGame + GenDate.TicksPerHour * 2;
+            }
+            request = null;
+        }
+
+        public void Answer(List<Pawn> congregation, int required, int eligible)
+        {
+            if (request == null)
+            {
+                return;
+            }
+            nextSermonTick = Find.TickManager.TicksGame + sermonIntervalTicks.RandomInRange;
+            if (congregation == null)
+            {
+                request = null;
+                record.RecordRefusal(preacher);
+                Messages.Message("MJV_SermonRefused".Translate(preacher.Named("JUSTICIAR"), (-settings.refusalGoodwill).Named("PENALTY")),
+                    preacher, MessageTypeDefOf.NegativeEvent);
+                return;
+            }
+            IntVec3 spot = request.spot;
+            request = null;
+            SermonUtility.StartSermon(preacher, spot, settings, congregation, required, eligible);
+            lord.ReceiveMemo(MemoSermonAccepted);
+        }
+
+        public void Notify_SermonEnded(SermonResult result)
+        {
+            if (result.outcome == SermonOutcome.Held)
+            {
+                record.RecordSermon(preacher, settings, result.turnout);
+            }
+            else if (result.outcome == SermonOutcome.Cancelled)
+            {
+                record.RecordRefusal(preacher);
+            }
+        }
+
+        public override IEnumerable<Gizmo> GetPawnGizmos(Pawn p)
+        {
+            if (p == preacher)
+            {
+                foreach (Gizmo gizmo in SermonRequests.Gizmos(this))
+                {
+                    yield return gizmo;
+                }
+            }
         }
 
         public override string GetReport(Pawn pawn)
         {
-            return lord.CurLordToil is LordToil_MJV_Preach && pawn == preacher ? (string)"MJV_LordReportPreaching".Translate() : base.GetReport(pawn);
+            if (pawn == preacher)
+            {
+                if (lord.CurLordToil is LordToil_MJV_Preach)
+                {
+                    return "MJV_LordReportPreaching".Translate();
+                }
+                if (request != null)
+                {
+                    return "MJV_LordReportAwaitingAnswer".Translate();
+                }
+            }
+            return base.GetReport(pawn);
         }
 
         public override void ExposeData()
@@ -262,9 +372,13 @@ namespace JusticiarValor
             Scribe_Values.Look(ref sermonIntervalTicks, "sermonIntervalTicks");
             Scribe_Values.Look(ref nextSermonTick, "nextSermonTick", 0);
             Scribe_Values.Look(ref leaveTick, "leaveTick", 0);
-            if (Scribe.mode == LoadSaveMode.PostLoadInit && settings == null)
+            Scribe_Deep.Look(ref request, "request");
+            Scribe_Deep.Look(ref record, "record");
+            Scribe_Values.Look(ref nextMoodSampleTick, "nextMoodSampleTick", 0);
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
-                settings = new SermonSettings();
+                settings ??= new SermonSettings();
+                record ??= new MissionRecord();
             }
         }
     }

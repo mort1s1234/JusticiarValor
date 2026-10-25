@@ -7,4 +7,15 @@
     <label>colonists converted to the imperial faith</label>
   </HistoryEventDef>
 
+  <!-- Reasons of the goodwill a justiciar's mission settles when he returns to the Empire (JusticiarValor.MissionRecord). -->
+  <HistoryEventDef>
+    <defName>MJV_SermonsWellAttended</defName>
+    <label>sermons well attended</label>
+  </HistoryEventDef>
+
+  <HistoryEventDef>
+    <defName>MJV_SermonsRefused</defName>
+    <label>sermons refused</label>
+  </HistoryEventDef>
+
 </Defs>

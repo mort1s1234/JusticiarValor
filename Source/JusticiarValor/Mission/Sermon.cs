@@ -7,7 +7,8 @@ using Verse.AI.Group;
 
 namespace JusticiarValor
 {
-    // How a missionary preaches. Set in XML on the missionary incident (MissionExtension) and on the lodging quest.
+    // How a justiciar preaches and what his sermons mean to the Empire. Set in XML on the missionary incident
+    // (MissionExtension) and on the lodging quest (QuestNode_MJV_LodgerSermons).
     public class SermonSettings : IExposable
     {
         public IntRange durationTicks = new IntRange(2000, 2600);
@@ -18,6 +19,25 @@ namespace JusticiarValor
 
         public int goodwillPerConvert = 4;
 
+        // The congregation he asks for: at least this share of the colony's conscious colonists, one at least.
+        public float requiredFraction = 0.5f;
+
+        // How long he waits for the colony's answer; silence counts as a refusal.
+        public int answerTicks = 15000;
+
+        // Goodwill he brings back to the Empire for a sermon the whole colony heard, in proportion to the attendance
+        // beyond the minimum, and its cap over his stay.
+        public float fullTurnoutGoodwill = 5f;
+
+        public int maxTurnoutGoodwill = 20;
+
+        // Goodwill lost when he returns, for every sermon refused or cancelled.
+        public int refusalGoodwill = -4;
+
+        // The mood he must have had on average, with no sermon refused and one held at least, to leave an imperial
+        // codex-auspex when he goes.
+        public float codexMinMood = 0.5f;
+
         public SermonSettings Copy() => (SermonSettings)MemberwiseClone();
 
         public void ExposeData()
@@ -25,6 +45,12 @@ namespace JusticiarValor
             Scribe_Values.Look(ref durationTicks, "durationTicks", new IntRange(2000, 2600));
             Scribe_Values.Look(ref certaintyFactor, "certaintyFactor", 2.5f);
             Scribe_Values.Look(ref goodwillPerConvert, "goodwillPerConvert", 4);
+            Scribe_Values.Look(ref requiredFraction, "requiredFraction", 0.5f);
+            Scribe_Values.Look(ref answerTicks, "answerTicks", 15000);
+            Scribe_Values.Look(ref fullTurnoutGoodwill, "fullTurnoutGoodwill", 5f);
+            Scribe_Values.Look(ref maxTurnoutGoodwill, "maxTurnoutGoodwill", 20);
+            Scribe_Values.Look(ref refusalGoodwill, "refusalGoodwill", -4);
+            Scribe_Values.Look(ref codexMinMood, "codexMinMood", 0.5f);
         }
     }
 
@@ -104,20 +130,45 @@ namespace JusticiarValor
             return false;
         }
 
-        // Starts a sermon of the player's people around the preacher. A preacher of the player's faction (a lodger)
-        // joins the gathering himself; a visitor stays in his own lord, which sends him to the spot.
-        public static LordJob_MJV_Sermon StartSermon(Pawn preacher, IntVec3 spot, SermonSettings settings, string outSignalEnded)
+        // Starts the sermon the colony agreed to, with the congregation the player called to it: they drop what they are
+        // doing and gather at the spot. A preacher of the player's faction (a lodger) joins the gathering himself; a visitor
+        // stays in his own lord, which sends him to the spot. required and eligible: the minimum he asked for and the
+        // colonists who could have come, for the turnout.
+        public static LordJob_MJV_Sermon StartSermon(Pawn preacher, IntVec3 spot, SermonSettings settings, List<Pawn> congregation, int required, int eligible)
         {
-            var job = new LordJob_MJV_Sermon(preacher, spot, settings.durationTicks.RandomInRange, settings, outSignalEnded);
-            List<Pawn> starting = preacher.Faction == Faction.OfPlayer ? new List<Pawn> { preacher } : null;
-            LordMaker.MakeNewLord(Faction.OfPlayer, job, preacher.Map, starting);
-            if (starting != null)
+            var job = new LordJob_MJV_Sermon(preacher, spot, settings.durationTicks.RandomInRange, settings, required, eligible);
+            var starting = new List<Pawn>();
+            if (preacher.Faction == Faction.OfPlayer)
             {
-                // A new duty does not interrupt the job at hand, and a lodger fresh off his shuttle can spend an hour
-                // unloading his inventory: he goes to preach now.
-                preacher.jobs.EndCurrentJob(JobCondition.InterruptForced);
+                starting.Add(preacher);
             }
-            Messages.Message("MJV_SermonStarted".Translate(preacher.Named("PREACHER"), (ImperialFaith.Ideo?.name ?? string.Empty).Named("FAITH")),
+            if (congregation != null)
+            {
+                foreach (Pawn pawn in congregation)
+                {
+                    if (pawn == null || pawn == preacher || !pawn.Spawned || pawn.Dead || pawn.Map != preacher.Map || starting.Contains(pawn))
+                    {
+                        continue;
+                    }
+                    starting.Add(pawn);
+                }
+            }
+            foreach (Pawn pawn in starting)
+            {
+                // Out of a party they were at, and undrafted: the sermon is what they do now.
+                pawn.GetLord()?.Notify_PawnLost(pawn, PawnLostCondition.ForcedToJoinOtherLord);
+                if (pawn.drafter != null && pawn.Drafted)
+                {
+                    pawn.drafter.Drafted = false;
+                }
+            }
+            LordMaker.MakeNewLord(Faction.OfPlayer, job, preacher.Map, starting);
+            foreach (Pawn pawn in starting)
+            {
+                // A new duty does not interrupt the job at hand: they go now.
+                pawn.jobs?.EndCurrentJob(JobCondition.InterruptForced);
+            }
+            Messages.Message("MJV_SermonStarted".Translate(preacher.Named("PREACHER"), SermonRequests.FaithName.Named("FAITH")),
                 new TargetInfo(spot, preacher.Map), MessageTypeDefOf.NeutralEvent);
             return job;
         }
@@ -146,9 +197,9 @@ namespace JusticiarValor
         }
     }
 
-    // The sermon proper: the preacher speaks at the spot, the colonists who are free to (their schedule allows
-    // recreation, as for parties) gather to listen. When it ends every listener's certainty is shaken in proportion
-    // to how much of it they heard; those whose certainty breaks adopt the imperial faith.
+    // The sermon proper: the preacher speaks at the spot, the congregation the player called gathers to listen. When it
+    // ends every listener's certainty is shaken in proportion to how much of it they heard; those whose certainty breaks
+    // adopt the imperial faith.
     public class LordToil_MJV_Sermon : LordToil
     {
         private const float JoyPerTick = 2.5E-05f;
@@ -164,11 +215,6 @@ namespace JusticiarValor
         }
 
         public LordToilData_MJV_Sermon Data => (LordToilData_MJV_Sermon)data;
-
-        public override ThinkTreeDutyHook VoluntaryJoinDutyHookFor(Pawn p)
-        {
-            return p == preacher ? MJV_DefOf.MJV_DeliverSermon.hook : MJV_DefOf.MJV_HearSermon.hook;
-        }
 
         public override void UpdateAllDuties()
         {
@@ -223,14 +269,21 @@ namespace JusticiarValor
         }
     }
 
-    public class LordJob_MJV_Sermon : LordJob_VoluntarilyJoinable
+    // A justiciar's sermon, held as a ritual: the congregation the player called (SermonRequests) is bound to it until it
+    // ends, and cannot be drafted out of it while the colony is safe. If the player calls it off, or sends people away until
+    // fewer than the minimum remain, it is cancelled; danger, the preacher hurt or gone, or listeners downed only interrupt
+    // it. Its outcome goes to the justiciar's mission (IJusticiarMission.Notify_SermonEnded).
+    public class LordJob_MJV_Sermon : LordJob
     {
         private Pawn preacher;
         private IntVec3 spot;
         private int durationTicks;
         private SermonSettings settings;
-        private string outSignalEnded;
+        private int required;
+        private int eligible;
         private bool concluded;
+        private bool cancelRequested;
+        private bool sentAwayByPlayer;
         private LordToil_MJV_Sermon sermonToil;
 
         // A preacher that has not got going by then (could not reach the spot...) gives up.
@@ -240,18 +293,21 @@ namespace JusticiarValor
         {
         }
 
-        public LordJob_MJV_Sermon(Pawn preacher, IntVec3 spot, int durationTicks, SermonSettings settings, string outSignalEnded)
+        public LordJob_MJV_Sermon(Pawn preacher, IntVec3 spot, int durationTicks, SermonSettings settings, int required, int eligible)
         {
             this.preacher = preacher;
             this.spot = spot;
             this.durationTicks = durationTicks;
             this.settings = settings?.Copy() ?? new SermonSettings();
-            this.outSignalEnded = outSignalEnded;
+            this.required = required;
+            this.eligible = eligible;
         }
 
         public Pawn Preacher => preacher;
 
         public IntVec3 Spot => spot;
+
+        public int Required => required;
 
         // The sermon lasts durationTicks of actual preaching, from when the preacher reaches the spot.
         public int TicksLeft => durationTicks - (sermonToil?.Data.preachingTicks ?? 0);
@@ -261,6 +317,24 @@ namespace JusticiarValor
         public override bool AllowStartNewRituals => false;
 
         private bool PreacherIsMember => preacher != null && lord != null && preacher.Faction == lord.faction;
+
+        // The congregation still bound to the sermon.
+        public int Listening
+        {
+            get
+            {
+                int count = 0;
+                List<Pawn> pawns = lord.ownedPawns;
+                for (int i = 0; i < pawns.Count; i++)
+                {
+                    if (pawns[i] != preacher)
+                    {
+                        count++;
+                    }
+                }
+                return count;
+            }
+        }
 
         public override StateGraph CreateGraph()
         {
@@ -273,14 +347,20 @@ namespace JusticiarValor
 
             var finished = new Transition(sermon, end);
             finished.AddTrigger(new Trigger_TickCondition(() => sermon.Data.preachingTicks >= durationTicks, 30));
-            finished.AddPreAction(new TransitionAction_Custom(() => Conclude(sermon, false)));
+            finished.AddPreAction(new TransitionAction_Custom(() => Conclude(sermon, SermonOutcome.Held)));
             graph.AddTransition(finished);
+
+            var cancelled = new Transition(sermon, end);
+            cancelled.AddTrigger(new Trigger_TickCondition(() => cancelRequested || Listening < required, 30));
+            cancelled.AddPreAction(new TransitionAction_Custom(() =>
+                Conclude(sermon, cancelRequested || sentAwayByPlayer ? SermonOutcome.Cancelled : SermonOutcome.Interrupted)));
+            graph.AddTransition(cancelled);
 
             var calledOff = new Transition(sermon, end);
             calledOff.AddTrigger(new Trigger_TickCondition(ShouldBeCalledOff, 30));
             calledOff.AddTrigger(new Trigger_TickCondition(() => sermon.Data.preachingTicks == 0 && lord.ticksInToil > StartGraceTicks, 60));
             calledOff.AddTrigger(new Trigger_PawnKilled());
-            calledOff.AddPreAction(new TransitionAction_Custom(() => Conclude(sermon, true)));
+            calledOff.AddPreAction(new TransitionAction_Custom(() => Conclude(sermon, SermonOutcome.Interrupted)));
             graph.AddTransition(calledOff);
             return graph;
         }
@@ -291,7 +371,8 @@ namespace JusticiarValor
             {
                 return true;
             }
-            if (preacher.Faction == null || preacher.Faction.HostileTo(Faction.OfPlayer) || !GatheringsUtility.AcceptableGameConditionsToContinueGathering(Map))
+            if (preacher.Faction == null || preacher.Faction.HostileTo(Faction.OfPlayer) || !GatheringsUtility.AcceptableGameConditionsToContinueGathering(Map)
+                || Map.dangerWatcher.DangerRating == StoryDanger.High)
             {
                 return true;
             }
@@ -303,43 +384,46 @@ namespace JusticiarValor
             return !(preacher.GetLord()?.CurLordToil is LordToil_MJV_Preach);
         }
 
-        public override float VoluntaryJoinPriorityFor(Pawn p)
+        // The congregation stays: no drafting out of it while the colony is safe. In danger the player may draft them, and
+        // the time they spend away is time they did not hear.
+        public override AcceptanceReport AllowsDrafting(Pawn pawn)
         {
-            if (p == preacher)
+            if (concluded || Map == null || Map.dangerWatcher.DangerRating != StoryDanger.None)
             {
-                return PreacherIsMember && GatheringsUtility.PawnCanStartOrContinueGathering(p) ? VoluntarilyJoinableLordJobJoinPriorities.MarriageCeremonyFiance : 0f;
+                return true;
             }
-            if (p.Faction != lord.faction || !ImperialFaith.IsCongregant(p))
+            return new AcceptanceReport("MJV_SermonNoDrafting".Translate(pawn.Named("PAWN"), preacher.Named("PREACHER")));
+        }
+
+        public override IEnumerable<Gizmo> GetPawnGizmos(Pawn p)
+        {
+            if (concluded || p.Faction != Faction.OfPlayer)
             {
-                return 0f;
+                yield break;
             }
-            bool member = lord.ownedPawns.Contains(p);
-            if (!member && TicksLeft < 600)
+            if (p != preacher)
             {
-                return 0f;
-            }
-            // As for parties: only colonists whose schedule allows recreation come, and only while they are fit to.
-            if (p.timetable != null && !p.timetable.CurrentAssignment.allowJoy)
-            {
-                return 0f;
-            }
-            if (!GatheringsUtility.ShouldGuestKeepAttendingGathering(p) || spot.IsForbidden(p) || !p.health.capacities.CapableOf(PawnCapacityDefOf.Hearing))
-            {
-                return 0f;
-            }
-            List<Hediff> hediffs = p.health.hediffSet.hediffs;
-            for (int i = 0; i < hediffs.Count; i++)
-            {
-                if (hediffs[i].def.blocksSocialInteraction)
+                yield return new Command_Action
                 {
-                    return 0f;
-                }
+                    defaultLabel = "MJV_CommandLeaveSermon".Translate(),
+                    defaultDesc = "MJV_CommandLeaveSermonDesc".Translate(p.Named("PAWN"), required.Named("REQUIRED"), Listening.Named("LISTENING")),
+                    icon = GizmoTextures.SermonHold,
+                    action = () =>
+                    {
+                        sentAwayByPlayer = true;
+                        lord.Notify_PawnLost(p, PawnLostCondition.ForcedByPlayerAction);
+                    }
+                };
             }
-            if (!member && !p.CanReach(spot, PathEndMode.Touch, Danger.None))
+            yield return new Command_Action
             {
-                return 0f;
-            }
-            return VoluntarilyJoinableLordJobJoinPriorities.SocialGathering;
+                defaultLabel = "MJV_CommandCancelSermon".Translate(),
+                defaultDesc = "MJV_CommandCancelSermonDesc".Translate(preacher.Named("PREACHER"), (-settings.refusalGoodwill).Named("PENALTY")),
+                icon = GizmoTextures.SermonRefuse,
+                action = () => Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+                    "MJV_ConfirmCancelSermon".Translate(preacher.Named("PREACHER"), (-settings.refusalGoodwill).Named("PENALTY")),
+                    () => cancelRequested = true, true))
+            };
         }
 
         public override string GetReport(Pawn pawn)
@@ -347,7 +431,7 @@ namespace JusticiarValor
             return pawn == preacher ? "MJV_LordReportPreaching".Translate() : "MJV_LordReportListening".Translate(preacher.Named("PREACHER"));
         }
 
-        private void Conclude(LordToil_MJV_Sermon toil, bool calledOff)
+        private void Conclude(LordToil_MJV_Sermon toil, SermonOutcome outcome)
         {
             if (concluded)
             {
@@ -360,6 +444,9 @@ namespace JusticiarValor
                 && !StatDefOf.ConversionPower.Worker.IsDisabledFor(preacher);
             var converts = new List<Pawn>();
             var listeners = new List<Pawn>();
+            // The congregation the colony gave him: those called who stayed to the end (one sent away does not count) and
+            // heard some of it, even if they came late.
+            int attendees = 0;
             foreach (KeyValuePair<Pawn, int> entry in toil.Data.presentForTicks)
             {
                 Pawn pawn = entry.Key;
@@ -369,6 +456,10 @@ namespace JusticiarValor
                     continue;
                 }
                 listeners.Add(pawn);
+                if (lord.ownedPawns.Contains(pawn))
+                {
+                    attendees++;
+                }
                 bool converted = false;
                 if (canConvert && pawn.ideo != null && pawn.Ideo != faith)
                 {
@@ -386,11 +477,15 @@ namespace JusticiarValor
                 GiveSermonThought(pawn, heard, faith);
             }
             ImperialFaith.RewardConversions(converts.Count, settings.goodwillPerConvert, converts.Count > 0 ? converts[0] : null);
-            Report(listeners, converts, calledOff);
-            if (!outSignalEnded.NullOrEmpty())
+            Report(listeners, converts, outcome);
+            var result = new SermonResult
             {
-                Find.SignalManager.SendSignal(new Signal(outSignalEnded, converts.Named("CONVERTS"), listeners.Count.Named("LISTENERS")));
-            }
+                outcome = outcome,
+                turnout = outcome == SermonOutcome.Held ? SermonRequests.Turnout(attendees, required, eligible) : 0f,
+                converts = converts,
+                listeners = listeners.Count
+            };
+            JusticiarMissions.For(preacher)?.Notify_SermonEnded(result);
             Lord preacherLord = preacher?.GetLord();
             if (preacherLord != null && preacherLord != lord)
             {
@@ -423,7 +518,7 @@ namespace JusticiarValor
             pawn.needs.mood.thoughts.memories.TryGainMemory(thought);
         }
 
-        private void Report(List<Pawn> listeners, List<Pawn> converts, bool calledOff)
+        private void Report(List<Pawn> listeners, List<Pawn> converts, SermonOutcome outcome)
         {
             if (preacher == null)
             {
@@ -440,11 +535,15 @@ namespace JusticiarValor
                     names.ToString().TrimEndNewlines().Named("CONVERTS"), (converts.Count * settings.goodwillPerConvert).Named("GOODWILL"));
                 Find.LetterStack.ReceiveLetter("MJV_SermonConvertsLabel".Translate(), text, LetterDefOf.NeutralEvent, new LookTargets(converts));
             }
-            else if (calledOff)
+            if (outcome == SermonOutcome.Cancelled)
             {
-                Messages.Message("MJV_SermonInterrupted".Translate(preacher.Named("PREACHER")), new TargetInfo(spot, Map), MessageTypeDefOf.NegativeEvent);
+                Messages.Message("MJV_SermonCancelled".Translate(preacher.Named("PREACHER")), new TargetInfo(spot, Map), MessageTypeDefOf.NegativeEvent);
             }
-            else
+            else if (outcome == SermonOutcome.Interrupted)
+            {
+                Messages.Message("MJV_SermonInterrupted".Translate(preacher.Named("PREACHER")), new TargetInfo(spot, Map), MessageTypeDefOf.NeutralEvent);
+            }
+            else if (converts.Count == 0)
             {
                 Messages.Message("MJV_SermonFinished".Translate(preacher.Named("PREACHER"), listeners.Count.Named("COUNT")), new TargetInfo(spot, Map), MessageTypeDefOf.NeutralEvent);
             }
@@ -466,8 +565,11 @@ namespace JusticiarValor
             Scribe_Values.Look(ref spot, "spot");
             Scribe_Values.Look(ref durationTicks, "durationTicks", 0);
             Scribe_Deep.Look(ref settings, "settings");
-            Scribe_Values.Look(ref outSignalEnded, "outSignalEnded");
+            Scribe_Values.Look(ref required, "required", 0);
+            Scribe_Values.Look(ref eligible, "eligible", 0);
             Scribe_Values.Look(ref concluded, "concluded", false);
+            Scribe_Values.Look(ref cancelRequested, "cancelRequested", false);
+            Scribe_Values.Look(ref sentAwayByPlayer, "sentAwayByPlayer", false);
             if (Scribe.mode == LoadSaveMode.PostLoadInit && settings == null)
             {
                 settings = new SermonSettings();

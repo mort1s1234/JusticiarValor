@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+
+	<!-- A justiciar travels with the High Stellarch on his royal ascent visit, besides his four stellic guards. Without a
+	     title: the quest checks every lodger's bedroom (QuestNode_RequirementsToAcceptBedroom), and a titled justiciar's
+	     would make the quest harder to accept. Tribute collectors and the bestower's escort: Patch_ImperialJusticiars. -->
+	<Operation Class="PatchOperationInsert">
+		<xpath>Defs/QuestScriptDef[defName="EndGame_RoyalAscent"]/root/nodes/li[@Class="QuestNode_LoopCount"][node/kindDef="Empire_Fighter_StellicGuardMelee"]</xpath>
+		<order>Append</order>
+		<value>
+			<li Class="QuestNode_GeneratePawn">
+				<faction>Empire</faction>
+				<kindDef>MJV_Justiciar</kindDef>
+				<addToList>lodgers</addToList>
+				<biocodeWeaponChance>1</biocodeWeaponChance>
+				<biocodeApparelChance>1</biocodeApparelChance>
+				<mustBeCapableOfViolence>true</mustBeCapableOfViolence>
+				<allowPregnant>false</allowPregnant>
+				<giveDependentDrugs>true</giveDependentDrugs>
+				<forbidAnyTitle>true</forbidAnyTitle>
+			</li>
+		</value>
+	</Operation>
+
+</Patch>

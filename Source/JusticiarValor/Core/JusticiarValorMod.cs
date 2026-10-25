@@ -20,10 +20,19 @@ namespace JusticiarValor
             Patch(harmony, "spell deflection (Warlockbane shield)",
                 Patch_WarlockbaneDeflect.TargetMethod(),
                 prefix: AccessTools.Method(typeof(Patch_WarlockbaneDeflect), nameof(Patch_WarlockbaneDeflect.Prefix)));
+            Patch(harmony, "justiciars leading tribute collector caravans",
+                Patch_ImperialJusticiars.GenerateTraderMethod(),
+                prefix: AccessTools.Method(typeof(Patch_ImperialJusticiars), nameof(Patch_ImperialJusticiars.GenerateTraderPrefix)),
+                finalizer: AccessTools.Method(typeof(Patch_ImperialJusticiars), nameof(Patch_ImperialJusticiars.GenerateTraderFinalizer)));
+            Patch(harmony, "justiciars in the bestower's escort",
+                Patch_ImperialJusticiars.BestowingRunIntMethod(),
+                prefix: AccessTools.Method(typeof(Patch_ImperialJusticiars), nameof(Patch_ImperialJusticiars.BestowingRunIntPrefix)),
+                transpiler: AccessTools.Method(typeof(Patch_ImperialJusticiars), nameof(Patch_ImperialJusticiars.BestowingRunIntTranspiler)));
         }
 
         // Each patch is applied on its own, so that one target changing in a game update only disables its own feature.
-        private static void Patch(Harmony harmony, string feature, MethodBase original, MethodInfo prefix = null, MethodInfo postfix = null)
+        private static void Patch(Harmony harmony, string feature, MethodBase original, MethodInfo prefix = null, MethodInfo postfix = null,
+            MethodInfo transpiler = null, MethodInfo finalizer = null)
         {
             if (original == null)
             {
@@ -32,7 +41,8 @@ namespace JusticiarValor
             }
             try
             {
-                harmony.Patch(original, prefix: prefix == null ? null : new HarmonyMethod(prefix), postfix: postfix == null ? null : new HarmonyMethod(postfix));
+                harmony.Patch(original, prefix: prefix == null ? null : new HarmonyMethod(prefix), postfix: postfix == null ? null : new HarmonyMethod(postfix),
+                    transpiler: transpiler == null ? null : new HarmonyMethod(transpiler), finalizer: finalizer == null ? null : new HarmonyMethod(finalizer));
             }
             catch (Exception ex)
             {

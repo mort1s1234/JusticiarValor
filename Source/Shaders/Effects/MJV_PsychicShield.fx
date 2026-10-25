@@ -1,8 +1,9 @@
 // @name MJV_PsychicShield
 // @queue 3105
 // The Promachos armor's psychic shield: a plain dome of eltex glass seen from above, lit like a curved surface (soft light
-// from the upper left, a glint and a sky reflection), with a clean rim, a few soft lines of energy drifting over it, and
-// ripples that run over the surface where shots are caught. No lattice or cells.
+// from the upper left and a sky reflection), with a clean rim, a few soft lines of energy drifting over it, and ripples
+// that run over the surface where shots are caught. No lattice or cells, and no specular glint: from straight above it
+// would sit on the wearer's head and read as a glare on the helmet.
 // uv 0..1 spans the dome's diameter.
 // p0: x energy (0..1, above 1 while Invictus overcharges it), y seed, z time in seconds, w absorb flash 0..1
 // p1: xy direction of the last impact in uv space (unit), z seconds since that impact, w Invictus overdrive 0..1
@@ -27,9 +28,6 @@ vec4 MJV_Fx(vec2 uv, vec3 wpos, vec4 col, vec4 p0, vec4 p1)
     float lambert = dot(n, lightDir);
     float lit = smoothstep(-0.4, 0.9, lambert);
     float fres = pow(1.0 - z, 2.4);
-    vec3 halfway = normalize(lightDir + vec3(0.0, 0.0, 1.0));
-    float glint = pow(mjv_sat(dot(n, halfway)), 260.0);
-    float sheen = pow(mjv_sat(dot(n, halfway)), 12.0);
     // A broad band of reflected sky across the far side of the dome.
     vec3 refl = vec3(2.0 * n.x * n.z, 2.0 * n.y * n.z, 2.0 * n.z * n.z - 1.0);
     float sky = pow(mjv_sat(dot(refl, normalize(vec3(0.62, -0.68, 0.2)))), 5.0);
@@ -68,7 +66,7 @@ vec4 MJV_Fx(vec2 uv, vec3 wpos, vec4 col, vec4 p0, vec4 p1)
     vec3 pale = mjv_eltex(0.9);
     vec3 light = deep * glass
         + mint * (drift * 0.1 + vein * 0.35 + rimLine * 0.9 + hitGlow * 0.35 + ripple * 0.9)
-        + pale * (glint * 1.2 + sheen * 0.1 + sky * 0.18 + hitSpot * 1.6 + ripple * 0.6)
+        + pale * (sky * 0.18 + hitSpot * 1.6 + ripple * 0.6)
         + mint * flash * (fres * 1.2 + 0.15);
     light *= strength;
 

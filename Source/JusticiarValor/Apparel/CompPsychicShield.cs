@@ -8,8 +8,11 @@ namespace JusticiarValor
 {
     public class CompProperties_PsychicShield : CompProperties
     {
-        // Damage the shield absorbs before it breaks.
-        public float energyMax = 150f;
+        // Damage the shield absorbs before it breaks, per point of the wearer's psychic sensitivity (the Promachos gear's
+        // own offsets included), clamped to energyMaxRange: 100 gives about 155 to a baseline wearer of the full set.
+        public float energyPerSensitivity = 100f;
+
+        public FloatRange energyMaxRange = new FloatRange(0f, 300f);
 
         public float rechargePerSecond = 10f;
 
@@ -21,10 +24,18 @@ namespace JusticiarValor
         // Fraction of the maximum restored when the shield comes back after breaking.
         public float energyOnReset = 0.4f;
 
+        // Whether blows struck in melee are absorbed too, besides gunfire, projectiles and blasts.
+        public bool absorbMelee = true;
+
         // Absorbed damage stored for Invictus, and its cap.
         public float chargePerDamage = 1f;
 
         public float chargeMax = 120f;
+
+        // The stored charge fades once the wearer has taken no damage for this long, at this rate.
+        public int chargeDrainDelayTicks = 600;
+
+        public float chargeDrainPerSecond = 2f;
 
         // Invictus overcharges the shield to this multiple of the maximum.
         public float overdriveEnergyFactor = 1.5f;
@@ -43,16 +54,22 @@ namespace JusticiarValor
         }
     }
 
-    // Promachos armor: a psychic shield drawn from a large eltex core. It absorbs incoming gunfire, projectiles and
-    // blasts (not melee), and every absorbed hit is stored as energy for Invictus.
+    // Promachos armor: a psychic shield drawn from a large eltex core, as strong as its wearer is psychically sensitive. It
+    // absorbs incoming gunfire, projectiles, blasts and blows struck in melee, and every absorbed hit is stored as energy
+    // for Invictus. The stored energy fades while the wearer takes no damage.
     public class CompPsychicShield : ThingComp, IFxDrawer
     {
+        // How often the wearer's psychic sensitivity is read again.
+        private const int SensitivityCacheTicks = 250;
+
         private float energy = -1f;
         private int ticksToReset = -1;
         private float charge;
         private int overdriveUntilTick = -1;
         private int lastHitTick = -9999;
         private int lastKeepDisplayTick = -9999;
+        // When the wearer last took any damage, absorbed or not: the stored charge fades after a while without.
+        private int lastDamageTick = -1;
         private float lastHitAngle;
         // When the shield last came back, for the dome to form again (not saved: only seconds of drawing depend on it).
         private int resetTick = -9999;
@@ -65,17 +82,31 @@ namespace JusticiarValor
 
         public bool Overdriven => Find.TickManager != null && Find.TickManager.TicksGame < overdriveUntilTick;
 
-        public float EnergyMax => Props.energyMax * (Overdriven ? Props.overdriveEnergyFactor : 1f);
+        // The shield's maximum before any overcharge. Off a wearer: the maximum for a psychic sensitivity of 100%.
+        public float BaseEnergyMax => MaxFor(Wearer);
 
-        public float Energy => energy < 0f ? Props.energyMax : energy;
+        public float EnergyMax => BaseEnergyMax * (Overdriven ? Props.overdriveEnergyFactor : 1f);
+
+        public float Energy => energy < 0f ? BaseEnergyMax : energy;
 
         public bool Resetting => ticksToReset > 0;
 
-        public bool Active => !Resetting && Wearer != null;
+        // A wearer without psychic sensitivity has no shield at all.
+        public bool Active => !Resetting && Wearer != null && BaseEnergyMax > 0f;
 
         public float Charge => charge;
 
         public float ChargeFraction => Props.chargeMax <= 0f ? 0f : JVMath.Clamp01(charge / Props.chargeMax);
+
+        // Whether the stored charge is fading for want of damage taken.
+        public bool ChargeDraining => charge > 0f && !Overdriven && Find.TickManager != null
+            && lastDamageTick >= 0 && Find.TickManager.TicksGame - lastDamageTick > Props.chargeDrainDelayTicks;
+
+        public float MaxFor(Pawn wearer)
+        {
+            float sensitivity = wearer == null ? 1f : wearer.GetStatValue(StatDefOf.PsychicSensitivity, true, SensitivityCacheTicks);
+            return JVMath.Clamp(sensitivity * Props.energyPerSensitivity, Props.energyMaxRange.min, Props.energyMaxRange.max);
+        }
 
         public override void PostExposeData()
         {
@@ -85,6 +116,7 @@ namespace JusticiarValor
             Scribe_Values.Look(ref charge, "charge", 0f);
             Scribe_Values.Look(ref overdriveUntilTick, "overdriveUntilTick", -1);
             Scribe_Values.Look(ref lastKeepDisplayTick, "lastKeepDisplayTick", -9999);
+            Scribe_Values.Look(ref lastDamageTick, "lastDamageTick", -1);
         }
 
         public override void CompTick()
@@ -100,9 +132,20 @@ namespace JusticiarValor
                 registeredMap = wearer.Map;
                 MapComponent_JusticiarFx.Register(registeredMap, this);
             }
+            int now = Find.TickManager.TicksGame;
+            float baseMax = BaseEnergyMax;
             if (energy < 0f)
             {
-                energy = Props.energyMax;
+                energy = baseMax;
+            }
+            if (lastDamageTick < 0)
+            {
+                // A shield from before the drain was saved, or just put on: its grace starts now.
+                lastDamageTick = now;
+            }
+            if (ChargeDraining)
+            {
+                charge = System.Math.Max(0f, charge - Props.chargeDrainPerSecond / 60f);
             }
             if (ticksToReset > 0)
             {
@@ -116,10 +159,10 @@ namespace JusticiarValor
             float max = EnergyMax;
             if (energy > max)
             {
-                // Overcharge drains back once Invictus ends.
-                energy = System.Math.Max(max, energy - Props.energyMax / 120f);
+                // Overcharge drains back once Invictus ends, and so does energy above a lowered sensitivity's maximum.
+                energy = System.Math.Max(max, energy - System.Math.Max(baseMax, Props.energyPerSensitivity) / 120f);
             }
-            else if (energy < max && (Overdriven || Find.TickManager.TicksGame - lastHitTick > Props.rechargeDelayTicks))
+            else if (energy < max && (Overdriven || now - lastHitTick > Props.rechargeDelayTicks))
             {
                 energy = System.Math.Min(max, energy + Props.rechargePerSecond / 60f * (Overdriven ? 3f : 1f));
             }
@@ -129,11 +172,15 @@ namespace JusticiarValor
         {
             absorbed = false;
             Pawn wearer = Wearer;
-            if (!Active || wearer == null || dinfo.Def == null)
+            if (wearer == null || dinfo.Def == null)
             {
                 return;
             }
-            if (dinfo.Def.ignoreShields || !(dinfo.Def.isRanged || dinfo.Def.isExplosive))
+            if (dinfo.Def.harmsHealth && Find.TickManager != null)
+            {
+                lastDamageTick = Find.TickManager.TicksGame;
+            }
+            if (!Active || dinfo.Def.ignoreShields || !Absorbs(dinfo, wearer))
             {
                 return;
             }
@@ -156,6 +203,23 @@ namespace JusticiarValor
             }
         }
 
+        // Gunfire, projectiles and blasts, and with absorbMelee the blows of a pawn's melee attack, struck with a weapon or
+        // its own body (Verb_MeleeAttackDamage sets the tool, and the weapon or the attacker's race). Surgery, executions,
+        // fire and the like are none of these.
+        private bool Absorbs(DamageInfo dinfo, Pawn wearer)
+        {
+            if (dinfo.Def.isRanged || dinfo.Def.isExplosive)
+            {
+                return true;
+            }
+            if (!Props.absorbMelee || !dinfo.Def.harmsHealth || !(dinfo.Instigator is Pawn attacker) || attacker == wearer)
+            {
+                return false;
+            }
+            ThingDef weapon = dinfo.Weapon;
+            return dinfo.Tool != null || weapon != null && (weapon.IsMeleeWeapon || weapon == attacker.def);
+        }
+
         private void Break(Pawn wearer)
         {
             energy = 0f;
@@ -170,7 +234,7 @@ namespace JusticiarValor
         private void Reset(Pawn wearer)
         {
             ticksToReset = -1;
-            energy = Props.energyMax * Props.energyOnReset;
+            energy = BaseEnergyMax * Props.energyOnReset;
             resetTick = Find.TickManager.TicksGame;
             if (wearer.Spawned)
             {
@@ -229,7 +293,11 @@ namespace JusticiarValor
                 yield return new Command_Action
                 {
                     defaultLabel = "DEV: Fill Invictus charge",
-                    action = () => charge = Props.chargeMax
+                    action = () =>
+                    {
+                        charge = Props.chargeMax;
+                        lastDamageTick = Find.TickManager.TicksGame;
+                    }
                 };
                 yield return new Command_Action
                 {
@@ -246,7 +314,7 @@ namespace JusticiarValor
             }
         }
 
-        public override float CompGetSpecialApparelScoreOffset() => Props.energyMax / 600f;
+        public override float CompGetSpecialApparelScoreOffset() => Props.energyPerSensitivity / 600f;
 
         public override void Notify_Unequipped(Pawn pawn)
         {
@@ -282,7 +350,7 @@ namespace JusticiarValor
             float sinceHit = (ticks - lastHitTick) / 60f;
             float flash = sinceHit < 0.25f ? 1f - sinceHit / 0.25f : 0f;
             float uv = JVMath.ToUvRadians(lastHitAngle + 180f);
-            float energyFraction = Energy / Props.energyMax;
+            float energyFraction = Energy / BaseEnergyMax;
             // After a reset the dome forms again as the recharge ring closes onto it.
             float formed = FxDraw.EaseOut((ticks - resetTick) / (ShieldRechargeFx.Closing * 60f));
             float size = Props.drawSize * (0.92f + 0.08f * JVMath.Clamp01(energyFraction)) * JVMath.Lerp(0.85f, 1f, formed);

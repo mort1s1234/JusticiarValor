@@ -166,9 +166,9 @@ namespace JusticiarValor
 
     // Celestial Pierce, in beats: a spectral copy of the wielder's own blade grows in their hand, lifts straight up, flies
     // over the target turning point-down, hangs there gathering itself over a reticle on the ground, then slams down. The
-    // ground breaks where it lands and splits both ways along the line (MJV_GroundFissure), under the Piloto Paladin
-    // sword shock, a ground shock ring, dust and thrown stones. The foes on the line are struck as the crack reaches them,
-    // and the landing is heard and shakes the camera, on the same timeline (CompAbilityEffect_CelestialPierce).
+    // ground breaks where it lands, cracks splitting out from it (MJV_GroundFissure), under the Piloto Paladin sword shock,
+    // a ground shock ring, dust and thrown stones. Everyone around the landing is struck as the shock reaches them, and the
+    // landing is heard and shakes the camera, on the same timeline (CompAbilityEffect_CelestialPierce).
     public sealed class CelestialPierceFx : FxEffect
     {
         // Seconds after the cast at which each beat ends; the blade is in the ground at Impact.
@@ -177,8 +177,10 @@ namespace JusticiarValor
         public const float FlyEnd = 0.58f;
         public const float HangEnd = 0.7f;
         public const float Impact = 0.76f;
-        // Cells per second the fissure runs along the line.
+        // Cells per second the cracks run out from the landing.
         public const float CrackSpeed = 14f;
+        // Cells per second the shock ring of the landing spreads (DrawGround: radius 0.3 to 1.9 in 0.32 s).
+        public const float ShockSpeed = 5f;
         // Height of the grown copy, in cells, and how much of it ends up in the ground.
         private const float GrownHeight = 2.7f;
         private const float LiftedHeight = 2.2f;
@@ -205,8 +207,8 @@ namespace JusticiarValor
         private readonly float[] puffs;
 
         // held, heldAngle, mirrored: where and how the game draws the wielder's weapon (PawnRenderUtility.DrawEquipmentAiming).
-        // plunge: where the copy slams down (the target, within the reach); angle: the line's direction from the wielder;
-        // behind, ahead: how far the line runs back towards the wielder and on to the end of the reach from there.
+        // plunge: where the copy slams down (the target); angle: the direction it was thrown in, from the wielder;
+        // behind, ahead: how far the cracks split out from the landing, back towards the wielder and on away from them.
         public CelestialPierceFx(Thing weapon, Vector3 held, float heldAngle, bool mirrored, Vector3 plunge, float angle, float behind, float ahead)
         {
             blade = FxAssets.BladeFor(weapon);
@@ -296,7 +298,7 @@ namespace JusticiarValor
             float fade = 1f - JVMath.Clamp01((t - 1.1f) / 0.6f);
             float ground = FxDraw.AltitudeGround;
             Vector3 at = JVMath.WithY(plunge, FxDraw.AltitudeGlow);
-            // Radial cracks where the blade went in, then the fissure along the line both ways.
+            // Radial cracks where the blade went in, then the cracks splitting out both ways along the throw.
             FxDraw.Quad(ctx, FxAssets.GroundFissure, JVMath.WithY(plunge, ground), seed * 360f, 2.6f, 2.6f, JVMath.White,
                 JVMath.V4(0f, FxDraw.EaseOut(t / 0.1f) * 1.06f, MathF.Exp(-t * 1.8f), fade), JVMath.V4(0f, t, 0f, 0f));
             Fissure(ctx, angle, ahead, t, fade, ground, seed > 0.5f);
@@ -450,7 +452,7 @@ namespace JusticiarValor
         }
     }
 
-    // A foe struck by Celestial Pierce's fissure: a burst (Piloto Projectile_Hit_Tech), dust and two stones.
+    // A pawn struck by Celestial Pierce: a burst (Piloto Projectile_Hit_Tech), dust and two stones.
     public sealed class PierceHitFx : FxEffect
     {
         private static readonly Color DustColor = new Color(0.58f, 0.53f, 0.46f, 1f);

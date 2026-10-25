@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 
-  <!-- An imperial missionary visits, alone or with justiciars, and holds sermons that convert colonists to the
-       imperial faith (JusticiarValor.IncidentWorker_MJV_ImperialMissionary). Conversion needs Ideology. -->
+  <!-- A justiciar comes on a mission, alone or with an escort, and asks the colony for sermons that convert colonists
+       to the imperial faith (JusticiarValor.IncidentWorker_MJV_ImperialMissionary). Each sermon is a ritual the colony
+       holds or refuses (JusticiarValor.SermonRequests); when he leaves, the Empire's goodwill moves with how his sermons
+       went. Conversion needs Ideology. -->
   <IncidentDef MayRequire="Ludeon.RimWorld.Ideology">
     <defName>MJV_ImperialMissionary</defName>
-    <label>imperial missionary</label>
+    <label>justiciar's mission</label>
     <category>FactionArrival</category>
     <targetTags>
       <li>Map_PlayerHome</li>
@@ -15,20 +17,26 @@
     <minRefireDays>20</minRefireDays>
     <earliestDay>10</earliestDay>
     <pointsScaleable>false</pointsScaleable>
-    <letterLabel>Imperial missionary</letterLabel>
+    <letterLabel>Justiciar's mission</letterLabel>
     <letterDef>NeutralEvent</letterDef>
     <modExtensions>
       <li Class="JusticiarValor.MissionExtension">
-        <missionaryKind>MJV_ImperialMissionary</missionaryKind>
-        <escortKind>MJV_Justiciar</escortKind>
+        <missionaryKind>MJV_Justiciar</missionaryKind>
+        <escortKind>Empire_Fighter_Janissary</escortKind>
         <escortCount>0~2</escortCount>
         <visitDays>1~1.5</visitDays>
         <firstSermonDelayTicks>1500~3000</firstSermonDelayTicks>
-        <sermonIntervalTicks>12000~18000</sermonIntervalTicks>
+        <sermonIntervalTicks>30000~45000</sermonIntervalTicks>
         <sermon>
           <durationTicks>2000~2600</durationTicks>
           <certaintyFactor>2.5</certaintyFactor>
           <goodwillPerConvert>4</goodwillPerConvert>
+          <requiredFraction>0.5</requiredFraction>
+          <answerTicks>15000</answerTicks>
+          <fullTurnoutGoodwill>5</fullTurnoutGoodwill>
+          <maxTurnoutGoodwill>20</maxTurnoutGoodwill>
+          <refusalGoodwill>-4</refusalGoodwill>
+          <codexMinMood>0.5</codexMinMood>
         </sermon>
       </li>
     </modExtensions>

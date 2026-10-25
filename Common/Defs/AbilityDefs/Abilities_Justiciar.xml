@@ -5,7 +5,7 @@
 	<AbilityDef>
 		<defName>MJV_JusticiarValor</defName>
 		<label>Justiciar Valor</label>
-		<description>Channel an extra charge through the helmet's eltex until it resonates and releases a psychic wave around the wearer. The wave throws everyone nearby back, allies included, damages them and leaves them dazed.\n\nThe wearer of the Promachos helmet cannot be arrested while conscious: an attempt triggers Justiciar Valor at once, and the wearer takes it as an attack.</description>
+		<description>Channel an extra charge through the helmet's eltex until it resonates and releases a psychic wave around the wearer. The wave throws everyone nearby back, allies included, damages them and leaves them dazed. Those it throws are stunned for a few seconds where they land.\n\nThe wearer of the Promachos helmet cannot be arrested while conscious: an attempt triggers Justiciar Valor at once, and the wearer takes it as an attack.</description>
 		<iconPath>UI/Abilities/MJV_JusticiarValor</iconPath>
 		<cooldownTicksRange>800</cooldownTicksRange>
 		<targetRequired>false</targetRequired>
@@ -42,6 +42,7 @@
 				<knockbackDistance>3</knockbackDistance>
 				<maxKnockbackBodySize>2.5</maxKnockbackBodySize>
 				<stunTicks>60~120</stunTicks>
+				<landingStunTicks>120~180</landingStunTicks>
 				<dazeHediff>MJV_PsychicDaze</dazeHediff>
 				<releaseSound>PsycastPsychicPulse</releaseSound>
 				<aiMinTargets>2</aiMinTargets>
@@ -92,7 +93,7 @@
 	<AbilityDef>
 		<defName>MJV_CelestialPierce</defName>
 		<label>Celestial Pierce</label>
-		<description>Conjure a psychic blade from the psyblade's point and thrust it forward, impaling everyone in a line up to three cells away, allies included. The blade stops at walls.</description>
+		<description>Conjure a spectral copy of the psyblade that rises into the air and slams down on a spot up to three cells away. The ground breaks where it lands, impaling everyone standing around it, allies included. Walls shield those behind them.</description>
 		<iconPath>UI/Abilities/MJV_CelestialPierce</iconPath>
 		<cooldownTicksRange>600</cooldownTicksRange>
 		<hostile>true</hostile>
@@ -116,9 +117,9 @@
 			</targetParams>
 		</verbProperties>
 		<comps>
+			<!-- radius 1.5: the cell the blade lands on and the eight around it. -->
 			<li Class="JusticiarValor.CompProperties_AbilityCelestialPierce">
-				<length>3.6</length>
-				<halfWidth>0.45</halfWidth>
+				<radius>1.5</radius>
 				<friendlyFire>true</friendlyFire>
 				<damageDef>Stab</damageDef>
 				<damage>24</damage>

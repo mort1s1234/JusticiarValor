@@ -5,7 +5,7 @@
 	<ThingDef ParentName="ArmorMachineableBase">
 		<defName>MJV_Apparel_PromachosArmor</defName>
 		<label>promachos armor</label>
-		<description>An incredibly high-tech suit of armor made from ultra-durable plasteel using activated eltex. A massive eltex core accumulates energy into a psychic shield that absorbs incoming gunfire, projectiles and blasts, though not blows struck in melee.\n\nEvery hit the shield absorbs is stored as energy. Invictus releases it into the shield and the armor's servos: the shield is refilled and overcharged, and for a few seconds the wearer moves and strikes at a blinding pace.\n\nJusticiars of the Empire wear Promachos armor into battle against warlocks.</description>
+		<description>An incredibly high-tech suit of armor made from ultra-durable plasteel using activated eltex. A massive eltex core accumulates energy into a psychic shield that absorbs incoming gunfire, projectiles, blasts and blows struck in melee. The core draws on its wearer's mind: the more psychically sensitive the wearer, the stronger the shield.\n\nEvery hit the shield absorbs is stored as energy, which slowly fades once the wearer has gone a while without being hurt. Invictus releases it into the shield and the armor's servos: the shield is refilled and overcharged, and for a few seconds the wearer moves and strikes at a blinding pace.\n\nJusticiars of the Empire wear Promachos armor into battle against warlocks.</description>
 		<techLevel>Spacer</techLevel>
 		<tickerType>Normal</tickerType>
 		<tradeTags>
@@ -95,14 +95,20 @@
 			<li>ApparelArmor</li>
 		</thingCategories>
 		<comps>
+			<!-- The shield's maximum is energyPerSensitivity x the wearer's psychic sensitivity (this armor's and the helmet's
+			     offsets included: a baseline wearer of the full set has 155%), clamped to energyMaxRange. -->
 			<li Class="JusticiarValor.CompProperties_PsychicShield">
-				<energyMax>150</energyMax>
+				<energyPerSensitivity>100</energyPerSensitivity>
+				<energyMaxRange>0~300</energyMaxRange>
 				<rechargePerSecond>10</rechargePerSecond>
 				<rechargeDelayTicks>300</rechargeDelayTicks>
 				<resetDelayTicks>2400</resetDelayTicks>
 				<energyOnReset>0.4</energyOnReset>
+				<absorbMelee>true</absorbMelee>
 				<chargePerDamage>1</chargePerDamage>
 				<chargeMax>120</chargeMax>
+				<chargeDrainDelayTicks>600</chargeDrainDelayTicks>
+				<chargeDrainPerSecond>2</chargeDrainPerSecond>
 				<overdriveEnergyFactor>1.5</overdriveEnergyFactor>
 				<drawSize>2.05</drawSize>
 				<absorbSound>EnergyShield_AbsorbDamage</absorbSound>
@@ -142,7 +148,7 @@
 	<ThingDef ParentName="ArmorHelmetMakeableBase">
 		<defName>MJV_Apparel_ArmorHelmetPromachosHelmet</defName>
 		<label>promachos helmet</label>
-		<description>An incredibly high-tech helmet made from ultra-durable plasteel using activated eltex. It scans its surroundings in real time for murderous intent directed at its wearer; with each such thought it delivers an extra surge of stimulation into the wearer's brain, quickening their reactions, movement and awareness.\n\nBy channeling an additional charge through the eltex, the helmet resonates and releases a psychic wave around the wearer - Justiciar Valor, that throws enemies back, damages them and leaves them dazed. Its wearer cannot be arrested while conscious: an attempt triggers Justiciar Valor at once.</description>
+		<description>An incredibly high-tech helmet made from ultra-durable plasteel using activated eltex. It scans its surroundings in real time for murderous intent directed at its wearer; with each such thought it delivers an extra surge of stimulation into the wearer's brain, quickening their reactions, movement and awareness.\n\nBy channeling an additional charge through the eltex, the helmet resonates and releases a psychic wave around the wearer - Justiciar Valor, that throws enemies back, stuns them where they land, damages them and leaves them dazed. Its wearer cannot be arrested while conscious: an attempt triggers Justiciar Valor at once.</description>
 		<techLevel>Spacer</techLevel>
 		<tickerType>Normal</tickerType>
 		<tradeTags>

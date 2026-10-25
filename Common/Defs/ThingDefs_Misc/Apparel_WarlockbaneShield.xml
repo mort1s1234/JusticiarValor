@@ -99,8 +99,10 @@
 						<offset>(-0.12, 0, 0.12)</offset>
 						<behind>true</behind>
 					</east>
+					<!-- y: VEF draws the shield 0.0758 above the pawn plus this; the weapon sits at layer 90 (0.0329). -0.044
+					     puts the shield a few layers under the weapon, still over the helmet and the armor. -->
 					<south>
-						<offset>(0.18, -0.04, 0.12)</offset>
+						<offset>(0.18, -0.044, 0.12)</offset>
 					</south>
 					<west>
 						<offset>(0.12, 0, 0.12)</offset>

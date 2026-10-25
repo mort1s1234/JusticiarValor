@@ -50,13 +50,18 @@
       </li>
       <li>
         <skill>Social</skill>
-        <range>7~14</range>
+        <range>10~16</range>
       </li>
       <li>
         <skill>Intellectual</skill>
         <range>6~12</range>
       </li>
     </skills>
+    <!-- Justiciars preach on their missions (incident MJV_ImperialMissionary, quests MJV_ImperialMission and
+         MJV_DisgracedSermon): one who cannot talk has no conversion power. -->
+    <requiredWorkTags>
+      <li>Social</li>
+    </requiredWorkTags>
     <techHediffsMoney>2000~5000</techHediffsMoney>
     <techHediffsTags>
       <li>Advanced</li>
@@ -90,68 +95,4 @@
     </xenotypeSet>
   </PawnKindDef>
 
-  <!-- The preacher of the imperial missions (incident MJV_ImperialMissionary, quests MJV_ImperialMission and
-       MJV_DisgracedSermon). Robed like the Empire's bestowers, armed with an eltex staff, a gifted speaker. -->
-  <PawnKindDef ParentName="RoyalBase">
-    <defName>MJV_ImperialMissionary</defName>
-    <label>imperial missionary</label>
-    <labelPlural>imperial missionaries</labelPlural>
-    <description>A preacher of the imperial faith. Imperial missionaries travel the wild worlds with a few justiciars at their side, visiting independent settlements to preach and to offer them the friendship of the Empire if they take up its faith.</description>
-    <combatPower>45</combatPower>
-    <titleSelectOne>
-      <li>Yeoman</li>
-    </titleSelectOne>
-    <minGenerationAge>30</minGenerationAge>
-    <maxGenerationAge>72</maxGenerationAge>
-    <invNutrition>2.4</invNutrition>
-    <weaponMoney>99999</weaponMoney>
-    <weaponTags Inherit="False">
-      <li>EltexStaff</li>
-    </weaponTags>
-    <apparelColor>(232,222,196)</apparelColor>
-    <specificApparelRequirements>
-      <li>
-        <bodyPartGroup>Torso</bodyPartGroup>
-        <requiredTag>RoyalRobe</requiredTag>
-      </li>
-      <li>
-        <bodyPartGroup>Torso</bodyPartGroup>
-        <apparelLayer>OnSkin</apparelLayer>
-        <requiredTag>RoyalTier2</requiredTag>
-      </li>
-      <li>
-        <bodyPartGroup>Legs</bodyPartGroup>
-        <stuff>Hyperweave</stuff>
-      </li>
-    </specificApparelRequirements>
-    <skills>
-      <li>
-        <skill>Social</skill>
-        <range>12~18</range>
-      </li>
-      <li>
-        <skill>Intellectual</skill>
-        <range>6~12</range>
-      </li>
-    </skills>
-    <requiredWorkTags>
-      <li>Social</li>
-    </requiredWorkTags>
-    <disallowedTraits>
-      <li>Abrasive</li>
-      <li>Psychopath</li>
-      <li>Pyromaniac</li>
-    </disallowedTraits>
-    <techHediffsMoney>500~2000</techHediffsMoney>
-    <techHediffsMaxAmount>2</techHediffsMaxAmount>
-    <initialWillRange>5~7</initialWillRange>
-    <initialResistanceRange>25~40</initialResistanceRange>
-    <humanPregnancyChance>0</humanPregnancyChance>
-    <useFactionXenotypes>false</useFactionXenotypes>
-    <xenotypeSet>
-      <xenotypeChances>
-        <Baseliner MayRequire="Ludeon.RimWorld.Biotech">1</Baseliner>
-      </xenotypeChances>
-    </xenotypeSet>
-  </PawnKindDef>
 </Defs>

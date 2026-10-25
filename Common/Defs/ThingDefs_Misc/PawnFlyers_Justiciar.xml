@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<!-- Justiciar Valor's throw (JusticiarValor.PawnFlyer_MJV_Knockback): flies like the game's PawnFlyer_Stun, and the
+	     wave stuns the pawn where it lands (CompProperties_AbilityJusticiarValor.landingStunTicks). No
+	     stunDurationTicksRange here, or the base class would stun it a second time, silently. -->
+	<ThingDef ParentName="PawnFlyerBase">
+		<defName>MJV_PawnFlyer_Knockback</defName>
+		<thingClass>JusticiarValor.PawnFlyer_MJV_Knockback</thingClass>
+		<pawnFlyer>
+			<flightDurationMin>0.75</flightDurationMin>
+			<flightSpeed>8</flightSpeed>
+		</pawnFlyer>
+	</ThingDef>
+
+</Defs>

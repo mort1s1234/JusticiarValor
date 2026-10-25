@@ -5,19 +5,21 @@ using Verse.AI.Group;
 
 namespace JusticiarValor
 {
-    // Settings of the imperial missionary incident.
+    // Settings of the justiciar's mission incident.
     public class MissionExtension : DefModExtension
     {
+        // The justiciar on the mission, and his escort.
         public PawnKindDef missionaryKind;
         public PawnKindDef escortKind;
         public IntRange escortCount = new IntRange(0, 2);
         public FloatRange visitDays = new FloatRange(1f, 1.5f);
+        // When he first asks the colony for a sermon, and how long he lets it rest after each.
         public IntRange firstSermonDelayTicks = new IntRange(1500, 3000);
-        public IntRange sermonIntervalTicks = new IntRange(12000, 18000);
+        public IntRange sermonIntervalTicks = new IntRange(30000, 45000);
         public SermonSettings sermon = new SermonSettings();
     }
 
-    // An imperial missionary arrives, alone or with an escort of justiciars, and stays a while to preach.
+    // A justiciar arrives on a mission, alone or with an escort, and stays a while to preach.
     public class IncidentWorker_MJV_ImperialMissionary : IncidentWorker
     {
         private MissionExtension Ext => def.GetModExtension<MissionExtension>() ?? new MissionExtension();
@@ -76,13 +78,14 @@ namespace JusticiarValor
                 ext.sermonIntervalTicks, ext.sermon);
             LordMaker.MakeNewLord(empire, job, map, pawns);
 
-            string faith = ImperialFaith.Ideo?.name ?? string.Empty;
+            string faith = SermonRequests.FaithName;
             TaggedString text = escorts == 0
                 ? "MJV_MissionaryArrivedSolo".Translate(missionary.Named("PREACHER"), empire.Named("FACTION"), faith.Named("FAITH"))
                 : "MJV_MissionaryArrivedEscorted".Translate(missionary.Named("PREACHER"), empire.Named("FACTION"), faith.Named("FAITH"), escorts.Named("COUNT"),
                     (escorts == 1 ? ext.escortKind.label : ext.escortKind.GetLabelPlural()).Named("ESCORT"));
             text += "\n\n" + "MJV_MissionaryArrivedExplain".Translate(missionary.Named("PREACHER"), duration.ToStringTicksToPeriod().Named("DURATION"),
-                ext.sermon.goodwillPerConvert.Named("GOODWILL"), empire.Named("FACTION"));
+                ext.sermon.goodwillPerConvert.Named("GOODWILL"), empire.Named("FACTION"), ext.sermon.requiredFraction.ToStringPercent().Named("FRACTION"),
+                (-ext.sermon.refusalGoodwill).Named("PENALTY"));
             SendStandardLetter(def.letterLabel, text, def.letterDef, parms, missionary);
             return true;
         }

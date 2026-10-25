@@ -435,7 +435,7 @@ namespace JusticiarValorValidation
             }
         }
 
-        // A short sermon by a missionary to four colonists: the halo while he preaches, then its end, where the two
+        // A short sermon by a justiciar to four colonists: the halo while he preaches, then its end, where the two
         // listeners whose faith was already shaken convert.
         private IEnumerable<object> SermonAndConversion()
         {
@@ -447,7 +447,7 @@ namespace JusticiarValorValidation
                 yield break;
             }
             IntVec3 spot = center + new IntVec3(0, 0, 2);
-            Pawn missionary = PawnGenerator.GeneratePawn(new PawnGenerationRequest(MJV_DefOf.MJV_ImperialMissionary, empire, forceGenerateNewPawn: true,
+            Pawn missionary = PawnGenerator.GeneratePawn(new PawnGenerationRequest(MJV_DefOf.MJV_Justiciar, empire, forceGenerateNewPawn: true,
                 canGeneratePawnRelations: false));
             missionary.SetFaction(Faction.OfPlayer);
             ImperialFaith.Ordain(missionary);
@@ -468,9 +468,9 @@ namespace JusticiarValorValidation
                 Rested(listener);
                 listeners.Add(listener);
             }
-            // Long enough for the listeners to join: nobody joins a sermon in its last 600 ticks.
+            // Long enough for the listeners called to it to walk over and hear most of it.
             var settings = new SermonSettings { durationTicks = new IntRange(1200, 1200) };
-            LordJob_MJV_Sermon sermon = SermonUtility.StartSermon(missionary, spot, settings, null);
+            LordJob_MJV_Sermon sermon = SermonUtility.StartSermon(missionary, spot, settings, listeners, 1, listeners.Count);
             Camera(spot + new IntVec3(0, 0, -2), 5.5f);
             yield return 10;
             foreach (object step in Clip("14_Sermon_Halo", 300, null))

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 
-  <!-- Disgraced sermon: a missionary who failed to convert a neighbouring faction flees to the colony with an enraged
-       mob of that faction at his heels. Shelter him until an imperial shuttle collects him and fend off the raid. -->
+  <!-- Disgraced sermon: a justiciar whose sermon to a neighbouring faction ended in disgrace falls back on the colony
+       with an enraged mob of that faction at his heels. Shelter him until an imperial shuttle collects him and fend off
+       the raid. He fights at the colony's side as a lodger; as thanks he leaves an imperial codex-auspex. -->
   <QuestScriptDef>
     <defName>MJV_DisgracedSermon</defName>
     <rootSelectionWeight>0.6</rootSelectionWeight>
@@ -15,16 +16,16 @@
         <li>questName->A sermon gone wrong</li>
         <li>questName->[missionary_nameDef] the [fleeingAdj]</li>
         <li>questName->Sanctuary for [missionary_nameDef]</li>
-        <li>questName->The [fleeingAdj] missionary</li>
+        <li>questName->The [fleeingAdj] justiciar</li>
         <li>fleeingAdj->disgraced</li>
         <li>fleeingAdj->hunted</li>
-        <li>fleeingAdj->fleeing</li>
+        <li>fleeingAdj->beset</li>
         <li>fleeingAdj->unwelcome</li>
       </rulesStrings>
     </questNameRules>
     <questDescriptionRules>
       <rulesStrings>
-        <li>questDescription->[missionary_nameFull], a missionary of [faithName], begs you for shelter. [missionary_nameDef] tried to bring the imperial faith to [enemyFaction_name], but the sermon ended in disgrace: [missionary_pronoun] fled for [missionary_possessive] life with an enraged mob of [enemyFaction_pawnsPlural] at [missionary_possessive] heels.\n\n[missionary_nameDef] will arrive on foot and stay at [map_definite] until an imperial shuttle collects [missionary_objective] in [shelterTicks_duration]. Keep [missionary_objective] alive and fend off the pursuers. [raidArrivalModeInfo]\n\n[raidPawnKinds]\n\n[missionary_nameDef] will not do manual work. As thanks, [missionary_pronoun] promises you a tome of imperial scripture from [missionary_possessive] travelling library.</li>
+        <li>questDescription->[missionary_nameFull], a justiciar of [faithName], asks you for sanctuary. [missionary_nameDef] tried to bring the imperial faith to [enemyFaction_name], but the sermon ended in disgrace: even a justiciar cannot stand alone against the enraged mob of [enemyFaction_pawnsPlural] now at [missionary_possessive] heels.\n\n[missionary_nameDef] will arrive on foot and stay at [map_definite] until an imperial shuttle collects [missionary_objective] in [shelterTicks_duration]. Keep [missionary_objective] alive and fend off the pursuers; [missionary_nameDef] will fight at your side. [raidArrivalModeInfo]\n\n[raidPawnKinds]\n\n[missionary_nameDef] will not do manual work. As thanks, [missionary_nameDef] promises you an imperial codex-auspex.</li>
       </rulesStrings>
     </questDescriptionRules>
     <root Class="QuestNode_Sequence">
@@ -64,9 +65,9 @@
           <value>$(1 * 60000)</value>
         </li>
 
-        <!-- The missionary -->
+        <!-- The justiciar -->
         <li Class="QuestNode_GeneratePawn">
-          <kindDef>MJV_ImperialMissionary</kindDef>
+          <kindDef>MJV_Justiciar</kindDef>
           <faction>$empire</faction>
           <storeAs>missionary</storeAs>
           <addToList>lodgers</addToList>
@@ -95,7 +96,7 @@
         <li Class="QuestNode_SetAllApparelLocked">
           <pawns>$lodgers</pawns>
         </li>
-        <!-- No work, but not AllWork: a missionary who cannot talk (Social) cannot convert anyone. -->
+        <!-- No work, but not AllWork: a justiciar who cannot talk (Social) cannot convert anyone. -->
         <li Class="QuestNode_WorkDisabled">
           <pawns>$lodgers</pawns>
           <disabledWorkTags>
@@ -121,7 +122,7 @@
           <inSignalRemovePawn>lodgers.RanWild</inSignalRemovePawn>
         </li>
 
-        <!-- He arrives on foot, fleeing -->
+        <!-- He arrives on foot, pursued -->
         <li Class="QuestNode_JoinPlayer">
           <pawns>$lodgers</pawns>
           <joinPlayer>true</joinPlayer>
@@ -129,8 +130,8 @@
         <li Class="QuestNode_PawnsArrive">
           <pawns>$lodgers</pawns>
           <arrivalMode>EdgeWalkIn</arrivalMode>
-          <customLetterLabel>Missionary arrived: [missionary_nameDef]</customLetterLabel>
-          <customLetterText>[missionary_nameDef] has reached [map_definite], out of breath. The [enemyFaction_pawnsPlural] of [enemyFaction_name] are not far behind.\n\nKeep [missionary_objective] safe until the imperial shuttle comes for [missionary_objective] in [shelterTicks_duration].</customLetterText>
+          <customLetterLabel>Justiciar arrived: [missionary_nameDef]</customLetterLabel>
+          <customLetterText>[missionary_nameDef] has reached [map_definite], battered from the road. The [enemyFaction_pawnsPlural] of [enemyFaction_name] are not far behind.\n\nKeep [missionary_objective] safe until the imperial shuttle comes for [missionary_objective] in [shelterTicks_duration].</customLetterText>
         </li>
 
         <!-- The pursuers -->
@@ -140,7 +141,7 @@
                mode" (TryResolveRaidArriveMode returns false when the mode is already set) before using it anyway. -->
           <node Class="QuestNode_Raid">
             <customLetterLabel>Pursuers: [enemyFaction_name]</customLetterLabel>
-            <customLetterText>An enraged mob of [enemyFaction_pawnsPlural] from [enemyFaction_name] has followed [missionary_nameDef] to [map_definite]. They will not rest until the missionary who insulted their beliefs is dead.</customLetterText>
+            <customLetterText>An enraged mob of [enemyFaction_pawnsPlural] from [enemyFaction_name] has followed [missionary_nameDef] to [map_definite]. They will not rest until the justiciar who insulted their beliefs is dead.</customLetterText>
           </node>
         </li>
 
@@ -177,8 +178,8 @@
           <value>$($points * 1.1)</value>
         </li>
         <li Class="QuestNode_GenerateThingSet">
-          <thingSetMaker>MJV_Reward_ImperialTome</thingSetMaker>
-          <storeAs>tome</storeAs>
+          <thingSetMaker>MJV_Reward_ImperialCodexAuspex</thingSetMaker>
+          <storeAs>codex</storeAs>
         </li>
 
         <!-- - - - - - - -  -->
@@ -190,9 +191,9 @@
           <node Class="QuestNode_Sequence">
             <nodes>
               <li Class="QuestNode_Letter">
-                <label>Missionary died: {SUBJECT_definite}</label>
+                <label>Justiciar died: {SUBJECT_definite}</label>
                 <letterDef>NegativeEvent</letterDef>
-                <text>{SUBJECT_definite}, the missionary you sheltered, has died. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 10.</text>
+                <text>{SUBJECT_definite}, the justiciar you sheltered, has died. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 10.</text>
               </li>
               <li Class="QuestNode_End">
                 <outcome>Fail</outcome>
@@ -209,9 +210,9 @@
           <node Class="QuestNode_Sequence">
             <nodes>
               <li Class="QuestNode_Letter">
-                <label>Missionary captured: {SUBJECT_definite}</label>
+                <label>Justiciar captured: {SUBJECT_definite}</label>
                 <letterDef>NegativeEvent</letterDef>
-                <text>{SUBJECT_definite}, the missionary you sheltered, has been arrested. You have failed the quest '[resolvedQuestName]'.</text>
+                <text>{SUBJECT_definite}, the justiciar you sheltered, has been arrested. You have failed the quest '[resolvedQuestName]'.</text>
               </li>
               <li Class="QuestNode_End">
                 <outcome>Fail</outcome>
@@ -246,7 +247,7 @@
               <li Class="QuestNode_Letter">
                 <label>Xenogerm absorbed: {SUBJECT_definite}</label>
                 <letterDef>NegativeEvent</letterDef>
-                <text>{SUBJECT_definite}, the missionary you sheltered, has had {SUBJECT_possessive} xenogerm forcibly absorbed. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+                <text>{SUBJECT_definite}, the justiciar you sheltered, has had {SUBJECT_possessive} xenogerm forcibly absorbed. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
               </li>
               <li Class="QuestNode_End">
                 <outcome>Fail</outcome>
@@ -267,9 +268,9 @@
           <node Class="QuestNode_Sequence">
             <nodes>
               <li Class="QuestNode_Letter">
-                <label>Missionary lost: {SUBJECT_definite}</label>
+                <label>Justiciar lost: {SUBJECT_definite}</label>
                 <letterDef>NegativeEvent</letterDef>
-                <text>{SUBJECT_definite}, the missionary you sheltered, is gone. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+                <text>{SUBJECT_definite}, the justiciar you sheltered, is gone. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
               </li>
               <li Class="QuestNode_End">
                 <outcome>Fail</outcome>
@@ -290,9 +291,9 @@
             <node Class="QuestNode_Sequence">
               <nodes>
                 <li Class="QuestNode_Letter">
-                  <label>Missionary lost: {SUBJECT_definite}</label>
+                  <label>Justiciar lost: {SUBJECT_definite}</label>
                   <letterDef>NegativeEvent</letterDef>
-                  <text>{SUBJECT_definite}, the missionary you sheltered, has joined another faction. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+                  <text>{SUBJECT_definite}, the justiciar you sheltered, has joined another faction. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
                 </li>
                 <li Class="QuestNode_End">
                   <outcome>Fail</outcome>
@@ -372,7 +373,7 @@
                 </parms>
               </li>
               <li Class="QuestNode_AddItemsReward">
-                <items>$tome</items>
+                <items>$codex</items>
               </li>
               <li Class="QuestNode_End">
                 <outcome>Success</outcome>

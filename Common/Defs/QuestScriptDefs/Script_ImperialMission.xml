@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 
-  <!-- Imperial mission (lodging): an imperial missionary lodges with the colony for some days and holds sermons that
-       convert colonists to the imperial faith (JusticiarValor.QuestPart_MJV_LodgerSermons). He leaves early once the
-       whole colony has converted; rarely, a convert follows him to serve the Empire. Needs Ideology. -->
+  <!-- Imperial mission (lodging): a justiciar lodges with the colony for some days and asks it for sermons that convert
+       colonists to the imperial faith (JusticiarValor.QuestPart_MJV_LodgerSermons). Each sermon is a ritual the colony
+       holds, with at least the share of its conscious colonists set by sermon/requiredFraction (the texts say half), or
+       refuses (JusticiarValor.SermonRequests). When he leaves, what his sermons earned and cost is settled with the
+       Empire, and a well-treated justiciar leaves an imperial codex-auspex (JusticiarValor.MissionRecord). He leaves
+       early once the whole colony has converted; rarely, a convert follows him to serve the Empire. Needs Ideology. -->
   <QuestScriptDef MayRequire="Ludeon.RimWorld.Ideology">
     <defName>MJV_ImperialMission</defName>
     <rootSelectionWeight>0.8</rootSelectionWeight>
@@ -17,7 +20,7 @@
         <li>questName->[missionary_nameDef]'s mission</li>
         <li>questName->Sermons of [faithName]</li>
         <li>questName->Hosting [missionary_nameDef]</li>
-        <li>questName->A missionary of [faithName]</li>
+        <li>questName->A justiciar of [faithName]</li>
         <li>missionAdj->imperial</li>
         <li>missionAdj->holy</li>
         <li>missionAdj->gilded</li>
@@ -26,7 +29,7 @@
     </questNameRules>
     <questDescriptionRules>
       <rulesStrings>
-        <li>questDescription->[missionary_nameFull], a missionary of [faithName] sent by [empire_name], asks to stay at [map_definite] for [missionDurationTicks_duration] to bring the imperial faith to your people.\n\nWhile staying with you, [missionary_nameDef] will hold a sermon every day or so. Colonists whose schedule allows recreation will gather to listen, and every sermon shakes the certainty of those who do not share [missionary_possessive] faith; those whose certainty breaks will convert. [empire_name] will look kindly on every convert. If your whole colony takes up the faith, [missionary_nameDef] will consider [missionary_possessive] work done and leave early.\n\n[missionary_nameDef] will not do manual work, and needs food and a place to sleep. An imperial shuttle will bring [missionary_objective] and collect [missionary_objective] again.\n\nIt is said that, now and then, a new believer follows a missionary back to the Empire.</li>
+        <li>questDescription->[missionary_nameFull], a justiciar of [faithName] sent by [empire_name], asks to stay at [map_definite] for [missionDurationTicks_duration] to bring the imperial faith to your people.\n\nEvery day or so, [missionary_nameDef] will ask your colony to assemble for a sermon. You must call at least half of your conscious colonists to hear it, or refuse. Every sermon shakes the certainty of those who do not share [missionary_possessive] faith; those whose certainty breaks will convert, and [empire_name] will look kindly on every convert.\n\nA congregation larger than the one [missionary_nameDef] asked for pleases [missionary_objective], and [empire_name] will hear of it when [missionary_nameDef] returns. Every sermon you refuse or cancel offends [missionary_objective], and will cost you goodwill with [empire_name] when [missionary_nameDef] returns. Hold all of [missionary_possessive] sermons and keep [missionary_objective] content, and [missionary_nameDef] will leave you an imperial codex-auspex.\n\n[missionary_nameDef] is a titled noble of the Empire and expects quarters fitting [missionary_possessive] rank. [missionary_nameDef] will not do manual work, and an imperial shuttle will bring [missionary_objective] and collect [missionary_objective] again. If your whole colony takes up the faith, [missionary_nameDef] will consider [missionary_possessive] work done and leave early.\n\nIt is said that, now and then, a new believer follows a justiciar back to the Empire.</li>
       </rulesStrings>
     </questDescriptionRules>
     <root Class="QuestNode_Sequence">
@@ -50,9 +53,10 @@
           <value>$(2 * 60000)</value>
         </li>
 
-        <!-- The missionary, a quest lodger of the player's faction for the duration of his stay -->
+        <!-- The justiciar, a quest lodger of the player's faction for the duration of his stay. His imperial title lets the
+             quest reward royal favor, and gives him a noble's expectations for his quarters. -->
         <li Class="QuestNode_GeneratePawn">
-          <kindDef>MJV_ImperialMissionary</kindDef>
+          <kindDef>MJV_Justiciar</kindDef>
           <faction>$empire</faction>
           <storeAs>missionary</storeAs>
           <addToList>lodgers</addToList>
@@ -82,7 +86,7 @@
         <li Class="QuestNode_SetAllApparelLocked">
           <pawns>$lodgers</pawns>
         </li>
-        <!-- No work, but not AllWork: a missionary who cannot talk (Social) cannot convert anyone. -->
+        <!-- No work, but not AllWork: a justiciar who cannot talk (Social) cannot convert anyone. -->
         <li Class="QuestNode_WorkDisabled">
           <pawns>$lodgers</pawns>
           <disabledWorkTags>
@@ -121,8 +125,8 @@
           </parms>
         </li>
         <li Class="QuestNode_Letter">
-          <label>Missionary arrived: [missionary_nameDef]</label>
-          <text>[missionary_nameDef], a missionary of [faithName], has arrived on an imperial shuttle. [missionary_nameDef] will stay with you for [missionDurationTicks_duration] and hold a sermon every day or so.\n\nColonists whose schedule allows recreation will go and listen. Those who do not share [missionary_possessive] faith may convert.</text>
+          <label>Justiciar arrived: [missionary_nameDef]</label>
+          <text>[missionary_nameDef], a justiciar of [faithName], has arrived on an imperial shuttle. [missionary_nameDef] will stay with you for [missionDurationTicks_duration] and ask your colony to hold a sermon every day or so.\n\nWhen [missionary_nameDef] asks, choose who will listen: at least half of your conscious colonists. Calling more pleases [missionary_objective]; refusing offends [missionary_objective]. Those who do not share [missionary_possessive] faith may convert.</text>
           <lookTargets>$lodgers</lookTargets>
         </li>
 
@@ -157,14 +161,22 @@
           </node>
         </li>
 
-        <!-- Sermons, the early departure, and the rare call to service -->
+        <!-- Sermons, the early departure, the rare call to service, and what his stay earns or costs with the Empire -->
         <li Class="JusticiarValor.QuestNode_MJV_LodgerSermons">
           <preacher>$missionary</preacher>
-          <intervalTicks>36000~54000</intervalTicks>
+          <intervalTicks>60000~90000</intervalTicks>
           <firstSermonDelayTicks>5000~10000</firstSermonDelayTicks>
-          <sermonTicks>2000~2600</sermonTicks>
-          <certaintyFactor>2.5</certaintyFactor>
-          <goodwillPerConvert>4</goodwillPerConvert>
+          <sermon>
+            <durationTicks>2000~2600</durationTicks>
+            <certaintyFactor>2.5</certaintyFactor>
+            <goodwillPerConvert>4</goodwillPerConvert>
+            <requiredFraction>0.5</requiredFraction>
+            <answerTicks>15000</answerTicks>
+            <fullTurnoutGoodwill>5</fullTurnoutGoodwill>
+            <maxTurnoutGoodwill>20</maxTurnoutGoodwill>
+            <refusalGoodwill>-4</refusalGoodwill>
+            <codexMinMood>0.5</codexMinMood>
+          </sermon>
           <callChance>0.08</callChance>
           <shuttle>$pickupShipThing</shuttle>
           <inSignalShuttleArrived>ShuttleArrived</inSignalShuttleArrived>
@@ -185,9 +197,9 @@
           <node Class="QuestNode_Sequence">
             <nodes>
               <li Class="QuestNode_Letter">
-                <label>Missionary died: {SUBJECT_definite}</label>
+                <label>Justiciar died: {SUBJECT_definite}</label>
                 <letterDef>NegativeEvent</letterDef>
-                <text>{SUBJECT_definite}, the missionary you agreed to host, has died. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 10.</text>
+                <text>{SUBJECT_definite}, the justiciar you agreed to host, has died. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 10.</text>
               </li>
               <li Class="QuestNode_End">
                 <outcome>Fail</outcome>
@@ -204,9 +216,9 @@
           <node Class="QuestNode_Sequence">
             <nodes>
               <li Class="QuestNode_Letter">
-                <label>Missionary captured: {SUBJECT_definite}</label>
+                <label>Justiciar captured: {SUBJECT_definite}</label>
                 <letterDef>NegativeEvent</letterDef>
-                <text>{SUBJECT_definite}, the missionary you agreed to host, has been arrested. You have failed the quest '[resolvedQuestName]'.</text>
+                <text>{SUBJECT_definite}, the justiciar you agreed to host, has been arrested. You have failed the quest '[resolvedQuestName]'.</text>
               </li>
               <li Class="QuestNode_End">
                 <outcome>Fail</outcome>
@@ -241,7 +253,7 @@
               <li Class="QuestNode_Letter">
                 <label>Xenogerm absorbed: {SUBJECT_definite}</label>
                 <letterDef>NegativeEvent</letterDef>
-                <text>{SUBJECT_definite}, the missionary you agreed to host, has had {SUBJECT_possessive} xenogerm forcibly absorbed. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+                <text>{SUBJECT_definite}, the justiciar you agreed to host, has had {SUBJECT_possessive} xenogerm forcibly absorbed. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
               </li>
               <li Class="QuestNode_End">
                 <outcome>Fail</outcome>
@@ -262,9 +274,9 @@
           <node Class="QuestNode_Sequence">
             <nodes>
               <li Class="QuestNode_Letter">
-                <label>Missionary lost: {SUBJECT_definite}</label>
+                <label>Justiciar lost: {SUBJECT_definite}</label>
                 <letterDef>NegativeEvent</letterDef>
-                <text>{SUBJECT_definite}, the missionary you agreed to host, is gone. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+                <text>{SUBJECT_definite}, the justiciar you agreed to host, is gone. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
               </li>
               <li Class="QuestNode_End">
                 <outcome>Fail</outcome>
@@ -285,9 +297,9 @@
             <node Class="QuestNode_Sequence">
               <nodes>
                 <li Class="QuestNode_Letter">
-                  <label>Missionary lost: {SUBJECT_definite}</label>
+                  <label>Justiciar lost: {SUBJECT_definite}</label>
                   <letterDef>NegativeEvent</letterDef>
-                  <text>{SUBJECT_definite}, the missionary you agreed to host, has joined another faction. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
+                  <text>{SUBJECT_definite}, the justiciar you agreed to host, has joined another faction. You have failed the quest '[resolvedQuestName]'.\n\nYour relations with [empire_name] have decreased by 5.</text>
                 </li>
                 <li Class="QuestNode_End">
                   <outcome>Fail</outcome>

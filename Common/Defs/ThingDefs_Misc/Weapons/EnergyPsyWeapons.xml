@@ -152,7 +152,7 @@
 	<ThingDef ParentName="BaseMeleeWeapon_Sharp_Quality">
 		<defName>MJV_MeleeWeapon_EnergyPsyblade</defName>
 		<label>energy psy-blade</label>
-		<description>An agile ultra-tech sword forged around an active eltex core. The blade resonates with high-frequency psychic vibrations, dealing solid cutting damage with balanced, moderate armor penetration.\n\nThrough mental projection, the wielder can invoke Celestial Pierce - condensing raw psychic force into a spectral blade that descends from the heavens to impale an enemy up to three cells away.</description>
+		<description>An agile ultra-tech sword forged around an active eltex core. The blade resonates with high-frequency psychic vibrations, dealing solid cutting damage with balanced, moderate armor penetration.\n\nThrough mental projection, the wielder can invoke Celestial Pierce - condensing raw psychic force into a spectral blade that descends from the heavens up to three cells away, impaling everyone around the spot where it lands.</description>
 		<techLevel>Spacer</techLevel>
 		<graphicData>
 			<texPath>Things/Item/Equipment/WeaponMelee/MJV_Xiphos</texPath>

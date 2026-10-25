@@ -15,8 +15,8 @@ namespace JusticiarValor
         public static ThingDef MJV_ImperialCodexAuspex;
         public static ThingDef MJV_Projectile_PsyOrb;
 
-        // Core: the flyer the game uses for pawns that are thrown and land stunned.
-        public static ThingDef PawnFlyer_Stun;
+        // Justiciar Valor's throw: its victims land stunned (PawnFlyer_MJV_Knockback).
+        public static ThingDef MJV_PawnFlyer_Knockback;
 
         public static HediffDef MJV_MurderousIntent;
         public static HediffDef MJV_PsychicDaze;
@@ -44,7 +44,6 @@ namespace JusticiarValor
         public static ShaderTypeDef MJV_ThreatPulse;
 
         public static PawnKindDef MJV_Justiciar;
-        public static PawnKindDef MJV_ImperialMissionary;
 
         public static ResearchProjectDef MJV_JusticiarGear;
 
@@ -54,8 +53,15 @@ namespace JusticiarValor
         public static JobDef MJV_PreachSermon;
 
         public static ThoughtDef MJV_HeardImperialSermon;
+        public static ThoughtDef MJV_SermonWellAttended;
+        public static ThoughtDef MJV_SermonRefused;
 
         public static HistoryEventDef MJV_ConvertedToImperialFaith;
+        public static HistoryEventDef MJV_SermonsWellAttended;
+        public static HistoryEventDef MJV_SermonsRefused;
+
+        // The sermon's ritual window (Dialog_MJV_BeginSermon).
+        public static RitualOutcomeEffectDef MJV_ImperialSermon;
 
         public static MentalStateDef MJV_CalledToService;
 
