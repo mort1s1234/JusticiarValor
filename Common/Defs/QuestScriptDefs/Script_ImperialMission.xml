@@ -20,6 +20,7 @@
         <li>questName->[missionary_nameDef]'s mission</li>
         <li>questName->Sermons of [faithName]</li>
         <li>questName->Hosting [missionary_nameDef]</li>
+        <li>questName->Light of the [empire_name]</li>
         <li>questName->A justiciar of [faithName]</li>
         <li>missionAdj->imperial</li>
         <li>missionAdj->holy</li>
@@ -53,8 +54,6 @@
           <value>$(2 * 60000)</value>
         </li>
 
-        <!-- The justiciar, a quest lodger of the player's faction for the duration of his stay. His imperial title lets the
-             quest reward royal favor, and gives him a noble's expectations for his quarters. -->
         <li Class="QuestNode_GeneratePawn">
           <kindDef>MJV_Justiciar</kindDef>
           <faction>$empire</faction>
@@ -69,7 +68,6 @@
         <li Class="JusticiarValor.QuestNode_MJV_Ordain">
           <pawn>$missionary</pawn>
         </li>
-        <!-- The asker gives the rewards (goodwill and royal favor of the Empire). -->
         <li Class="QuestNode_Set">
           <name>asker</name>
           <value>$missionary</value>
@@ -86,7 +84,6 @@
         <li Class="QuestNode_SetAllApparelLocked">
           <pawns>$lodgers</pawns>
         </li>
-        <!-- No work, but not AllWork: a justiciar who cannot talk (Social) cannot convert anyone. -->
         <li Class="QuestNode_WorkDisabled">
           <pawns>$lodgers</pawns>
           <disabledWorkTags>
@@ -130,7 +127,6 @@
           <lookTargets>$lodgers</lookTargets>
         </li>
 
-        <!-- Departure: the shuttle comes at the end of the stay, or as soon as the whole colony has converted -->
         <li Class="QuestNode_ShuttleDelay">
           <delayTicks>$missionDurationTicks</delayTicks>
           <lodgers>$lodgers</lodgers>
@@ -161,7 +157,6 @@
           </node>
         </li>
 
-        <!-- Sermons, the early departure, the rare call to service, and what his stay earns or costs with the Empire -->
         <li Class="JusticiarValor.QuestNode_MJV_LodgerSermons">
           <preacher>$missionary</preacher>
           <intervalTicks>60000~90000</intervalTicks>
