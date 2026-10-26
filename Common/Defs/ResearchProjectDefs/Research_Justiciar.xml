@@ -4,7 +4,7 @@
 	<ResearchProjectDef>
 		<defName>MJV_JusticiarGear</defName>
 		<label>justiciar gear</label>
-		<description>Craft the eltex-laced arms and armor of the imperial justiciars, possessing unique abilities and power</description>
+		<description>Craft the eltex-laced arms and armor of the imperial justiciars, possessing unique abilities and might</description>
 		<baseCost>5000</baseCost>
 		<techLevel>Spacer</techLevel>
 		<prerequisites>

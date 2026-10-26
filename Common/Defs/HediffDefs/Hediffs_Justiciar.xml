@@ -5,7 +5,7 @@
 	<HediffDef>
 		<defName>MJV_MurderousIntent</defName>
 		<label>sensed murderous intent</label>
-		<description>The wearer's Promachos helmet senses hostile intent aimed at them. With each such thought it feeds an extra surge of stimulation into the wearer's brain, quickening their reactions and movement. The more enemies take aim at the wearer, the stronger the surge.</description>
+		<description>The Promachos helmet senses hostile intent directed at its wearer. With each source of such a thought, it sends an additional stimulating impulse into the wearer's brain, quickening their reactions and movement. The more enemies aim at the wearer, the stronger this impulse.</description>
 		<hediffClass>HediffWithComps</hediffClass>
 		<defaultLabelColor>(0.55, 0.95, 0.85)</defaultLabelColor>
 		<isBad>false</isBad>
@@ -130,7 +130,7 @@
 	<HediffDef>
 		<defName>MJV_InvictusOverdrive</defName>
 		<label>Invictus overdrive</label>
-		<description>The Promachos armor has dumped its stored psychic energy into its shield and servos. Its wearer moves and strikes at a blinding pace, leaving afterimages behind.</description>
+		<description>The Promachos armor dumped its stored energy into the shield and servos. The wearer moves and strikes at a blinding pace.</description>
 		<hediffClass>HediffWithComps</hediffClass>
 		<defaultLabelColor>(0.75, 0.7, 1)</defaultLabelColor>
 		<isBad>false</isBad>

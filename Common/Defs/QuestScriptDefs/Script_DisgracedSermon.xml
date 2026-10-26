@@ -12,11 +12,12 @@
     <canGiveRoyalFavor>true</canGiveRoyalFavor>
     <questNameRules>
       <rulesStrings>
-        <li>questName->The disgraced sermon</li>
+        <li>questName->A perilous sermon</li>
         <li>questName->A sermon gone wrong</li>
         <li>questName->[missionary_nameDef] the [fleeingAdj]</li>
         <li>questName->Sanctuary for [missionary_nameDef]</li>
         <li>questName->The [fleeingAdj] justiciar</li>
+        <li>questName->A preacher in peril</li>
         <li>fleeingAdj->disgraced</li>
         <li>fleeingAdj->hunted</li>
         <li>fleeingAdj->beset</li>
@@ -96,7 +97,6 @@
         <li Class="QuestNode_SetAllApparelLocked">
           <pawns>$lodgers</pawns>
         </li>
-        <!-- No work, but not AllWork: a justiciar who cannot talk (Social) cannot convert anyone. -->
         <li Class="QuestNode_WorkDisabled">
           <pawns>$lodgers</pawns>
           <disabledWorkTags>
@@ -137,8 +137,6 @@
         <!-- The pursuers -->
         <li Class="QuestNode_Delay">
           <delayTicks>$raidDelayTicks</delayTicks>
-          <!-- No arrivalMode here: given one, IncidentWorker_Raid.ResolveRaidArriveMode logs "Could not resolve arrival
-               mode" (TryResolveRaidArriveMode returns false when the mode is already set) before using it anyway. -->
           <node Class="QuestNode_Raid">
             <customLetterLabel>Pursuers: [enemyFaction_name]</customLetterLabel>
             <customLetterText>An enraged mob of [enemyFaction_pawnsPlural] from [enemyFaction_name] has followed [missionary_nameDef] to [map_definite]. They will not rest until the justiciar who insulted their beliefs is dead.</customLetterText>

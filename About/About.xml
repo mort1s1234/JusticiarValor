@@ -11,7 +11,7 @@
 		<li>1.6</li>
 		<li>1.7</li>
 	</supportedVersions>
-	<description>TODO.</description>
+	<description>Justiciar Valor expands the Shattered Empire with new elite warrior-priests - Justiciars. The mod adds unique imperial figures, new high-tech eltex gear, spectacular visual effects, distinct combat mechanics, and thematic events, carefully balanced to fit the vanilla game.</description>
 	<modDependencies>
 		<li>
 			<packageId>brrainz.harmony</packageId>
