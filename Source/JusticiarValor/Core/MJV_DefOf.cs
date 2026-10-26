@@ -63,6 +63,12 @@ namespace JusticiarValor
         // The sermon's ritual window (Dialog_MJV_BeginSermon).
         public static RitualOutcomeEffectDef MJV_ImperialSermon;
 
+        // The sermon's command buttons (SermonRequests, LordJob_MJV_Sermon).
+        public static CommandIconDef MJV_HoldSermon;
+        public static CommandIconDef MJV_RefuseSermon;
+        public static CommandIconDef MJV_LeaveSermon;
+        public static CommandIconDef MJV_CancelSermon;
+
         public static MentalStateDef MJV_CalledToService;
 
         static MJV_DefOf()

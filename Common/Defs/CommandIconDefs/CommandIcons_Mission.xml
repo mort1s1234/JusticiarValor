@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- The icons of the sermon's command buttons (JusticiarValor.CommandIconDef). iconPath is a texture path under
+       Textures/ without the extension, as an ability's iconPath: a PNG at Common/Textures/UI/Commands/MJV_HoldSermon.png
+       is <iconPath>UI/Commands/MJV_HoldSermon</iconPath>. The labels and descriptions are in Languages/<language>/Keyed. -->
+
+  <!-- On the justiciar while he waits for the colony's answer (MJV_CommandHoldSermon, MJV_CommandRefuseSermon). -->
+  <JusticiarValor.CommandIconDef>
+    <defName>MJV_HoldSermon</defName>
+    <iconPath>UI/Icons/Rituals/BestowCeremony</iconPath>
+  </JusticiarValor.CommandIconDef>
+
+  <JusticiarValor.CommandIconDef>
+    <defName>MJV_RefuseSermon</defName>
+    <iconPath>UI/Designators/Cancel</iconPath>
+  </JusticiarValor.CommandIconDef>
+
+  <!-- During the sermon: on each listener (MJV_CommandLeaveSermon), and on every colonist taking part
+       (MJV_CommandCancelSermon). -->
+  <JusticiarValor.CommandIconDef>
+    <defName>MJV_LeaveSermon</defName>
+    <iconPath>UI/Icons/Rituals/BestowCeremony</iconPath>
+  </JusticiarValor.CommandIconDef>
+
+  <JusticiarValor.CommandIconDef>
+    <defName>MJV_CancelSermon</defName>
+    <iconPath>UI/Designators/Cancel</iconPath>
+  </JusticiarValor.CommandIconDef>
+
+</Defs>
