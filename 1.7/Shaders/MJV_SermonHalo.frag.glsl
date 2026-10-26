@@ -326,7 +326,8 @@ float mjv_script(float r, float ang, float turn, float seed, float aa)
     float bandW = 0.16;
     float cells = 44.0;
     float u = ((ang + MJV_PI) / MJV_TAU + turn) * cells;
-    float id = floor(u);
+    // atan2 wraps on the -x axis, which `turn` puts mid-cell: wrap the id too, or that glyph is cut in two.
+    float id = MJV_MOD(floor(u), cells);
     float cellArc = MJV_TAU * r / cells;
     vec2 p = vec2((fract(u) - 0.5) * cellArc, r - r0);
     float word = step(0.13, mjv_hash11(id * 0.77 + seed * 29.0));

@@ -407,7 +407,7 @@ namespace JusticiarValor
                 {
                     defaultLabel = "MJV_CommandLeaveSermon".Translate(),
                     defaultDesc = "MJV_CommandLeaveSermonDesc".Translate(p.Named("PAWN"), required.Named("REQUIRED"), Listening.Named("LISTENING")),
-                    icon = GizmoTextures.SermonHold,
+                    icon = MJV_DefOf.MJV_LeaveSermon.Icon,
                     action = () =>
                     {
                         sentAwayByPlayer = true;
@@ -419,7 +419,7 @@ namespace JusticiarValor
             {
                 defaultLabel = "MJV_CommandCancelSermon".Translate(),
                 defaultDesc = "MJV_CommandCancelSermonDesc".Translate(preacher.Named("PREACHER"), (-settings.refusalGoodwill).Named("PENALTY")),
-                icon = GizmoTextures.SermonRefuse,
+                icon = MJV_DefOf.MJV_CancelSermon.Icon,
                 action = () => Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
                     "MJV_ConfirmCancelSermon".Translate(preacher.Named("PREACHER"), (-settings.refusalGoodwill).Named("PENALTY")),
                     () => cancelRequested = true, true))

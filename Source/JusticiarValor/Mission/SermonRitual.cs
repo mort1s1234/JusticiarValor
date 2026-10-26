@@ -131,7 +131,7 @@ namespace JusticiarValor
             {
                 defaultLabel = "MJV_CommandHoldSermon".Translate(),
                 defaultDesc = "MJV_CommandHoldSermonDesc".Translate(justiciar.Named("JUSTICIAR"), request.TicksLeft.ToStringTicksToPeriod().Named("TIME")),
-                icon = GizmoTextures.SermonHold,
+                icon = MJV_DefOf.MJV_HoldSermon.Icon,
                 action = () => OpenDialog(mission)
             };
             string reason = CannotHoldReason(mission);
@@ -144,7 +144,7 @@ namespace JusticiarValor
             {
                 defaultLabel = "MJV_CommandRefuseSermon".Translate(),
                 defaultDesc = "MJV_CommandRefuseSermonDesc".Translate(justiciar.Named("JUSTICIAR"), (-mission.Settings.refusalGoodwill).Named("PENALTY")),
-                icon = GizmoTextures.SermonRefuse,
+                icon = MJV_DefOf.MJV_RefuseSermon.Icon,
                 action = () => Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
                     "MJV_ConfirmRefuseSermon".Translate(justiciar.Named("JUSTICIAR"), (-mission.Settings.refusalGoodwill).Named("PENALTY")),
                     () => mission.Answer(null, 0, 0), true))

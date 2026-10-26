@@ -17,9 +17,6 @@ namespace JusticiarValor
         public static readonly Texture2D EmptyBar = SolidColorMaterials.NewSolidColorTexture(new Color(0f, 0f, 0f, 0f));
         public static readonly Texture2D PipFull = SolidColorMaterials.NewSolidColorTexture(FxPalette.Sage);
         public static readonly Texture2D PipEmpty = SolidColorMaterials.NewSolidColorTexture(new Color(0.20f, 0.24f, 0.22f));
-        // The justiciar's sermon (SermonRequests): hold it, refuse it, leave or call it off. Royalty's own ceremony icon.
-        public static readonly Texture2D SermonHold = ContentFinder<Texture2D>.Get("UI/Icons/Rituals/BestowCeremony");
-        public static readonly Texture2D SermonRefuse = ContentFinder<Texture2D>.Get("UI/Designators/Cancel");
     }
 
     // Promachos armor: the psychic shield's energy and the energy stored for Invictus.
