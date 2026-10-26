@@ -23,7 +23,7 @@
 
 	<!-- Warlockbane shield -->
 	<MJV_Deflected>Deflected</MJV_Deflected>
-	<MJV_WarlockbaneTip>Warlockbane: turns aside hostile psycasts aimed at the bearer and stuns their caster with the backlash. Each deflection spends a charge; charges come back slowly.\n\nCharges: {0} / {1}</MJV_WarlockbaneTip>
+	<MJV_WarlockbaneTip>Warlockbane: turns aside hostile psychic attacks on the bearer (psycasts, psychic lances, psychic pulses) and stuns their caster with the backlash. Each deflection spends a charge; charges come back slowly.\n\nCharges: {0} / {1}</MJV_WarlockbaneTip>
 
 	<!-- Imperial codex-auspex -->
 	<MJV_TomeNoBlueprints>No unfinished project needs imperial techprints</MJV_TomeNoBlueprints>

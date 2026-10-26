@@ -90,6 +90,24 @@
 			<abilities>
 				<li>MJV_Invictus</li>
 			</abilities>
+			<!-- The eltex inlays glow with the stored Invictus charge, brightest while Invictus releases it. Textures:
+			     Source/Textures/make_eltex_glow.py, from Mortis's masks. -->
+			<renderNodeProperties>
+				<li Class="JusticiarValor.PawnRenderNodeProperties_EltexGlow">
+					<debugLabel>Promachos armor eltex glow</debugLabel>
+					<texPath>Things/Pawn/Humanlike/Apparel/PromachosArmor/Glow/PromachosArmorGlow</texPath>
+					<perBodyType>true</perBodyType>
+					<parentTagDef>ApparelBody</parentTagDef>
+					<!-- No inlay shows from the west. -->
+					<visibleFacing>
+						<li>North</li>
+						<li>East</li>
+						<li>South</li>
+					</visibleFacing>
+					<color>(0.6, 1, 0.88)</color>
+					<maxOpacity>0.3</maxOpacity>
+				</li>
+			</renderNodeProperties>
 		</apparel>
 		<thingCategories Inherit="False">
 			<li>ApparelArmor</li>
@@ -225,6 +243,17 @@
 			<abilities>
 				<li>MJV_JusticiarValor</li>
 			</abilities>
+			<!-- The eltex inlays glow with the murderous intent the helmet senses. Textures: Source/Textures/make_eltex_glow.py,
+			     from Mortis's masks. -->
+			<renderNodeProperties>
+				<li Class="JusticiarValor.PawnRenderNodeProperties_EltexGlow">
+					<debugLabel>Promachos helmet eltex glow</debugLabel>
+					<texPath>Things/Pawn/Humanlike/Apparel/PromachosHelmet/Glow/PromachosHelmetGlow</texPath>
+					<parentTagDef>ApparelHead</parentTagDef>
+					<color>(0.6, 1, 0.88)</color>
+					<maxOpacity>0.3</maxOpacity>
+				</li>
+			</renderNodeProperties>
 		</apparel>
 		<comps>
 			<li Class="JusticiarValor.CompProperties_ThreatSense">

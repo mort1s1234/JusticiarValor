@@ -542,81 +542,117 @@ namespace JusticiarValor
         }
     }
 
-    // Warlockbane, in three clear beats: the side of the ward facing the psycaster lights up as it catches the psycast
-    // (Piloto Ring_EdgeLower), the psycast flies straight back as one bright mote with a short tail, and a single flash and
-    // ring mark the caster it strikes.
+    // Warlockbane, in three clear beats, slow enough to follow: the side of the ward facing the psycaster lights up as it
+    // catches the psycast (Piloto Ring_EdgeLower) and the psycast gathers there into one bright mote; the mote drifts
+    // straight back with a short tail, gathering speed, while the ward slowly fades; a flash and a ring mark the caster it
+    // strikes. The backlash stuns the caster as the mote strikes: CompWarlockbane schedules it HitTime after the deflection.
     public sealed class DeflectFx : FxEffect
     {
-        // Seconds before the psycast leaves the ward, and its speed back in cells per second.
-        private const float Launch = 0.08f;
-        private const float Speed = 24f;
+        // Seconds the psycast gathers on the ward before it leaves, and its average speed back in cells per second. The
+        // flight takes MinFlight to MaxFlight seconds: a caster next to the bearer still sees it coming, a far one does not
+        // wait for ever.
+        private const float Launch = 0.3f;
+        private const float Speed = 7f;
+        private const float MinFlight = 0.5f;
+        private const float MaxFlight = 2.4f;
+        // Seconds the ward holds after the catch, then takes to fade; seconds the strike on the caster lasts.
+        private const float WardHold = 0.45f;
+        private const float WardFade = 1f;
+        private const float Strike = 0.6f;
 
         private readonly Pawn pawn;
         private readonly Pawn caster;
         private readonly float angle;
+        private readonly float flight;
         private readonly float seed = FxDraw.Seed();
+        // Where the mote leaves from and where it strikes, as last drawn: it flies on if either pawn leaves the map.
+        private Vector3 from, to;
 
-        // fromAngle: RimWorld angle from the bearer towards the caster. caster: struck by the returning psycast if it is
-        // still on the map.
+        // fromAngle: RimWorld angle from the bearer towards the caster. caster: struck by the returning psycast if it is on
+        // the bearer's map.
         public DeflectFx(Pawn pawn, float fromAngle, Pawn caster = null)
         {
             this.pawn = pawn;
-            this.caster = caster;
             angle = fromAngle;
-            float flight = caster != null && caster.Spawned ? JVMath.DistanceFlat(pawn.DrawPos, caster.DrawPos) / Speed : 0f;
-            duration = Math.Max(0.5f, Launch + flight + 0.35f);
+            from = JVMath.AlongAngle(JVMath.WithY(pawn.DrawPos, FxDraw.AltitudeGlow), angle, 0.75f);
+            if (caster != null && caster.Spawned && caster.Map == pawn.Map)
+            {
+                this.caster = caster;
+                to = JVMath.WithY(caster.DrawPos, FxDraw.AltitudeGlow);
+                flight = JVMath.Clamp(JVMath.DistanceFlat(from, to) / Speed, MinFlight, MaxFlight);
+            }
+            duration = Math.Max(WardHold + WardFade, this.caster != null ? HitTime + Strike : 0f);
         }
 
-        public override bool Cancelled => !pawn.Spawned;
+        // Seconds from the deflection until the mote strikes the caster; 0 when no mote flies back.
+        public float HitTime => caster != null ? Launch + flight : 0f;
+
+        public override bool Cancelled => caster == null && !pawn.Spawned;
 
         public override void Draw(FxDrawContext ctx, float progress, float age)
         {
-            Vector3 center = JVMath.WithY(pawn.DrawPos, FxDraw.AltitudeGlow);
-            Vector3 ward = JVMath.AlongAngle(center, angle, 0.75f);
-            // The ward: Ring_EdgeLower is lit on its lower edge, turned to face the caster.
-            float shown = JVMath.Clamp01(age / 0.05f) * (1f - JVMath.Clamp01((age - 0.15f) / 0.3f));
-            if (shown > 0f)
+            if (pawn.Spawned && pawn.Map == ctx.map)
             {
-                float s = JVMath.Lerp(1.7f, 2f, FxDraw.EaseOut(age / 0.3f));
-                FxDraw.Sprite(ctx, FxAssets.SpriteOver, center, angle + 180f, s, s, FxSheet.WardArc, shown, 2f);
+                Vector3 center = JVMath.WithY(pawn.DrawPos, FxDraw.AltitudeGlow);
+                from = JVMath.AlongAngle(center, angle, 0.75f);
+                // The ward: Ring_EdgeLower is lit on its lower edge, turned to face the caster. It swells as it catches the
+                // psycast and holds while the mote gathers and leaves, then fades slowly, still swelling a little.
+                float fade = JVMath.Clamp01((age - WardHold) / WardFade);
+                float shown = JVMath.Clamp01(age / 0.08f) * (1f - FxDraw.EaseInOut(fade));
+                if (shown > 0f)
+                {
+                    float s = JVMath.Lerp(1.6f, 2f, FxDraw.EaseOut(age / 0.6f)) + 0.15f * fade;
+                    FxDraw.Sprite(ctx, FxAssets.SpriteOver, center, angle + 180f, s, s, FxSheet.WardArc, shown, 2f);
+                }
             }
-            if (age < 0.14f)
+            if (age < 0.3f)
             {
-                float k = age / 0.14f;
-                FxDraw.Sprite(ctx, FxAssets.SpriteOver, ward, seed * 90f, 1.2f, 1.2f, FxSheet.CrossFlare, (1f - k) * (1f - k), 2f);
+                // The catch: a glint where the psycast meets the ward, giving way to the mote.
+                float k = age / 0.3f;
+                float s = JVMath.Lerp(1f, 1.3f, FxDraw.EaseOut(k));
+                FxDraw.Sprite(ctx, FxAssets.SpriteOver, from, seed * 90f + age * 60f, s, s, FxSheet.CrossFlare, (1f - k) * (1f - k), 2f);
             }
-            if (caster == null || !caster.Spawned || caster.Map != pawn.Map)
+            if (caster == null)
             {
                 return;
             }
-            Vector3 target = JVMath.WithY(caster.DrawPos, FxDraw.AltitudeGlow);
-            float distance = JVMath.DistanceFlat(ward, target);
-            float flight = distance / Speed;
-            float t = age - Launch;
-            if (t > 0f && t < flight)
+            if (caster.Spawned && caster.Map == ctx.map)
             {
-                // The psycast flying back: a soft glow with a glint, its tail (Trail_TaperedSoft, head at the cell's left)
-                // stretched behind it.
-                float along = t * Speed;
-                float heading = JVMath.AngleFlat(ward, target);
-                Vector3 head = JVMath.AlongAngle(ward, heading, along);
-                float tail = Math.Min(1.4f, along);
-                FxDraw.Sprite(ctx, FxAssets.SpriteOver, JVMath.AlongAngle(head, heading + 180f, tail * 0.45f), heading + 90f, tail, 0.45f,
-                    FxSheet.TrailCore, 0.85f, 1.8f);
-                FxDraw.Sprite(ctx, FxAssets.SpriteOver, head, 0f, 0.8f, 0.8f, FxSheet.SoftGlow, 0.7f, 1.6f);
-                FxDraw.Sprite(ctx, FxAssets.SpriteOver, head, age * 400f, 0.6f, 0.6f, FxSheet.CrossFlare, 0.9f, 2f);
+                to = JVMath.WithY(caster.DrawPos, FxDraw.AltitudeGlow);
+            }
+            float t = age - Launch;
+            if (t < flight)
+            {
+                // The mote: a soft glow with a spinning glint. It gathers on the ward, then leaves at half its average speed
+                // and strikes at one and a half, its tail (Trail_TaperedSoft, head at the cell's left) stretched behind it and
+                // lengthening as it speeds up.
+                float grown = FxDraw.EaseOut(JVMath.InverseLerp(0.04f, Launch, age));
+                float u = JVMath.Clamp01(t / flight);
+                float along = u * (0.5f + 0.5f * u) * JVMath.DistanceFlat(from, to);
+                float heading = JVMath.AngleFlat(from, to);
+                Vector3 head = JVMath.AlongAngle(from, heading, along);
+                float tail = Math.Min(0.8f + 0.6f * u, along);
+                if (tail > 0.05f)
+                {
+                    FxDraw.Sprite(ctx, FxAssets.SpriteOver, JVMath.AlongAngle(head, heading + 180f, tail * 0.45f), heading + 90f, tail, 0.45f,
+                        FxSheet.TrailCore, 0.85f, 1.8f);
+                }
+                float size = grown * (1f + 0.08f * MathF.Sin(age * 14f + seed * 6f));
+                FxDraw.Sprite(ctx, FxAssets.SpriteOver, head, 0f, 0.8f * size, 0.8f * size, FxSheet.SoftGlow, 0.7f * grown, 1.6f);
+                FxDraw.Sprite(ctx, FxAssets.SpriteOver, head, age * 240f, 0.6f * size, 0.6f * size, FxSheet.CrossFlare, 0.9f * grown, 2f);
+                return;
             }
             float hit = t - flight;
-            if (hit > 0f && hit < 0.35f)
+            if (hit < Strike)
             {
-                float k = hit / 0.35f;
+                float k = hit / Strike;
                 // Ring_Shockwave's ring lies at 0.43 of its cell.
-                float ring = JVMath.Lerp(0.3f, 1.1f, FxDraw.EaseOut(k)) / 0.43f;
-                FxDraw.Sprite(ctx, FxAssets.SpriteOver, target, 0f, ring, ring, FxSheet.PingRing, (1f - k) * (1f - k), 1.8f);
-                if (hit < 0.18f)
+                float ring = JVMath.Lerp(0.3f, 1.2f, FxDraw.EaseOut(k)) / 0.43f;
+                FxDraw.Sprite(ctx, FxAssets.SpriteOver, to, 0f, ring, ring, FxSheet.PingRing, (1f - k) * (1f - k), 1.8f);
+                if (hit < 0.3f)
                 {
-                    float f = hit / 0.18f;
-                    FxDraw.Sprite(ctx, FxAssets.SpriteOver, target, seed * 90f, 1.6f, 1.6f, FxSheet.ImpactFlare, (1f - f) * (1f - f), 1.8f);
+                    float f = hit / 0.3f;
+                    FxDraw.Sprite(ctx, FxAssets.SpriteOver, to, seed * 90f, 1.7f, 1.7f, FxSheet.ImpactFlare, (1f - f) * (1f - f), 1.8f);
                 }
             }
         }

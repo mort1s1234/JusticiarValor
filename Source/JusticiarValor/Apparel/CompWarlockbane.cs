@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RimWorld;
 using Verse;
@@ -14,8 +15,12 @@ namespace JusticiarValor
 
         public SoundDef deflectSound;
 
-        // The caster of a deflected psycast is stunned for this long by the backlash.
+        // The caster of a deflected psychic attack is stunned for this long by the backlash, from when the attack flies back
+        // into it.
         public int backlashStunTicks = 90;
+
+        // Heard on the caster as the attack strikes it.
+        public SoundDef backlashSound;
 
         // ...and takes this much neural heat, if it has any.
         public float backlashEntropy = 12f;
@@ -26,7 +31,8 @@ namespace JusticiarValor
         }
     }
 
-    // Warlockbane shield: turns aside hostile psycasts aimed at its bearer, a charge each.
+    // Warlockbane shield: turns aside psychic attacks on its bearer, a charge each. What is one, and when the bearer turns
+    // it aside: PsychicAttack, WarlockbaneWard.
     public class CompWarlockbane : ThingComp
     {
         private int charges = -1;
@@ -65,36 +71,59 @@ namespace JusticiarValor
             }
         }
 
-        // Whether the bearer turns this ability aside; spends a charge and plays the deflection.
-        public bool TryDeflect(Ability ability, Pawn bearer)
+        // Whether the bearer turns aside this caster's attack; spends a charge, plays the deflection and stuns the caster:
+        // when the attack flying back strikes it (DeflectFx.HitTime), at once if none is seen flying.
+        // The backlash's neural heat is BurnCaster, once the caster has paid for the cast.
+        public bool TryDeflect(Pawn caster, Pawn bearer)
         {
             if (Charges <= 0)
             {
                 return false;
             }
             charges = Charges - 1;
-            Pawn caster = ability.pawn;
+            float hitTime = 0f;
             if (bearer.Spawned)
             {
                 float fromAngle = caster != null && caster.Spawned && caster.Map == bearer.Map
                     ? JVMath.AngleFlat(bearer.DrawPos, caster.DrawPos) : FxDraw.Seed() * 360f;
                 Pawn shownCaster = caster != null && caster.Spawned && caster.Map == bearer.Map && caster != bearer ? caster : null;
-                MapComponent_JusticiarFx.Spawn(bearer.Map, new DeflectFx(bearer, fromAngle, shownCaster));
+                var fx = new DeflectFx(bearer, fromAngle, shownCaster);
+                MapComponent_JusticiarFx.Spawn(bearer.Map, fx);
+                hitTime = fx.HitTime;
                 Props.deflectSound?.PlayOneShot(new TargetInfo(bearer.Position, bearer.Map));
                 MoteMaker.ThrowText(bearer.DrawPos, bearer.Map, "MJV_Deflected".Translate(), 2.5f);
             }
-            if (caster != null && !caster.Dead && caster != bearer)
+            if (caster != null && !caster.Dead && caster != bearer && caster.Spawned)
             {
-                if (caster.Spawned && Props.backlashStunTicks > 0)
+                var backlash = new PendingBacklash
                 {
-                    caster.stances?.stunner?.StunFor(Props.backlashStunTicks, bearer, true, true, false);
+                    victim = caster,
+                    caster = bearer,
+                    tick = Find.TickManager.TicksGame + (int)Math.Ceiling(hitTime * GenTicks.TicksPerRealSecond),
+                    stunTicks = Props.backlashStunTicks,
+                    hitSound = Props.backlashSound
+                };
+                if (hitTime > 0f)
+                {
+                    MapComponent_JusticiarStrikes.Schedule(caster.Map, backlash);
                 }
-                if (Props.backlashEntropy > 0f && caster.psychicEntropy != null && caster.psychicEntropy.NeedsPsyfocus)
+                else
                 {
-                    caster.psychicEntropy.TryAddEntropy(Props.backlashEntropy, bearer, true, true);
+                    backlash.Land(caster.Map);
                 }
             }
             return true;
+        }
+
+        // The backlash's neural heat, on top of the heat the caster paid for the deflected cast: past its limit if need be,
+        // which is why it comes after the cast's own heat (added only while it fits).
+        public void BurnCaster(Pawn caster, Pawn bearer)
+        {
+            if (caster != null && !caster.Dead && caster != bearer && Props.backlashEntropy > 0f
+                && caster.psychicEntropy != null && caster.psychicEntropy.NeedsPsyfocus)
+            {
+                caster.psychicEntropy.TryAddEntropy(Props.backlashEntropy, bearer, true, true);
+            }
         }
 
         public override IEnumerable<Gizmo> CompGetWornGizmosExtra()
@@ -108,6 +137,24 @@ namespace JusticiarValor
             {
                 yield return new Gizmo_WarlockbaneStatus(this);
             }
+        }
+    }
+
+    // The Warlockbane's backlash, landing as the deflected attack strikes its caster: victim is that caster, caster the
+    // bearer who turned the attack aside.
+    public class PendingBacklash : PendingStrike
+    {
+        public override void Land(Map map)
+        {
+            if (victim == null || victim.Dead || !victim.Spawned || victim.Map != map)
+            {
+                return;
+            }
+            if (stunTicks > 0)
+            {
+                victim.stances?.stunner?.StunFor(stunTicks, caster, true, true, false);
+            }
+            hitSound?.PlayOneShot(new TargetInfo(victim.Position, map));
         }
     }
 }

@@ -27,5 +27,10 @@
       <HintPath>$(JVModRoot)\1.6\Assemblies\JusticiarValor.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- VEF.Abilities, to cast Vanilla Psycasts Expanded's psycasts at the Warlockbane shield. -->
+    <Reference Include="VEF">
+      <HintPath>$(JVWorkshopDir)\2023507013\1.6\Assemblies\VEF.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 </Project>

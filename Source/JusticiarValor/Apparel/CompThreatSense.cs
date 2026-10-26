@@ -26,7 +26,7 @@ namespace JusticiarValor
 
     // Promachos helmet: scans for murderous intent aimed at its wearer. Each hostile pawn attacking or aiming at the
     // wearer raises the severity of a hediff that sharpens reflexes, speed and consciousness.
-    public class CompThreatSense : ThingComp
+    public class CompThreatSense : ThingComp, IEltexGlowSource
     {
         private int lastThreats;
 
@@ -36,6 +36,22 @@ namespace JusticiarValor
         public CompProperties_ThreatSense Props => (CompProperties_ThreatSense)props;
 
         public int CurrentThreats => lastThreats;
+
+        // The helmet's eltex inlays glow with the murderous intent it senses: the hediff's severity, which settles slowly
+        // once nobody aims at the wearer any more.
+        public float EltexGlow
+        {
+            get
+            {
+                Pawn wearer = JVUtility.WearerOf(parent);
+                if (wearer == null || wearer.Dead || Props.maxThreats <= 0)
+                {
+                    return 0f;
+                }
+                Hediff intent = Props.hediff == null ? null : wearer.health.hediffSet.GetFirstHediffOfDef(Props.hediff);
+                return JVMath.Clamp01((intent?.Severity ?? lastThreats) / Props.maxThreats);
+            }
+        }
 
         public override void CompTick()
         {

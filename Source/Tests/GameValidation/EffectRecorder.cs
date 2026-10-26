@@ -121,7 +121,7 @@ namespace JusticiarValorValidation
             {
                 ("JusticiarValorWave", JusticiarValorWave), ("ThreatPulse", ThreatPulse), ("PsychicShield", PsychicShield), ("Invictus", Invictus),
                 ("PsyOrbs", PsyOrbs), ("OrbImpact", OrbImpact), ("CelestialPierce", CelestialPierce), ("WarlockbaneDeflect", WarlockbaneDeflect),
-                ("SermonAndConversion", SermonAndConversion)
+                ("SermonAndConversion", SermonAndConversion), ("EltexGlow", EltexGlow)
             };
             // -jvrecordonly=<scene,scene>: just those scenes.
             HashSet<string> only = GenCommandLine.TryGetCommandLineArg("jvrecordonly", out string onlyArg) && !string.IsNullOrEmpty(onlyArg)
@@ -278,6 +278,55 @@ namespace JusticiarValorValidation
                 else if (f == 215)
                 {
                     Goto(justiciar, center + new IntVec3(4, 0, 2));
+                }
+                return true;
+            }))
+            {
+                yield return step;
+            }
+        }
+
+        // Three justiciars facing south, east and north: the eltex inlays of their armor and helmet light up as the stored
+        // Invictus charge and the sensed murderous intent rise together over two seconds, hold, then fade as both drain.
+        // Undrafted and waiting, so the shield's dome stays down and the inlays show plainly.
+        private IEnumerable<object> EltexGlow()
+        {
+            NewScene();
+            var pawns = new List<(Pawn pawn, Rot4 facing)>();
+            foreach ((int dx, Rot4 facing) in new[] { (-2, Rot4.South), (0, Rot4.East), (2, Rot4.North) })
+            {
+                Pawn justiciar = Justiciar(center + new IntVec3(dx, 0, 0), drafted: false);
+                justiciar.playerSettings.hostilityResponse = HostilityResponseMode.Ignore;
+                justiciar.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Wait, 100000), JobCondition.InterruptForced);
+                pawns.Add((justiciar, facing));
+            }
+            Camera(center, 3.2f);
+            yield return 10;
+            foreach (object step in Clip("14_Eltex_Glow", 320, f =>
+            {
+                float k = f < 20 ? 0f : f < 140 ? (f - 20) / 120f : f < 200 ? 1f : Math.Max(0f, 1f - (f - 200) / 100f);
+                foreach ((Pawn pawn, Rot4 facing) in pawns)
+                {
+                    pawn.Rotation = facing;
+                    CompPsychicShield shield = pawn.WornComp<CompPsychicShield>();
+                    chargeField.SetValue(shield, shield.Props.chargeMax * k);
+                    CompThreatSense sense = pawn.WornComp<CompThreatSense>();
+                    Hediff intent = pawn.health.hediffSet.GetFirstHediffOfDef(sense.Props.hediff);
+                    float severity = sense.Props.maxThreats * k;
+                    if (severity > 0.05f)
+                    {
+                        if (intent == null)
+                        {
+                            intent = HediffMaker.MakeHediff(sense.Props.hediff, pawn);
+                            intent.Severity = severity;
+                            pawn.health.AddHediff(intent);
+                        }
+                        intent.Severity = severity;
+                    }
+                    else if (intent != null)
+                    {
+                        pawn.health.RemoveHediff(intent);
+                    }
                 }
                 return true;
             }))

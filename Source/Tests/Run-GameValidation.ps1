@@ -8,6 +8,8 @@ param(
     [switch]$NoBuild,
     # Combat/gear, effect assets and save/reload, excluding the unrelated random mission/quest lifecycle.
     [switch]$EffectsOnly,
+    # Also load Vanilla Psycasts Expanded (Workshop 2842502659), for the Warlockbane checks against its psycasts.
+    [switch]$WithVPE,
     # Explicitly requested interactive 1.6 validation: Unity needs a presented window for full map screenshots.
     [switch]$VisibleWindow,
     # Record a clip of every effect instead of validating (GameValidation/EffectRecorder.cs): one MP4 per effect in
@@ -20,8 +22,9 @@ param(
     # Keep the PNG frames of the recorded clips (<WorkDir>/SaveData/Screenshots/jvrec).
     [switch]$KeepFrames
 )
-# In-game validation (GameValidation/*.cs) on a quick-test colony with Harmony, Vanilla Expanded Framework, Justiciar
-# Valor and a temporary test mod (Mods/JusticiarValor-<Version>-validation-tmp, removed afterwards).
+# In-game validation (GameValidation/*.cs) on a quick-test colony with Harmony, Vanilla Expanded Framework (and with
+# -WithVPE Vanilla Psycasts Expanded), Justiciar Valor and a temporary test mod (Mods/JusticiarValor-<Version>-validation-tmp,
+# removed afterwards).
 # <Version>/Assemblies/JusticiarValor.dll is the assembly under test. Report, screenshots, logs: $WorkDir.
 # - 1.7: RimWorld.exe hidden (-NoWindow), -NoFileLog keeps the player's Player.log, -mod= picks the mods.
 # - 1.6: RimWorldWin64.exe with a hidden 1920x1080 window by default; -VisibleWindow opts into an interactive window.
@@ -148,8 +151,9 @@ try {
     if ($Version -eq '1.7') {
         $exe = Join-Path $GameDir 'RimWorld.exe'
         $windowStyle = 'Hidden'
+        $vpe = if ($WithVPE) { 'VanillaExpanded.VPsycastsE;' } else { '' }
         $arguments = @('-NoWindow', '-NoFileLog', '-quicktest', '-jvvalidate', "-jvreport=$report", "-savedatafolder=$saveData",
-            "-mod=brrainz.harmony;OskarPotocki.VanillaFactionsExpanded.Core;Mortis.JusticiarValor;$testPackage")
+            "-mod=brrainz.harmony;OskarPotocki.VanillaFactionsExpanded.Core;$($vpe)Mortis.JusticiarValor;$testPackage")
         if ($Record) { $arguments += '-jvrecord' }
     }
     else {
@@ -157,7 +161,9 @@ try {
         if (Test-Path -LiteralPath $modLink) { throw "$modLink already exists" }
         New-Item -ItemType Junction -Path $modLink -Target $modRoot | Out-Null
         $links += $modLink
-        foreach ($dep in @(@{ Id = '2009463077'; Name = 'Harmony' }, @{ Id = '2023507013'; Name = 'VEF' })) {
+        $deps = @(@{ Id = '2009463077'; Name = 'Harmony' }, @{ Id = '2023507013'; Name = 'VEF' })
+        if ($WithVPE) { $deps += @{ Id = '2842502659'; Name = 'VPE' } }
+        foreach ($dep in $deps) {
             # An install that already has the dependency in its Mods folder uses its own copy.
             if (Test-Path -LiteralPath (Join-Path $GameDir ("Mods\" + $dep.Id))) { continue }
             $link = Join-Path $GameDir ("Mods\JusticiarValor-validation-" + $dep.Name)
@@ -172,7 +178,8 @@ try {
         $expansions = ($releaseOrder | Where-Object { $installed -contains $_ }) + ($installed | Where-Object { $releaseOrder -notcontains $_ }) |
             ForEach-Object { '    <li>ludeon.rimworld.' + $_.ToLowerInvariant() + '</li>' }
         $active = @('brrainz.harmony', 'ludeon.rimworld') + ($expansions | ForEach-Object { ($_ -replace '\s*</?li>\s*', '') }) +
-            @('oskarpotocki.vanillafactionsexpanded.core', 'mortis.justiciarvalor', $testPackage.ToLowerInvariant())
+            @('oskarpotocki.vanillafactionsexpanded.core') + @(if ($WithVPE) { 'vanillaexpanded.vpsycastse' }) +
+            @('mortis.justiciarvalor', $testPackage.ToLowerInvariant())
         @"
 <?xml version="1.0" encoding="utf-8"?>
 <ModsConfigData>

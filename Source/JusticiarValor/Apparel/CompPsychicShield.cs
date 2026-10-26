@@ -57,7 +57,7 @@ namespace JusticiarValor
     // Promachos armor: a psychic shield drawn from a large eltex core, as strong as its wearer is psychically sensitive. It
     // absorbs incoming gunfire, projectiles, blasts and blows struck in melee, and every absorbed hit is stored as energy
     // for Invictus. The stored energy fades while the wearer takes no damage.
-    public class CompPsychicShield : ThingComp, IFxDrawer
+    public class CompPsychicShield : ThingComp, IFxDrawer, IEltexGlowSource
     {
         // How often the wearer's psychic sensitivity is read again.
         private const int SensitivityCacheTicks = 250;
@@ -98,13 +98,24 @@ namespace JusticiarValor
 
         public float ChargeFraction => Props.chargeMax <= 0f ? 0f : JVMath.Clamp01(charge / Props.chargeMax);
 
+        // The armor's eltex inlays glow with the stored charge, and blaze while Invictus releases it.
+        public float EltexGlow
+        {
+            get
+            {
+                Pawn wearer = Wearer;
+                return wearer == null || wearer.Dead ? 0f : Overdriven ? 1f : ChargeFraction;
+            }
+        }
+
         // Whether the stored charge is fading for want of damage taken.
         public bool ChargeDraining => charge > 0f && !Overdriven && Find.TickManager != null
             && lastDamageTick >= 0 && Find.TickManager.TicksGame - lastDamageTick > Props.chargeDrainDelayTicks;
 
         public float MaxFor(Pawn wearer)
         {
-            float sensitivity = wearer == null ? 1f : wearer.GetStatValue(StatDefOf.PsychicSensitivity, true, SensitivityCacheTicks);
+            // Not a psychic attack asking after the wearer: a Warlockbane shield worn with the armor must not ward it then.
+            float sensitivity = wearer == null ? 1f : WarlockbaneWard.TrueSensitivity(wearer, SensitivityCacheTicks);
             return JVMath.Clamp(sensitivity * Props.energyPerSensitivity, Props.energyMaxRange.min, Props.energyMaxRange.max);
         }
 

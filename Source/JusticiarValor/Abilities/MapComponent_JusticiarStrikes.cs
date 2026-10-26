@@ -8,6 +8,7 @@ namespace JusticiarValor
 {
     // A hit that lands a moment after its cast: Celestial Pierce strikes each victim when the shock of its landing reaches
     // them. A landing strike has no victim: it is the blade going into the ground at `cell`, heard and shaking the camera.
+    // The Warlockbane's backlash is one too: PendingBacklash.
     public class PendingStrike : IExposable
     {
         // How far beyond the radius a victim may have moved and still be struck: the cells chosen at the cast reach about
@@ -34,7 +35,7 @@ namespace JusticiarValor
         public int stunTicks;
         public SoundDef hitSound;
 
-        public void Land(Map map)
+        public virtual void Land(Map map)
         {
             if (landing)
             {

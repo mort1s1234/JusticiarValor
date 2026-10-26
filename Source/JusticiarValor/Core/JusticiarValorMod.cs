@@ -19,7 +19,18 @@ namespace JusticiarValor
                 prefix: AccessTools.Method(typeof(Patch_ArrestImmunity), nameof(Patch_ArrestImmunity.Prefix)));
             Patch(harmony, "spell deflection (Warlockbane shield)",
                 Patch_WarlockbaneDeflect.TargetMethod(),
-                prefix: AccessTools.Method(typeof(Patch_WarlockbaneDeflect), nameof(Patch_WarlockbaneDeflect.Prefix)));
+                prefix: AccessTools.Method(typeof(Patch_WarlockbaneDeflect), nameof(Patch_WarlockbaneDeflect.Prefix)),
+                finalizer: AccessTools.Method(typeof(Patch_WarlockbaneDeflect), nameof(Patch_WarlockbaneDeflect.Finalizer)));
+            Patch(harmony, "psychic lance deflection (Warlockbane shield)",
+                Patch_WarlockbaneDeflectItem.TargetMethod(),
+                prefix: AccessTools.Method(typeof(Patch_WarlockbaneDeflectItem), nameof(Patch_WarlockbaneDeflectItem.Prefix)),
+                finalizer: AccessTools.Method(typeof(Patch_WarlockbaneDeflectItem), nameof(Patch_WarlockbaneDeflectItem.Finalizer)));
+            foreach (MethodBase cast in Patch_WarlockbaneDeflectVEF.TargetMethods())
+            {
+                Patch(harmony, "spell deflection against Vanilla Expanded Framework abilities (Warlockbane shield)", cast,
+                    prefix: AccessTools.Method(typeof(Patch_WarlockbaneDeflectVEF), nameof(Patch_WarlockbaneDeflectVEF.Prefix)),
+                    finalizer: AccessTools.Method(typeof(Patch_WarlockbaneDeflectVEF), nameof(Patch_WarlockbaneDeflectVEF.Finalizer)));
+            }
             Patch(harmony, "justiciars leading tribute collector caravans",
                 Patch_ImperialJusticiars.GenerateTraderMethod(),
                 prefix: AccessTools.Method(typeof(Patch_ImperialJusticiars), nameof(Patch_ImperialJusticiars.GenerateTraderPrefix)),

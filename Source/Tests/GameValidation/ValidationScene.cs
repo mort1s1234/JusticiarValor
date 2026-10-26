@@ -9,7 +9,11 @@ using RimWorld;
 using RimWorld.QuestGen;
 using Verse;
 using Verse.AI;
+using CompAbilities = VEF.Abilities.CompAbilities;
+using GlobalTargetInfo = RimWorld.Planet.GlobalTargetInfo;
 using Vector3 = UnityEngine.Vector3;
+using VefAbility = VEF.Abilities.Ability;
+using VefAbilityDef = VEF.Abilities.AbilityDef;
 
 namespace JusticiarValorValidation
 {
@@ -327,6 +331,7 @@ namespace JusticiarValorValidation
             CompPsychicShield shield = justiciar.WornComp<CompPsychicShield>();
             CompWarlockbane warlockbane = justiciar.WornComp<CompWarlockbane>();
             Check(shield != null && warlockbane != null, "the armor and the shield carry their comps");
+            CheckEltexGlow(justiciar, shield);
 
             JusticiarValidation.Line("== Justiciar Valor");
             // The spear's orbs would join in on the wave's victims.
@@ -511,6 +516,7 @@ namespace JusticiarValorValidation
                 "Invictus spends the charge and overcharges the shield to " + shield.Props.overdriveEnergyFactor.ToStringPercent() + " (" + shield.Energy + ")");
             Check(justiciar.GetStatValue(StatDefOf.MoveSpeed) > speed0 + 2f, "the overdrive speeds the wearer up (" + speed0 + " -> " + justiciar.GetStatValue(StatDefOf.MoveSpeed) + ")");
             Check(EffectCount("InvictusBurstFx") == 1, "Invictus plays its burst");
+            Check(shield.EltexGlow == 1f, "the armor's eltex inlays blaze while Invictus releases the charge");
             yield return 5;
             Check(AfterimageUtility.CanBlit, "afterimages can render the pawn's atlas frame at any zoom (PawnRenderer.GetBlitMeshUpdatedFrame found)");
             JusticiarValidation.Line("Camera zoom (ZoomRootSize) " + Find.CameraDriver.ZoomRootSize + ": below 18 the game draws pawns without the atlas");
@@ -664,8 +670,8 @@ namespace JusticiarValorValidation
                 "foes outside the area are untouched" + Wounds(outside) + Wounds(near));
             Check(EffectCount("PierceHitFx") >= 1, "each struck pawn bursts where the shock reaches it");
             ClearExtras();
-            synthesizer.AutoLaunch = true;
 
+            // The spear's orbs stay held for the warlocks too, who stand about while their deflected psycasts fly back.
             JusticiarValidation.Line("== Warlockbane");
             Pawn warlock = MakeHostile(center + new IntVec3(0, 0, 6), stun: false);
             // A psychically deaf warlock could not cast at all.
@@ -681,8 +687,8 @@ namespace JusticiarValorValidation
             int charges0 = warlockbane.Charges;
             stun.Activate(new LocalTargetInfo(justiciar), new LocalTargetInfo(justiciar));
             Check(!justiciar.stances.stunner.Stunned && warlockbane.Charges == charges0 - 1, "a hostile Stun psycast is deflected and spends a charge");
-            Check(warlock.stances.stunner.Stunned, "the warlock is stunned by the backlash");
             Check(EffectCount("DeflectFx") == 1, "the deflection plays its ward effect");
+            CheckBacklash(warlock, "the warlock");
             warlock.psychicEntropy.RemoveAllEntropy();
             stun.Activate(new LocalTargetInfo(justiciar), new LocalTargetInfo(justiciar));
             warlock.psychicEntropy.RemoveAllEntropy();
@@ -690,6 +696,9 @@ namespace JusticiarValorValidation
             Check(warlockbane.Charges == 0 && justiciar.stances.stunner.Stunned, "with its charges spent the shield no longer deflects");
             justiciar.stances.stunner.StopStun();
             ClearExtras();
+            CheckWarlockbanePsychicAttacks(justiciar, warlockbane);
+            CheckWarlockbaneVPE(justiciar, warlockbane);
+            synthesizer.AutoLaunch = true;
 
             JusticiarValidation.Line("== Arrest");
             int waves = EffectCount("PsychicWaveFx");
@@ -784,6 +793,340 @@ namespace JusticiarValorValidation
             {
                 JusticiarValidation.Line("SKIP no Empire faction in this world");
             }
+        }
+
+        // The Promachos armor's and helmet's eltex inlays glow with their charge: a node over each in the wearer's render tree
+        // (PawnRenderNode_EltexGlow), dark without charge and bright with it.
+        private void CheckEltexGlow(Pawn justiciar, CompPsychicShield shield)
+        {
+            JusticiarValidation.Line("== Eltex glow");
+            PawnRenderTree tree = justiciar.Drawer.renderer.renderTree;
+            tree.EnsureInitialized(PawnRenderFlags.None);
+            PawnRenderNode_EltexGlow GlowUnder(PawnRenderNodeTagDef tag, ThingDef gear)
+            {
+                return tree.TryGetNodeByTag(tag, out PawnRenderNode parent) && parent.children != null
+                    ? parent.children.OfType<PawnRenderNode_EltexGlow>().FirstOrDefault(n => n.Worn?.apparel?.def == gear)
+                    : null;
+            }
+            PawnRenderNode_EltexGlow armor = GlowUnder(PawnRenderNodeTagDefOf.ApparelBody, MJV_DefOf.MJV_Apparel_PromachosArmor);
+            PawnRenderNode_EltexGlow helmet = GlowUnder(PawnRenderNodeTagDefOf.ApparelHead, MJV_DefOf.MJV_Apparel_ArmorHelmetPromachosHelmet);
+            Check(armor != null && helmet != null, "the Promachos armor and helmet each carry an eltex glow over their own render node (armor "
+                + (armor != null) + ", helmet " + (helmet != null) + ")");
+            if (armor == null || helmet == null)
+            {
+                return;
+            }
+            bool Textured(PawnRenderNode_EltexGlow glow) => glow.Graphics.Count == 1 && glow.Graphics[0]?.MatSouth?.mainTexture != null;
+            Check(Textured(armor) && Textured(helmet), "the glows have their textures for the wearer (" + justiciar.story.bodyType.defName + " body)");
+
+            // Game time, as FxClock gives it while drawing (it does not move within one frame, where these ticks run).
+            double Now() => Find.TickManager.TicksGame / 60.0;
+            float charge = shield.Charge;
+            chargeField.SetValue(shield, 0f);
+            Ticks(200);
+            float dark = armor.Brightness(Now());
+            chargeField.SetValue(shield, shield.Props.chargeMax);
+            lastDamageField.SetValue(shield, Find.TickManager.TicksGame);
+            Ticks(120);
+            float lit = armor.Brightness(Now());
+            Check(dark < 0.02f && lit > 0.7f, "the armor's inlays are dark without charge and light up with a full charge (brightness "
+                + dark.ToString("0.00") + " -> " + lit.ToString("0.00") + ")");
+            chargeField.SetValue(shield, charge);
+
+            CompThreatSense sense = justiciar.WornComp<CompThreatSense>();
+            Hediff intent = HediffMaker.MakeHediff(sense.Props.hediff, justiciar);
+            intent.Severity = sense.Props.maxThreats;
+            justiciar.health.AddHediff(intent);
+            float full = sense.EltexGlow;
+            Ticks(60);
+            float sensed = helmet.Brightness(Now());
+            Check(full == 1f && sensed > 0.3f, "the helmet's inlays light up with the murderous intent it senses (glow " + full + ", brightness "
+                + sensed.ToString("0.00") + ")");
+            if (justiciar.health.hediffSet.hediffs.Contains(intent))
+            {
+                justiciar.health.RemoveHediff(intent);
+            }
+        }
+
+        // The deflected psycast flies back (DeflectFx) and stuns its caster only as it strikes: the backlash waits with the
+        // map's strikes until then.
+        private void CheckBacklash(Pawn caster, string name)
+        {
+            int now = Find.TickManager.TicksGame;
+            var strikes = map.GetComponent<MapComponent_JusticiarStrikes>();
+            int left = ((IList)AccessTools.Field(typeof(MapComponent_JusticiarStrikes), "pending").GetValue(strikes)).OfType<PendingBacklash>()
+                .Where(b => b.victim == caster).Select(b => b.tick - now).DefaultIfEmpty(-1).Min();
+            Check(left > 0 && !caster.stances.stunner.Stunned, "the deflected psycast flies back at " + name + " before the backlash stuns it ("
+                + left + " ticks)");
+            Ticks(Math.Max(left, 0) + 1);
+            Check(caster.stances.stunner.Stunned, name + " is stunned by the backlash as the psycast strikes it");
+        }
+
+        // Beyond the psycasts, the shield turns aside whatever goes by psychic sensitivity, found out without a list
+        // (PsychicAttack): a psychic shock lance aimed at the bearer, an ability of another kind catching it in its area, a
+        // pulse picking its own victims as Neuroquake does (WarlockbaneWard). Not what has nothing psychic about it, nor a
+        // friend's cast, even on a berserk bearer.
+        private void CheckWarlockbanePsychicAttacks(Pawn justiciar, CompWarlockbane warlockbane)
+        {
+            JusticiarValidation.Line("== Warlockbane against psychic attacks");
+            int chargesBefore = warlockbane.Charges;
+            IntVec3 at = justiciar.Position;
+            Check(PsychicAttack.IsPsychic(DefDatabase<AbilityDef>.GetNamed("Neuroquake")), "Neuroquake is a psychic attack");
+            Check(PsychicAttack.IsPsychic(ValidationPulse), "an ability whose code reads psychic sensitivity is a psychic attack");
+            AbilityDef spine = DefDatabase<AbilityDef>.GetNamedSilentFail("PiercingSpine");
+            if (spine != null)
+            {
+                Check(!PsychicAttack.IsPsychic(spine), "a piercing spine is no psychic attack");
+            }
+            if (ModsConfig.AnomalyActive)
+            {
+                Check(!PsychicAttack.IsPsychic(DefDatabase<AbilityDef>.GetNamed("VoidTerror")) && !PsychicAttack.IsPsychic(DefDatabase<AbilityDef>.GetNamed("PsychicSlaughter")),
+                    "void terror and psychic slaughter do not go by psychic sensitivity: no psychic attacks");
+            }
+            Pawn bystander = MakePawn(FreeCell(at, 1f, 1.5f), Faction.OfPlayer);
+            ClearSensitivityTraits(bystander);
+
+            // A psychic shock lance: turned aside by the bearer, the lance's charge spent all the same; the next shot lands.
+            Pawn lancer = MakeHostile(FreeCell(at, 7f, 10f), stun: false);
+            var lance = Make<Apparel>(DefDatabase<ThingDef>.GetNamed("Apparel_PsychicShockLance"));
+            lancer.apparel.Wear(lance, false);
+            var reloadable = lance.GetComp<CompApparelReloadable>();
+            Verb lanceVerb = reloadable.AllVerbs.First();
+            lanceVerb.caster = lancer;
+            Check(PsychicAttack.IsPsychic(lanceVerb), "the psychic shock lance is a psychic attack");
+            wlChargesField.SetValue(warlockbane, 2);
+            int deflects = EffectCount("DeflectFx");
+            int lanceCharges = reloadable.RemainingCharges;
+            Shoot(lanceVerb, justiciar);
+            Check(!justiciar.health.hediffSet.HasHediff(HediffDefOf.PsychicShock) && warlockbane.Charges == 1,
+                "a hostile psychic shock lance is deflected and spends a charge");
+            Check(reloadable.RemainingCharges == lanceCharges - 1 && EffectCount("DeflectFx") == deflects + 1,
+                "the deflected lance still spends its own charge (" + lanceCharges + " -> " + reloadable.RemainingCharges + ") and plays the ward effect");
+            CheckBacklash(lancer, "the lancer");
+            // Not the bystander, who stays on its feet for the pulses below.
+            Pawn shocked = MakePawn(FreeCell(at, 5f, 7f), Faction.OfPlayer);
+            Shoot(lanceVerb, shocked);
+            Check(shocked.health.hediffSet.HasHediff(HediffDefOf.PsychicShock), "the same lance shocks a pawn without the shield");
+            if (ModsConfig.AnomalyActive)
+            {
+                var mutator = Make<Apparel>(DefDatabase<ThingDef>.GetNamed("Apparel_BiomutationLance"));
+                Verb mutatorVerb = mutator.GetComp<CompApparelReloadable>().AllVerbs.First();
+                Check(!PsychicAttack.IsPsychic(mutatorVerb), "the biomutation lance does not go by psychic sensitivity: no psychic attack");
+                mutator.Destroy();
+            }
+
+            // The agony pulse (Anomaly): neither a psycast nor marked psychic, found out by its code; the bearer drops out of
+            // its area, the pawn beside it is caught.
+            AbilityDef agonyDef = DefDatabase<AbilityDef>.GetNamedSilentFail("AgonyPulse");
+            if (agonyDef != null)
+            {
+                Check(PsychicAttack.IsPsychic(agonyDef), "the agony pulse goes by psychic sensitivity: a psychic attack");
+                // Beyond the pulse's radius (2.9), which would take in its caster too.
+                Pawn agonist = MakeHostile(FreeCell(at, 4f, 6f), stun: false);
+                HediffDef agony = DefDatabase<HediffDef>.GetNamed("AgonyPulse");
+                agonist.abilities.GainAbility(agonyDef);
+                wlChargesField.SetValue(warlockbane, 2);
+                agonist.abilities.GetAbility(agonyDef).Activate(new LocalTargetInfo(at), new LocalTargetInfo(at));
+                Check(!justiciar.health.hediffSet.HasHediff(agony) && bystander.health.hediffSet.HasHediff(agony) && warlockbane.Charges == 1,
+                    "the agony pulse is turned aside by the bearer alone, for one charge: the pawn beside it is still caught");
+                CheckBacklash(agonist, "the agony pulse's caster");
+            }
+
+            // A pulse that finds its own victims, none of them a target (CompAbilityEffect_ValidationPulse): the bearer reads
+            // as psychically deaf to it, and as it is once the pulse is over.
+            Pawn pulser = MakeHostile(FreeCell(at, 3f, 4.5f));
+            float sensitivity = justiciar.GetStatValue(StatDefOf.PsychicSensitivity);
+            wlChargesField.SetValue(warlockbane, 2);
+            deflects = EffectCount("DeflectFx");
+            CompAbilityEffect_ValidationPulse.reached.Clear();
+            new Ability(pulser, ValidationPulse).Activate(new LocalTargetInfo(pulser), new LocalTargetInfo(pulser));
+            Check(!CompAbilityEffect_ValidationPulse.reached.Contains(justiciar) && CompAbilityEffect_ValidationPulse.reached.Contains(bystander)
+                && warlockbane.Charges == 1 && EffectCount("DeflectFx") == deflects + 1,
+                "a hostile pulse picking its own victims passes the bearer by, for one charge (reached: "
+                + string.Join(", ", CompAbilityEffect_ValidationPulse.reached.Select(p => p.LabelShort)) + ")");
+            Check(Math.Abs(justiciar.GetStatValue(StatDefOf.PsychicSensitivity) - sensitivity) < 0.0001f
+                && Math.Abs(justiciar.psychicEntropy.PsychicSensitivity - sensitivity) < 0.0001f,
+                "the bearer's psychic sensitivity reads true again once the pulse is over (" + sensitivity.ToStringPercent() + ")");
+            // A hostile cast that is no psychic attack reads the bearer as it is, and so does the Promachos armor working out
+            // its shield's capacity during a psychic one: neither spends a charge.
+            CompPsychicShield promachos = justiciar.WornComp<CompPsychicShield>();
+            float capacity = promachos.MaxFor(justiciar);
+            WarlockbaneWard.Begin(pulser);
+            float plain = justiciar.GetStatValue(StatDefOf.PsychicSensitivity);
+            WarlockbaneWard.Psychic();
+            float capacityWarded = promachos.MaxFor(justiciar);
+            WarlockbaneWard.End();
+            Check(Math.Abs(plain - sensitivity) < 0.0001f && Math.Abs(capacityWarded - capacity) < 0.0001f && warlockbane.Charges == 1,
+                "the bearer reads as it is to a cast that is no psychic attack, and to the Promachos armor during one (capacity "
+                + capacityWarded.ToString("0") + ")");
+
+            // The same pulse from a friend reaches the bearer and spends nothing, even while the bearer is berserk and so
+            // hostile to everyone.
+            Pawn friend = MakePawn(FreeCell(at, 3f, 4.5f), Faction.OfPlayer);
+            var friendly = new Ability(friend, ValidationPulse);
+            CompAbilityEffect_ValidationPulse.reached.Clear();
+            friendly.Activate(new LocalTargetInfo(friend), new LocalTargetInfo(friend));
+            Check(CompAbilityEffect_ValidationPulse.reached.Contains(justiciar) && warlockbane.Charges == 1, "a friend's pulse reaches the bearer: no attack");
+            bool drafted = justiciar.Drafted;
+            justiciar.mindState.mentalStateHandler.TryStartMentalState(MentalStateDefOf.Berserk, forced: true);
+            CompAbilityEffect_ValidationPulse.reached.Clear();
+            friendly.Activate(new LocalTargetInfo(friend), new LocalTargetInfo(friend));
+            Check(justiciar.InMentalState && CompAbilityEffect_ValidationPulse.reached.Contains(justiciar) && warlockbane.Charges == 1,
+                "nor while the bearer is berserk");
+            justiciar.mindState.mentalStateHandler.Reset();
+            // The break undrafted him; drafted, he holds his ground while the checks below wait for their backlashes.
+            justiciar.drafter.Drafted = drafted;
+
+            wlChargesField.SetValue(warlockbane, chargesBefore);
+            justiciar.stances.stunner.StopStun();
+            ClearExtras();
+        }
+
+        private static readonly MethodInfo tryCastShot = AccessTools.Method(typeof(Verb_CastTargetEffect), "TryCastShot");
+        private static readonly FieldInfo currentTargetField = AccessTools.Field(typeof(Verb), "currentTarget");
+
+        // The shot an item's verb fires at the end of its warmup.
+        private static void Shoot(Verb verb, Pawn target)
+        {
+            currentTargetField.SetValue(verb, new LocalTargetInfo(target));
+            tryCastShot.Invoke(verb, null);
+        }
+
+        // A free standable cell min to max cells from around.
+        private IntVec3 FreeCell(IntVec3 around, float min, float max)
+        {
+            return GenRadial.RadialCellsAround(around, max, true)
+                .First(c => c.DistanceTo(around) >= min && c.InBounds(map) && c.Standable(map) && c.GetFirstPawn(map) == null);
+        }
+
+        private static void ClearSensitivityTraits(Pawn pawn)
+        {
+            foreach (Trait trait in pawn.story.traits.allTraits.Where(t => t.def.defName == "PsychicSensitivity").ToList())
+            {
+                pawn.story.traits.RemoveTrait(trait);
+            }
+        }
+
+        // The pulse of CompAbilityEffect_ValidationPulse, made here: no combat log entry, which a save would need the def for.
+        private static AbilityDef validationPulse;
+
+        private static AbilityDef ValidationPulse => validationPulse ??= new AbilityDef
+        {
+            defName = "MJVValidation_Pulse",
+            label = "validation pulse",
+            writeCombatLog = false,
+            verbProperties = new VerbProperties { verbClass = typeof(Verb_CastAbility), targetParams = new TargetingParameters { canTargetSelf = true } },
+            comps = new List<AbilityCompProperties> { new CompProperties_AbilityEffect { compClass = typeof(CompAbilityEffect_ValidationPulse) } }
+        };
+
+        // Vanilla Psycasts Expanded's psycasts are Vanilla Expanded Framework abilities, which Patch_WarlockbaneDeflectVEF
+        // turns aside. Run-GameValidation.ps1 -WithVPE loads VPE. Cast directly, as the cast job's last toil does.
+        private void CheckWarlockbaneVPE(Pawn justiciar, CompWarlockbane warlockbane)
+        {
+            JusticiarValidation.Line("== Warlockbane against Vanilla Psycasts Expanded");
+            if (ModLister.GetActiveModWithIdentifier("VanillaExpanded.VPsycastsE", true) == null)
+            {
+                JusticiarValidation.Line("SKIP Vanilla Psycasts Expanded is not loaded (Run-GameValidation.ps1 -WithVPE)");
+                return;
+            }
+            int chargesBefore = warlockbane.Charges;
+            IntVec3 at = justiciar.Position;
+            // Beyond the Blinding Pulse's radius (7), which would take in its caster too.
+            IntVec3 warlockCell = GenRadial.RadialCellsAround(at, 12f, true)
+                .First(c => c.DistanceTo(at) > 9f && c.InBounds(map) && c.Standable(map) && c.GetFirstPawn(map) == null);
+            IntVec3 skipTo = GenRadial.RadialCellsAround(at, 5f, true)
+                .First(c => c.DistanceTo(at) > 3f && c.InBounds(map) && c.Standable(map) && c.GetFirstPawn(map) == null);
+            Pawn warlock = MakeHostile(warlockCell, stun: false);
+            Pawn bystander = MakePawn(at + new IntVec3(1, 0, 0), Faction.OfPlayer);
+            foreach (Pawn pawn in new[] { warlock, bystander })
+            {
+                foreach (Trait trait in pawn.story.traits.allTraits.Where(t => t.def.defName == "PsychicSensitivity").ToList())
+                {
+                    pawn.story.traits.RemoveTrait(trait);
+                }
+            }
+            // VPE gives a psylink its psycast tree (Hediff_PsycastAbilities), which pays for the casts.
+            PawnUtility.ChangePsylinkLevel(warlock, 1, false);
+            var abilities = warlock.GetComp<CompAbilities>();
+            Check(abilities != null, "the VPE caster has VEF's ability comp");
+            if (abilities == null)
+            {
+                ClearExtras();
+                return;
+            }
+            VefAbility burden = GiveVefAbility(abilities, "VPE_Burden");
+            VefAbility pulse = GiveVefAbility(abilities, "VPE_BlindingPulse");
+            VefAbility skip = GiveVefAbility(abilities, "VPE_Skip");
+            HediffDef burdened = DefDatabase<HediffDef>.GetNamed("PsychicBurden");
+            HediffDef blinded = DefDatabase<HediffDef>.GetNamed("PsychicBlindness");
+            float heatGain = warlock.GetStatValue(StatDefOf.PsychicEntropyGain);
+            float backlash = warlockbane.Props.backlashEntropy;
+            void Prime()
+            {
+                warlock.psychicEntropy.RemoveAllEntropy();
+                warlock.psychicEntropy.OffsetPsyfocusDirectly(1f);
+            }
+
+            // Burden, one pawn: turned aside by its only target, it does not happen, but the caster pays for it.
+            wlChargesField.SetValue(warlockbane, 2);
+            Prime();
+            int deflects = EffectCount("DeflectFx");
+            burden.Cast(new GlobalTargetInfo(justiciar));
+            Check(!justiciar.health.hediffSet.HasHediff(burdened) && warlockbane.Charges == 1, "a hostile VPE Burden psycast is deflected and spends a charge");
+            Check(EffectCount("DeflectFx") == deflects + 1, "the VPE deflection plays its ward effect");
+            float cost = Traverse.Create(burden.def.modExtensions.First(e => e.GetType().Name == "AbilityExtension_Psycast"))
+                .Method("GetEntropyUsedByPawn", warlock).GetValue<float>();
+            float heat = warlock.psychicEntropy.EntropyValue;
+            Check(warlock.psychicEntropy.CurrentPsyfocus < 1f && Math.Abs(heat - (cost + backlash) * heatGain) < 0.01f
+                && burden.cooldown >= Find.TickManager.TicksGame,
+                "the VPE caster still pays the psyfocus, the neural heat (" + cost + ") and the cooldown, and takes the backlash heat on top (heat " + heat + ")");
+            // After the heat check: the heat wears off while the psycast flies back.
+            CheckBacklash(warlock, "the VPE caster");
+            Prime();
+            burden.Cast(new GlobalTargetInfo(bystander));
+            Check(bystander.health.hediffSet.HasHediff(burdened), "the same Burden lands on a pawn without the shield");
+
+            // Blinding Pulse, everyone around a point: the bearer drops out of the cast, the pawn beside it is still blinded.
+            wlChargesField.SetValue(warlockbane, 2);
+            Prime();
+            GlobalTargetInfo[] area = { new GlobalTargetInfo(at, map) };
+            pulse.ModifyTargets(ref area);
+            Check(area.Any(t => t.Thing == justiciar) && area.Any(t => t.Thing == bystander), "Blinding Pulse takes in the justiciar and the pawn beside it");
+            pulse.Cast(area);
+            Check(!justiciar.health.hediffSet.HasHediff(blinded) && bystander.health.hediffSet.HasHediff(blinded) && warlockbane.Charges == 1,
+                "a VPE area psycast is turned aside by the bearer alone, for one charge: the pawn beside it is still blinded");
+            Check(warlock.psychicEntropy.CurrentPsyfocus < 1f, "the VPE caster pays for the area psycast");
+
+            // Skip, a pawn and where it goes: the bearer takes its destination out of the cast with it.
+            wlChargesField.SetValue(warlockbane, 2);
+            Prime();
+            skip.Cast(new GlobalTargetInfo(justiciar), new GlobalTargetInfo(skipTo, map));
+            Check(justiciar.Position == at && warlockbane.Charges == 1, "a VPE Skip aimed at the bearer is turned aside: the bearer stays put");
+            Prime();
+            skip.Cast(new GlobalTargetInfo(bystander), new GlobalTargetInfo(skipTo, map));
+            Check(bystander.Position == skipTo, "the same Skip moves a pawn without the shield");
+
+            wlChargesField.SetValue(warlockbane, 0);
+            Prime();
+            burden.Cast(new GlobalTargetInfo(justiciar));
+            Check(justiciar.health.hediffSet.HasHediff(burdened), "with its charges spent the shield no longer deflects VPE psycasts");
+
+            foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned.ToList())
+            {
+                foreach (Hediff hediff in pawn.health.hediffSet.hediffs.Where(h => h.def == burdened || h.def == blinded).ToList())
+                {
+                    pawn.health.RemoveHediff(hediff);
+                }
+            }
+            wlChargesField.SetValue(warlockbane, chargesBefore);
+            justiciar.stances.stunner.StopStun();
+            ClearExtras();
+        }
+
+        private static VefAbility GiveVefAbility(CompAbilities abilities, string defName)
+        {
+            abilities.GiveAbility(DefDatabase<VefAbilityDef>.GetNamed(defName));
+            return abilities.LearnedAbilities.First(a => a.def.defName == defName);
         }
 
         // State for the reload check, set right before the save (the gear recharges while the missions run).
@@ -971,6 +1314,25 @@ namespace JusticiarValorValidation
             public override bool Cancelled => effect.Cancelled;
             public override void Draw(FxDrawContext ctx, float progress, float age)
                 => effect.Draw(ctx, frame, frame * effect.duration);
+        }
+    }
+
+    // A psychic pulse finding its own victims, none of them a target, as Neuroquake goes through every pawn on the map:
+    // every psychically sensitive pawn within six cells of its caster. It only notes whom it reached.
+    public sealed class CompAbilityEffect_ValidationPulse : CompAbilityEffect
+    {
+        public static readonly List<Pawn> reached = new List<Pawn>();
+
+        public override void Apply(LocalTargetInfo target, LocalTargetInfo dest)
+        {
+            Pawn caster = parent.pawn;
+            foreach (Pawn pawn in caster.Map.mapPawns.AllPawnsSpawned)
+            {
+                if (pawn != caster && pawn.Position.InHorDistOf(caster.Position, 6f) && pawn.GetStatValue(StatDefOf.PsychicSensitivity) > 0f)
+                {
+                    reached.Add(pawn);
+                }
+            }
         }
     }
 }

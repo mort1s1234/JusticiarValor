@@ -97,8 +97,8 @@ namespace JusticiarValorValidation
         }
 #endif
 
-        // A missing texture counts too: with only Harmony, VEF and this mod loaded, it is one of this mod's paths (a renamed
-        // file whose def still names the old one), and its message does not mention the mod.
+        // A missing texture counts too: with only Harmony, VEF (VPE with -WithVPE) and this mod loaded, it is most likely one of
+        // this mod's paths (a renamed file whose def still names the old one), and its message does not mention the mod.
         private static bool Mentions(string text)
         {
             return text != null && (text.IndexOf("Justiciar", StringComparison.OrdinalIgnoreCase) >= 0 || text.Contains("MJV_")
