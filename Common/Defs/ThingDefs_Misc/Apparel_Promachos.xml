@@ -116,7 +116,7 @@
 			<!-- The shield's maximum is energyPerSensitivity x the wearer's psychic sensitivity (this armor's and the helmet's
 			     offsets included: a baseline wearer of the full set has 155%), clamped to energyMaxRange. -->
 			<li Class="JusticiarValor.CompProperties_PsychicShield">
-				<energyPerSensitivity>100</energyPerSensitivity>
+				<energyPerSensitivity>50</energyPerSensitivity>
 				<energyMaxRange>0~300</energyMaxRange>
 				<rechargePerSecond>10</rechargePerSecond>
 				<rechargeDelayTicks>300</rechargeDelayTicks>

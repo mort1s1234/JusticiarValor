@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 
-	<!-- Warlockbane shield: a Vanilla Expanded Framework shield (worn in the off hand), plus CompWarlockbane. -->
 	<ThingDef ParentName="ApparelBase">
 		<defName>MJV_Apparel_WarlockbaneShield</defName>
 		<label>warlockbane shield</label>
@@ -10,9 +9,10 @@
 		<techLevel>Spacer</techLevel>
 		<tickerType>Normal</tickerType>
 		<graphicData>
-			<texPath>Things/Item/Equipment/Shield/MJV_WarlockbaneShield</texPath>
+			<texPath>Things/Item/Equipment/Shield/MJV_WarlockbaneShield_icon</texPath>
 			<graphicClass>Graphic_Single</graphicClass>
-			<drawSize>(1.2, 1.2)</drawSize>
+			<shaderType>CutoutComplex</shaderType>
+			<drawSize>(1, 1)</drawSize>
 		</graphicData>
 		<statBases>
 			<WorkToMake>30000</WorkToMake>
@@ -87,25 +87,24 @@
 				</coveredBodyPartGroups>
 				<offHandGraphicData>
 					<texPath>Things/Item/Equipment/Shield/MJV_WarlockbaneShield</texPath>
-					<graphicClass>Graphic_Single</graphicClass>
+					<shaderType>CutoutComplex</shaderType>
+					<graphicClass>Graphic_Multi</graphicClass>
 					<drawSize>0.88</drawSize>
 				</offHandGraphicData>
 				<offHandHoldOffset>
 					<northDefault>
-						<offset>(-0.05, 0, 0.12)</offset>
+						<offset>(-0.05, 0, 0.08)</offset>
 						<behind>true</behind>
 					</northDefault>
 					<east>
-						<offset>(-0.12, 0, 0.12)</offset>
+						<offset>(-0.12, 0, 0.08)</offset>
 						<behind>true</behind>
 					</east>
-					<!-- y: VEF draws the shield 0.0758 above the pawn plus this; the weapon sits at layer 90 (0.0329). -0.044
-					     puts the shield a few layers under the weapon, still over the helmet and the armor. -->
 					<south>
-						<offset>(0.18, -0.044, 0.12)</offset>
+						<offset>(0.18, -0.044, 0.08)</offset>
 					</south>
 					<west>
-						<offset>(0.12, 0, 0.12)</offset>
+						<offset>(0.12, 0, 0.08)</offset>
 					</west>
 				</offHandHoldOffset>
 			</li>

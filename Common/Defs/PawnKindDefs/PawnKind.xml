@@ -21,7 +21,7 @@
     <weaponTags>
       <li>JusticiarMelee</li>
     </weaponTags>
-    <apparelColor>(255,255,255)</apparelColor>
+    <apparelColor>(1,1,1)</apparelColor>
     <apparelRequired>
       <li>MJV_Apparel_ArmorHelmetPromachosHelmet</li>
       <li>MJV_Apparel_PromachosArmor</li>
@@ -30,7 +30,7 @@
     <specificApparelRequirements Inherit="False">
       <li>
         <bodyPartGroup>FullHead</bodyPartGroup>
-        <color>(255,255,255)</color>
+        <color>(1,1,1)</color>
       </li>
       <li>
         <bodyPartGroup>Torso</bodyPartGroup>
