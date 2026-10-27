@@ -1,12 +1,12 @@
 # Justiciar Valor: release package
 
-`JusticiarValor_2026-10-27_3f64218.zip` is a playable copy of the mod built from commit `3f64218` (main, 2026-10-27).
+`JusticiarValor_2026-10-27_33e38ab.zip` is a playable copy of the mod built from commit `33e38ab` (main, 2026-10-27).
 It holds only the files the game loads. Unzipped into `RimWorld/Mods/`, it gives a `Justiciar Valor` folder that runs
 on its own (Harmony, Royalty and Vanilla Expanded Framework are still required).
 
 This note lists what the zip keeps and what it leaves out, so the same cut can be made by hand, for example before a
 Workshop upload: RimWorld 1.7 uploads every file in the mod folder, including `Source/` and the design documents.
-The zip does not pick up anything committed after `3f64218`. For later XML or texture edits, make the cut again with
+The zip does not pick up anything committed after `33e38ab`. For later XML or texture edits, make the cut again with
 this list.
 
 ## Keep: the game needs these
@@ -39,6 +39,7 @@ These look like leftovers but are used:
 | `.rimsearcher/` | Local tool |
 | `Justiciar Valor.docx`, `Justiciar Valor (中文).docx` | Design documents |
 | `JusticiarValor_*.zip`, `RELEASE.md` | This package and this note |
+| `_PublisherPlus.xml` | Settings of the PublisherPlus Workshop upload tool, not read by the game |
 
 ### 12 effect atlases nothing uses any more (14 MB)
 
@@ -68,6 +69,7 @@ would bake them again.
 
 - `About/About.xml` has `<url>https://github.com/Klon501/Mechanoids</url>`, which looks copied from another mod. It
   should probably be `https://github.com/mort1s1234/JusticiarValor`. The zip still has the old url.
-- There is no `About/Preview.png`, so the mod list and the Workshop page show no picture.
 - To upload to the Workshop from `Mods/Justiciar Valor`, first move everything under "Leave out" out of the folder
   (and put it back afterwards), or upload a folder that holds only the zip's contents.
+- Uploading with PublisherPlus: `_PublisherPlus.xml` excludes `Source` and the git files, but not this zip, this note
+  or the 12 unused atlases, so they would be uploaded too. Add them to its exclude list first.
