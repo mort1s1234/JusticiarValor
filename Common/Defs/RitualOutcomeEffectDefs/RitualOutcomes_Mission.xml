@@ -4,7 +4,10 @@
   <!-- The justiciar's sermon in the game's ritual window (JusticiarValor.Dialog_MJV_BeginSermon), as the bestowing
        ceremony is: no ideoligion ritual behind it. The window only reads this def for its quality panel; the attendance
        and the satisfaction it brings come from the window itself, and the sermon applies its own outcome
-       (JusticiarValor.LordJob_MJV_Sermon, MissionRecord). -->
+       (JusticiarValor.LordJob_MJV_Sermon, MissionRecord).
+       Its SermonSounds are the sermon's sounds; the preacher's voice is on the MJV_DeliverSermon duty. The ones below
+       are vanilla placeholders. Leave ambience empty to play the preacher's faith's ritual music (faithAmbience), as
+       the game's own rituals do. -->
   <RitualOutcomeEffectDef>
     <defName>MJV_ImperialSermon</defName>
     <description>The more of the colony attends beyond the justiciar's minimum, the more he is pleased, and the more goodwill he brings back to the Empire.</description>
@@ -12,6 +15,15 @@
     <warnOnLowQuality>false</warnOnLowQuality>
     <allowAttachableOutcome>false</allowAttachableOutcome>
     <comps />
+    <modExtensions>
+      <li Class="JusticiarValor.SermonSounds">
+        <start>Bestowing_Start</start>
+        <faithAmbience>true</faithAmbience>
+        <convert>Psycast_WordOf_Effect</convert>
+        <held>RitualConclusion_Positive</held>
+        <cutShort>RitualConclusion_Negative</cutShort>
+      </li>
+    </modExtensions>
   </RitualOutcomeEffectDef>
 
 </Defs>

@@ -51,6 +51,7 @@ namespace JusticiarValor
         public static DutyDef MJV_HearSermon;
 
         public static JobDef MJV_PreachSermon;
+        public static JobDef MJV_TalkToJusticiar;
 
         public static ThoughtDef MJV_HeardImperialSermon;
         public static ThoughtDef MJV_SermonWellAttended;
@@ -59,6 +60,7 @@ namespace JusticiarValor
         public static HistoryEventDef MJV_ConvertedToImperialFaith;
         public static HistoryEventDef MJV_SermonsWellAttended;
         public static HistoryEventDef MJV_SermonsRefused;
+        public static HistoryEventDef MJV_JusticiarTurnedAway;
 
         // The sermon's ritual window (Dialog_MJV_BeginSermon).
         public static RitualOutcomeEffectDef MJV_ImperialSermon;

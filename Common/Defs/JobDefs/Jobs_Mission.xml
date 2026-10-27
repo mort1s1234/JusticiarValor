@@ -9,4 +9,13 @@
     <neverShowWeapon>true</neverShowWeapon>
   </JobDef>
 
+  <!-- A colonist sent to talk to a visiting justiciar who asks to be hosted (JusticiarValor.LordToil_MJV_AwaitAudience):
+       the conversation opens when they meet. -->
+  <JobDef>
+    <defName>MJV_TalkToJusticiar</defName>
+    <driverClass>JusticiarValor.JobDriver_MJV_TalkToJusticiar</driverClass>
+    <reportString>going to talk to TargetA.</reportString>
+    <casualInterruptible>false</casualInterruptible>
+  </JobDef>
+
 </Defs>

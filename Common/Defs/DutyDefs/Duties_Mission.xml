@@ -2,7 +2,8 @@
 <Defs>
 
   <!-- The preacher of a sermon (JusticiarValor.LordJob_MJV_Sermon, LordToil_MJV_Preach): go to the sermon spot, the
-       duty's focus, and preach there. -->
+       duty's focus, and preach there. soundDefMale/soundDefFemale: his voice while he preaches; the sermon's other
+       sounds are on RitualOutcomeEffectDef MJV_ImperialSermon. -->
   <DutyDef>
     <defName>MJV_DeliverSermon</defName>
     <hook>HighPriority</hook>

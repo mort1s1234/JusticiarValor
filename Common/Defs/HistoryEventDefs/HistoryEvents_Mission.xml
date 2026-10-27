@@ -18,4 +18,10 @@
     <label>sermons refused</label>
   </HistoryEventDef>
 
+  <!-- A visiting justiciar sent away, or left waiting until he gave up (JusticiarValor.LordJob_MJV_MissionaryVisit). -->
+  <HistoryEventDef>
+    <defName>MJV_JusticiarTurnedAway</defName>
+    <label>justiciar turned away</label>
+  </HistoryEventDef>
+
 </Defs>

@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 
-  <!-- A justiciar comes on a mission, alone or with an escort, and asks the colony for sermons that convert colonists
-       to the imperial faith (JusticiarValor.IncidentWorker_MJV_ImperialMissionary). Each sermon is a ritual the colony
-       holds or refuses (JusticiarValor.SermonRequests); when he leaves, the Empire's goodwill moves with how his sermons
-       went. Conversion needs Ideology. -->
+  <!-- A justiciar comes on a mission, alone or with an escort (JusticiarValor.IncidentWorker_MJV_ImperialMissionary),
+       and waits near the colony for a colonist to come and talk to him. The conversation tells what hosting him brings
+       and costs: hosted, he stays for visitDays and asks the colony for sermons that convert colonists to the imperial
+       faith; sent away, or left waiting for audienceTicks, he goes home and the Empire's goodwill drops by
+       turnedAwayGoodwill (rolled when he arrives). Each sermon is a ritual the colony holds or refuses
+       (JusticiarValor.SermonRequests); when he leaves, the Empire's goodwill moves with how his sermons went.
+       Conversion needs Ideology. -->
   <IncidentDef MayRequire="Ludeon.RimWorld.Ideology">
     <defName>MJV_ImperialMissionary</defName>
     <label>justiciar's mission</label>
@@ -25,6 +28,8 @@
         <escortKind>Empire_Fighter_Janissary</escortKind>
         <escortCount>0~2</escortCount>
         <visitDays>1~1.5</visitDays>
+        <audienceTicks>30000</audienceTicks>
+        <turnedAwayGoodwill>-14~-8</turnedAwayGoodwill>
         <firstSermonDelayTicks>1500~3000</firstSermonDelayTicks>
         <sermonIntervalTicks>30000~45000</sermonIntervalTicks>
         <sermon>

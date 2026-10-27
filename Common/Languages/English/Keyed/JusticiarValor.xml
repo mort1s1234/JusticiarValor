@@ -83,10 +83,25 @@
 	<!-- Imperial missions: the visiting justiciar -->
 	<MJV_MissionaryArrivedSolo>{PREACHER_nameFull}, a justiciar of {FAITH}, has come from {FACTION_name} on a mission to bring the imperial faith to your colony.</MJV_MissionaryArrivedSolo>
 	<MJV_MissionaryArrivedEscorted>{PREACHER_nameFull}, a justiciar of {FAITH}, has come from {FACTION_name} on a mission to bring the imperial faith to your colony. {PREACHER_nameDef} travels with {COUNT} {ESCORT}.</MJV_MissionaryArrivedEscorted>
-	<MJV_MissionaryArrivedExplain>{PREACHER_nameDef} will stay for about {DURATION}. Now and then {PREACHER_pronoun} will ask your colony to assemble for a sermon: you must call at least {FRACTION} of your conscious colonists to hear it, or refuse. Every sermon shakes the certainty of those who do not share the imperial faith; those whose certainty breaks will convert, and {FACTION_name} will look kindly on every convert ({GOODWILL} goodwill each).\n\nA congregation larger than {PREACHER_nameDef} asked for pleases {PREACHER_objective}, and {FACTION_name} will hear of it when {PREACHER_pronoun} returns. Every sermon you refuse or cancel will cost you {PENALTY} goodwill with {FACTION_name} when {PREACHER_pronoun} returns. Hold all of {PREACHER_possessive} sermons and keep {PREACHER_objective} content, and {PREACHER_nameDef} will leave you an imperial codex-auspex.</MJV_MissionaryArrivedExplain>
+	<MJV_MissionaryAsksAudience>{PREACHER_nameDef} asks to speak with your colony before staying. Send a colonist to talk to {PREACHER_objective}: select the colonist and right-click {PREACHER_nameDef}. {PREACHER_nameDef} will explain what hosting {PREACHER_objective} would bring, and you can host {PREACHER_objective} or send {PREACHER_objective} away.\n\nIf you send {PREACHER_objective} away, or nobody talks to {PREACHER_objective} within {TIME}, {PREACHER_nameDef} will go home and {FACTION_name} will take offense (-{PENALTY} goodwill).</MJV_MissionaryAsksAudience>
+	<MJV_MissionaryHosted>{PREACHER_nameDef} will stay with your colony for {DURATION}.</MJV_MissionaryHosted>
+	<MJV_MissionaryTurnedAway>{PREACHER_nameDef} has been sent away and is going home. {FACTION} takes offense (-{PENALTY} goodwill).</MJV_MissionaryTurnedAway>
+	<MJV_MissionaryGaveUp>Nobody came to talk to {PREACHER_nameDef}, who is going home. {FACTION} takes offense (-{PENALTY} goodwill).</MJV_MissionaryGaveUp>
 	<MJV_MissionaryLeaving>{PREACHER_nameDef} has finished {PREACHER_possessive} mission and is leaving.</MJV_MissionaryLeaving>
 	<MJV_MissionaryLeavingConverted>Your whole colony now follows {FAITH}. {PREACHER_nameDef} considers {PREACHER_possessive} work here done and is leaving.</MJV_MissionaryLeavingConverted>
 	<MJV_MissionEscortLeaving>Without their justiciar, the escort from {0} is going home.</MJV_MissionEscortLeaving>
+
+	<!-- Imperial missions: talking to the visiting justiciar -->
+	<MJV_LordReportAwaitingAudience>Waiting for someone from the colony to talk to.</MJV_LordReportAwaitingAudience>
+	<MJV_TalkToJusticiar>Talk to {JUSTICIAR_nameDef}</MJV_TalkToJusticiar>
+	<MJV_TalkIncapable>{PAWN_nameDef} cannot speak for the colony</MJV_TalkIncapable>
+	<MJV_AudienceTitle>A justiciar's mission</MJV_AudienceTitle>
+	<MJV_AudienceText>{PREACHER_nameFull} greets {SPEAKER_nameDef}:\n\n"I am a justiciar of {FAITH}, sent by {FACTION_name} to bring the faith to your people. I ask to stay near your colony for {DURATION}."\n\nIf you host {PREACHER_objective}:\n  - Now and then {PREACHER_nameDef} will ask you to gather at least {FRACTION} of your conscious colonists for a sermon. Sermons can convert those who do not share the imperial faith.\n  - Every convert: +{GOODWILL} goodwill with {FACTION_name}.\n  - Every sermon heard by more colonists than {PREACHER_nameDef} asked for: up to +{BONUS} goodwill when {PREACHER_pronoun} returns, +{MAXBONUS} at most over {PREACHER_possessive} stay.\n  - Hold all of {PREACHER_possessive} sermons and keep {PREACHER_objective} content, and {PREACHER_nameDef} will leave you an imperial codex-auspex.\n  - Every sermon you refuse or cancel: -{PENALTY} goodwill when {PREACHER_pronoun} returns.\n\nIf you send {PREACHER_objective} away, {FACTION_name} will take offense: -{DECLINE} goodwill.</MJV_AudienceText>
+	<MJV_AudienceHost>Host {PREACHER_nameDef}</MJV_AudienceHost>
+	<MJV_AudienceDecline>Send {PREACHER_objective} away (-{DECLINE} goodwill)</MJV_AudienceDecline>
+	<MJV_AudienceLater>Let me think about it ({TIME} left)</MJV_AudienceLater>
+	<MJV_AlertJusticiarAwaitsAudience>Justiciar asks to talk</MJV_AlertJusticiarAwaitsAudience>
+	<MJV_AlertJusticiarAwaitsAudienceDesc>A visiting justiciar is waiting for someone from your colony to talk to. Select a colonist and right-click the justiciar to talk: you can host the justiciar or send them away. If nobody comes in time, the justiciar goes home and the Empire takes offense.\n\n{0}</MJV_AlertJusticiarAwaitsAudienceDesc>
 
 	<!-- Imperial missions: what a justiciar's mission earned and cost, when he returns to the Empire -->
 	<MJV_MissionSettledLabel>Mission over: {JUSTICIAR_nameDef}</MJV_MissionSettledLabel>

@@ -13,13 +13,18 @@ namespace JusticiarValor
         public PawnKindDef escortKind;
         public IntRange escortCount = new IntRange(0, 2);
         public FloatRange visitDays = new FloatRange(1f, 1.5f);
-        // When he first asks the colony for a sermon, and how long he lets it rest after each.
+        // He stays only if the colony agrees to host him: how long he waits for a colonist to come and talk to him, and
+        // the goodwill the Empire takes when he is sent away or left waiting (rolled when he arrives).
+        public int audienceTicks = 30000;
+        public IntRange turnedAwayGoodwill = new IntRange(-14, -8);
+        // When he first asks the colony for a sermon once hosted, and how long he lets it rest after each.
         public IntRange firstSermonDelayTicks = new IntRange(1500, 3000);
         public IntRange sermonIntervalTicks = new IntRange(30000, 45000);
         public SermonSettings sermon = new SermonSettings();
     }
 
-    // A justiciar arrives on a mission, alone or with an escort, and stays a while to preach.
+    // A justiciar arrives on a mission, alone or with an escort, and asks to speak with the colony: if it agrees to host
+    // him, he stays a while to preach.
     public class IncidentWorker_MJV_ImperialMissionary : IncidentWorker
     {
         private MissionExtension Ext => def.GetModExtension<MissionExtension>() ?? new MissionExtension();
@@ -73,9 +78,7 @@ namespace JusticiarValor
             {
                 chillSpot = CellFinder.RandomClosewalkCellNear(entry, map, 8);
             }
-            int duration = (int)(ext.visitDays.RandomInRange * GenDate.TicksPerDay);
-            var job = new LordJob_MJV_MissionaryVisit(empire, chillSpot, missionary, duration, ext.firstSermonDelayTicks.RandomInRange,
-                ext.sermonIntervalTicks, ext.sermon);
+            var job = new LordJob_MJV_MissionaryVisit(empire, chillSpot, missionary, ext);
             LordMaker.MakeNewLord(empire, job, map, pawns);
 
             string faith = SermonRequests.FaithName;
@@ -83,9 +86,8 @@ namespace JusticiarValor
                 ? "MJV_MissionaryArrivedSolo".Translate(missionary.Named("PREACHER"), empire.Named("FACTION"), faith.Named("FAITH"))
                 : "MJV_MissionaryArrivedEscorted".Translate(missionary.Named("PREACHER"), empire.Named("FACTION"), faith.Named("FAITH"), escorts.Named("COUNT"),
                     (escorts == 1 ? ext.escortKind.label : ext.escortKind.GetLabelPlural()).Named("ESCORT"));
-            text += "\n\n" + "MJV_MissionaryArrivedExplain".Translate(missionary.Named("PREACHER"), duration.ToStringTicksToPeriod().Named("DURATION"),
-                ext.sermon.goodwillPerConvert.Named("GOODWILL"), empire.Named("FACTION"), ext.sermon.requiredFraction.ToStringPercent().Named("FRACTION"),
-                (-ext.sermon.refusalGoodwill).Named("PENALTY"));
+            text += "\n\n" + "MJV_MissionaryAsksAudience".Translate(missionary.Named("PREACHER"), empire.Named("FACTION"),
+                job.AudienceTicksLeft.ToStringTicksToPeriod().Named("TIME"), (-job.TurnedAwayGoodwill).Named("PENALTY"));
             SendStandardLetter(def.letterLabel, text, def.letterDef, parms, missionary);
             return true;
         }

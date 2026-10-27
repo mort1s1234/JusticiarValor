@@ -148,6 +148,20 @@ try {
 "@ | Set-Content -LiteralPath (Join-Path $testMod 'About\About.xml') -Encoding utf8
     Copy-Item -LiteralPath (Join-Path $harness 'JusticiarValorValidation.dll') -Destination (Join-Path $testMod 'Assemblies')
 
+    # Neither 1.6 nor 1.7 (since 1.7.4990, whose -mod only takes mods from the local Mods folder) loads the Workshop's
+    # copies: junctions bring the dependencies into the Mods folder.
+    $deps = @(@{ Id = '2009463077'; Name = 'Harmony' }, @{ Id = '2023507013'; Name = 'VEF' })
+    if ($WithVPE) { $deps += @{ Id = '2842502659'; Name = 'VPE' } }
+    foreach ($dep in $deps) {
+        # An install that already has the dependency in its Mods folder uses its own copy.
+        if (Test-Path -LiteralPath (Join-Path $GameDir ("Mods\" + $dep.Id))) { continue }
+        $link = Join-Path $GameDir ("Mods\JusticiarValor-validation-" + $dep.Name)
+        if (-not (Test-Path -LiteralPath $link)) {
+            New-Item -ItemType Junction -Path $link -Target (Resolve-Path (Join-Path $workshop $dep.Id)).Path | Out-Null
+            $links += $link
+        }
+    }
+
     if ($Version -eq '1.7') {
         $exe = Join-Path $GameDir 'RimWorld.exe'
         $windowStyle = 'Hidden'
@@ -157,21 +171,10 @@ try {
         if ($Record) { $arguments += '-jvrecord' }
     }
     else {
-        # 1.6 sees neither this mod folder nor the Workshop: junctions bring them into its Mods folder.
+        # 1.6 does not see this mod folder either.
         if (Test-Path -LiteralPath $modLink) { throw "$modLink already exists" }
         New-Item -ItemType Junction -Path $modLink -Target $modRoot | Out-Null
         $links += $modLink
-        $deps = @(@{ Id = '2009463077'; Name = 'Harmony' }, @{ Id = '2023507013'; Name = 'VEF' })
-        if ($WithVPE) { $deps += @{ Id = '2842502659'; Name = 'VPE' } }
-        foreach ($dep in $deps) {
-            # An install that already has the dependency in its Mods folder uses its own copy.
-            if (Test-Path -LiteralPath (Join-Path $GameDir ("Mods\" + $dep.Id))) { continue }
-            $link = Join-Path $GameDir ("Mods\JusticiarValor-validation-" + $dep.Name)
-            if (-not (Test-Path -LiteralPath $link)) {
-                New-Item -ItemType Junction -Path $link -Target (Resolve-Path (Join-Path $workshop $dep.Id)).Path | Out-Null
-                $links += $link
-            }
-        }
         # Expansions in release order: Odyssey's defs inherit from Royalty's, so alphabetical order breaks them.
         $releaseOrder = @('Royalty', 'Ideology', 'Biotech', 'Anomaly', 'Odyssey')
         $installed = Get-ChildItem -LiteralPath (Join-Path $GameDir 'Data') -Directory | Where-Object Name -ne 'Core' | ForEach-Object Name

@@ -10,17 +10,21 @@ using RimWorld.QuestGen;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
+using Verse.Sound;
 
 namespace JusticiarValorValidation
 {
-    // The imperial missions against the real game: the visiting justiciar asking the colony for sermons (one left running
-    // across the save and reload, his mission settled when he leaves), the lodging mission played to its end (a sermon
-    // held beyond the minimum, one refused, a convert called to service, the settlement), and the disgraced sermon with
-    // its pursuing raid and its codex-auspex.
+    // The imperial missions against the real game: the visiting justiciar asking to be hosted (sent away, left waiting,
+    // hosted) and asking the colony for sermons (one left running across the save and reload, his mission settled when he
+    // leaves), the lodging mission played to its end (a sermon held beyond the minimum, one refused, a convert called to
+    // service, the settlement), and the disgraced sermon with its pursuing raid and its codex-auspex.
     public sealed class MissionValidation
     {
         private static readonly FieldInfo effectsField = AccessTools.Field(typeof(MapComponent_JusticiarFx), "effects");
         private static readonly FieldInfo leaveTickField = AccessTools.Field(typeof(LordJob_MJV_MissionaryVisit), "leaveTick");
+        private static readonly FieldInfo audienceEndTickField = AccessTools.Field(typeof(LordJob_MJV_MissionaryVisit), "audienceEndTick");
+        private static readonly FieldInfo chillSpotField = AccessTools.Field(typeof(LordJob_MJV_MissionaryVisit), "chillSpot");
+        private static readonly FieldInfo ambienceField = AccessTools.Field(typeof(LordJob_MJV_Sermon), "ambience");
         private static readonly MethodInfo checkConvertedMethod = AccessTools.Method(typeof(QuestPart_MJV_LodgerSermons), "CheckColonyConverted");
         private static readonly FieldInfo incidentParmsField = AccessTools.Field(typeof(QuestPart_Incident), "incidentParms");
         private static int preacherId = -1;
@@ -289,6 +293,27 @@ namespace JusticiarValorValidation
             }
         }
 
+        // A justiciar arrives on a mission and waits for someone to talk to him; his visit, or null.
+        private LordJob_MJV_MissionaryVisit Arrive(IncidentDef def)
+        {
+            IncidentParms parms = StorytellerUtility.DefaultParmsNow(def.category, map);
+            parms.forced = true;
+            if (!def.Worker.TryExecute(parms))
+            {
+                return null;
+            }
+            return map.lordManager.lords.Select(l => l.LordJob).OfType<LordJob_MJV_MissionaryVisit>().FirstOrDefault();
+        }
+
+        // A visit the test is done with: his party is taken off the map at once rather than walked to its edge.
+        private static void SendHome(LordJob_MJV_MissionaryVisit job)
+        {
+            foreach (Pawn pawn in job.lord.ownedPawns.ToList())
+            {
+                pawn.Destroy();
+            }
+        }
+
         // Morning, with the visit lasting another day: a justiciar asks for sermons in the morning only, and the jump to
         // the next one could take the visit to its end.
         private void VisitMorning(LordJob_MJV_MissionaryVisit job)
@@ -308,6 +333,10 @@ namespace JusticiarValorValidation
             Faction empire = ImperialFaith.Empire;
             Check(MJV_DefOf.MJV_Justiciar != null && MJV_DefOf.MJV_ImperialSermon != null && DefDatabase<QuestScriptDef>.GetNamedSilentFail("MJV_DisgracedSermon") != null,
                 "the justiciar, his sermon's ritual window and the disgraced sermon quest are loaded");
+            SermonSounds sounds = SermonSounds.Get;
+            Check(sounds != null && sounds.start != null && sounds.convert != null && sounds.held != null && sounds.cutShort != null
+                && MJV_DefOf.MJV_TalkToJusticiar != null && MJV_DefOf.MJV_JusticiarTurnedAway != null,
+                "the sermon's sounds and the talk with a visiting justiciar are loaded");
             Check(MJV_DefOf.MJV_CalledToService != null && DefDatabase<ThinkTreeDef>.GetNamed("Humanlike").thinkRoot != null,
                 "the call-to-service mental state is loaded");
             if (empire == null)
@@ -387,32 +416,99 @@ namespace JusticiarValorValidation
             IncidentParms parms = StorytellerUtility.DefaultParmsNow(def.category, map);
             parms.forced = true;
             Check(def.Worker.CanFireNow(parms), "a justiciar can come on a mission to a colony that does not follow the imperial faith");
-            Check(def.Worker.TryExecute(parms), "the justiciar arrives");
-            Lord visit = map.lordManager.lords.FirstOrDefault(l => l.LordJob is LordJob_MJV_MissionaryVisit);
-            Check(visit != null, "the justiciar's party has its visiting lord");
-            if (visit == null)
+
+            // Sent away after talking to him.
+            LordJob_MJV_MissionaryVisit job = Arrive(def);
+            Check(job != null, "the justiciar arrives");
+            if (job == null)
             {
                 yield break;
             }
-            var job = (LordJob_MJV_MissionaryVisit)visit.LordJob;
             Pawn preacher = job.Preacher;
+            Check(job.AwaitingAudience && new Alert_MJV_JusticiarAwaitsAudience().GetReport().active
+                && job.TurnedAwayGoodwill >= -14 && job.TurnedAwayGoodwill <= -8,
+                "he waits for someone to talk to him, and an alert says so (sending him away costs " + job.TurnedAwayGoodwill + ")");
+            job.NextSermonTick = Find.TickManager.TicksGame;
+            foreach (object step in TickUntil(() => job.Request != null, 600))
+            {
+                yield return step;
+            }
+            Check(!lastWait, "he asks for no sermon before the colony has agreed to host him");
+            Pawn speaker = Listeners().First(p => !p.WorkTagIsDisabled(WorkTags.Social) && p.health.capacities.CapableOf(PawnCapacityDefOf.Talking));
+#if RIMWORLD_1_6
+            // A float menu option measures its label with Unity GUI calls, which 1.6 only allows inside OnGUI, and the hidden
+            // validation window never runs OnGUI: the colonist is ordered to talk as the option does (1.7 checks the option).
+            Action talk = () => speaker.jobs.TryTakeOrderedJob(JobMaker.MakeJob(MJV_DefOf.MJV_TalkToJusticiar, preacher), JobTag.Misc);
+#else
+            FloatMenuOption option = job.lord.CurLordToil.ExtraFloatMenuOptions(preacher, speaker).FirstOrDefault();
+            Check(option != null && !option.Disabled && option.action != null, "a colonist can be sent to talk to him (" + option?.Label + ")");
+            Action talk = option?.action;
+#endif
+            if (talk != null)
+            {
+                talk();
+                foreach (object step in TickUntil(() => Find.WindowStack.IsOpen<Dialog_NodeTreeWithFactionInfo>(), 6000))
+                {
+                    yield return step;
+                }
+                Check(lastWait, "the colonist walks up to him and their conversation opens (" + speaker.LabelShort + ", " + speaker.CurJobDef?.defName + ")");
+                Find.WindowStack.TryRemove(typeof(Dialog_NodeTreeWithFactionInfo), false);
+            }
+            int goodwill0 = empire.PlayerGoodwill;
+            int expected = empire.CalculateAdjustedGoodwillChange(Faction.OfPlayer, job.TurnedAwayGoodwill);
+            job.TurnAway(false);
+            Check(empire.PlayerGoodwill == goodwill0 + expected && !job.AwaitingAudience && job.exitSubgraph.lordToils.Contains(job.lord.CurLordToil),
+                "sent away, he goes home and the Empire takes offense (" + goodwill0 + " -> " + empire.PlayerGoodwill + ")");
+            SendHome(job);
+
+            // Left waiting until he gives up.
+            job = Arrive(def);
+            if (job == null)
+            {
+                yield break;
+            }
+            goodwill0 = empire.PlayerGoodwill;
+            expected = empire.CalculateAdjustedGoodwillChange(Faction.OfPlayer, job.TurnedAwayGoodwill);
+            audienceEndTickField.SetValue(job, Find.TickManager.TicksGame);
+            foreach (object step in TickUntil(() => !job.AwaitingAudience, 120))
+            {
+                yield return step;
+            }
+            Check(lastWait && empire.PlayerGoodwill == goodwill0 + expected && job.exitSubgraph.lordToils.Contains(job.lord.CurLordToil),
+                "left waiting, he gives up and goes home, and the Empire takes offense (" + goodwill0 + " -> " + empire.PlayerGoodwill + ")");
+            SendHome(job);
+            empire.RelationWith(Faction.OfPlayer).baseGoodwill = 10;
+            Faction.OfPlayer.RelationWith(empire).baseGoodwill = 10;
+
+            // Hosted: the visit proper.
+            job = Arrive(def);
+            if (job == null)
+            {
+                yield break;
+            }
+            Lord visit = job.lord;
+            preacher = job.Preacher;
             preacherId = preacher.thingIDNumber;
             JusticiarValidation.Line("Justiciar " + preacher.LabelShort + " with " + (visit.ownedPawns.Count - 1) + " escort(s): "
                 + string.Join(", ", visit.ownedPawns.Where(p => p != preacher).Select(p => p.kindDef.defName)));
             Check(preacher.kindDef == MJV_DefOf.MJV_Justiciar && preacher.Faction == empire && ImperialFaith.IsBeliever(preacher),
                 "the preacher is a justiciar of the imperial faith");
-
-            foreach (object step in TickUntil(() => visit.CurLordToil is LordToil_DefendPoint, 15000))
+            var chillSpot = (IntVec3)chillSpotField.GetValue(job);
+            foreach (object step in TickUntil(() => preacher.Position.InHorDistOf(chillSpot, 8f), 15000))
             {
                 yield return step;
             }
             Check(lastWait, "the justiciar reaches the colony");
+            job.Host();
+            Check(!job.AwaitingAudience && visit.CurLordToil is LordToil_DefendPoint && !(visit.CurLordToil is LordToil_MJV_AwaitAudience)
+                && job.LeaveTick == Find.TickManager.TicksGame + job.VisitTicks,
+                "hosted, he stays for his visit (" + job.VisitTicks.ToStringTicksToPeriod() + ")");
             VisitMorning(job);
             List<Pawn> congregation = Listeners();
             Pawn weak = congregation.First();
             Weaken(weak);
             Refresh(preacher);
-            int goodwill0 = empire.PlayerGoodwill;
+            goodwill0 = empire.PlayerGoodwill;
             job.NextSermonTick = Find.TickManager.TicksGame;
             foreach (object step in TickUntil(() => job.Request != null, 4000))
             {
@@ -442,6 +538,11 @@ namespace JusticiarValorValidation
                 yield return step;
             }
             Check(lastWait, "the preaching justiciar stands in his halo");
+            foreach (object step in TickUntil(() => ambienceField.GetValue(sermon) is Sustainer playing && !playing.Ended, 300))
+            {
+                yield return step;
+            }
+            Check(lastWait, "the sermon plays " + SermonSounds.Get?.AmbienceFor(preacher)?.defName + " while he preaches");
             foreach (object step in TickUntil(() => SermonUtility.SermonOf(preacher) == null, 6000))
             {
                 yield return step;

@@ -70,12 +70,16 @@ namespace JusticiarValor
         }
     }
 
-    // A justiciar visiting the colony on a mission, alone or with an escort: like other visitors he waits near the colony,
-    // and now and then he asks the colony for a sermon (SermonRequests). He leaves when his visit is over, or early once the
-    // whole colony follows the imperial faith, and then settles with the Empire what his sermons earned and cost.
+    // A justiciar visiting the colony on a mission, alone or with an escort. He first waits near the colony for someone to
+    // talk to him (LordToil_MJV_AwaitAudience) and stays only if the colony agrees to host him; sent away or left waiting,
+    // he goes home and the Empire takes offense. Hosted, he waits near the colony like other visitors, and now and then he
+    // asks the colony for a sermon (SermonRequests). He leaves when his visit is over, or early once the whole colony
+    // follows the imperial faith, and then settles with the Empire what his sermons earned and cost.
     public class LordJob_MJV_MissionaryVisit : LordJob, IJusticiarMission
     {
         public const string MemoSermonAccepted = "MJV_SermonAccepted";
+        public const string MemoHosted = "MJV_JusticiarHosted";
+        public const string MemoTurnedAway = "MJV_JusticiarTurnedAway";
 
         private Faction faction;
         private IntVec3 chillSpot;
@@ -88,26 +92,44 @@ namespace JusticiarValor
         private MissionRecord record = new MissionRecord();
         private int nextMoodSampleTick;
 
+        // The colony's answer to his arrival, and what he told it: how long he would stay, when his first sermon would
+        // come, what sending him away costs, and until when he waits for someone to talk to him.
+        private bool hosted;
+        private bool turnedAway;
+        private int visitTicks;
+        private int firstSermonDelayTicks;
+        private int turnedAwayGoodwill;
+        private int audienceEndTick;
+
         public StateGraph exitSubgraph;
 
         public LordJob_MJV_MissionaryVisit()
         {
         }
 
-        public LordJob_MJV_MissionaryVisit(Faction faction, IntVec3 chillSpot, Pawn preacher, int durationTicks, int firstSermonDelayTicks,
-            IntRange sermonIntervalTicks, SermonSettings settings)
+        public LordJob_MJV_MissionaryVisit(Faction faction, IntVec3 chillSpot, Pawn preacher, MissionExtension ext)
         {
             this.faction = faction;
             this.chillSpot = chillSpot;
             this.preacher = preacher;
-            this.sermonIntervalTicks = sermonIntervalTicks;
-            this.settings = settings?.Copy() ?? new SermonSettings();
-            int now = Find.TickManager.TicksGame;
-            nextSermonTick = now + firstSermonDelayTicks;
-            leaveTick = now + durationTicks;
+            sermonIntervalTicks = ext.sermonIntervalTicks;
+            settings = ext.sermon?.Copy() ?? new SermonSettings();
+            visitTicks = (int)(ext.visitDays.RandomInRange * GenDate.TicksPerDay);
+            firstSermonDelayTicks = ext.firstSermonDelayTicks.RandomInRange;
+            turnedAwayGoodwill = ext.turnedAwayGoodwill.RandomInRange;
+            audienceEndTick = Find.TickManager.TicksGame + ext.audienceTicks;
         }
 
         public Pawn Preacher => preacher;
+
+        // He is waiting for a colonist to talk to him.
+        public bool AwaitingAudience => !hosted && !turnedAway && lord?.CurLordToil is LordToil_MJV_AwaitAudience;
+
+        public int AudienceTicksLeft => audienceEndTick - Find.TickManager.TicksGame;
+
+        public int VisitTicks => visitTicks;
+
+        public int TurnedAwayGoodwill => turnedAwayGoodwill;
 
         public int LeaveTick => leaveTick;
 
@@ -128,7 +150,8 @@ namespace JusticiarValor
         public override StateGraph CreateGraph()
         {
             var graph = new StateGraph();
-            LordToil travel = graph.StartingToil = graph.AttachSubgraph(new LordJob_Travel(chillSpot).CreateGraph()).StartingToil;
+            var audience = new LordToil_MJV_AwaitAudience(chillSpot, preacher);
+            graph.StartingToil = audience;
             var wait = new LordToil_DefendPoint(chillSpot);
             graph.AddToil(wait);
             var preach = new LordToil_MJV_Preach(preacher);
@@ -145,9 +168,16 @@ namespace JusticiarValor
             // Whatever ends the visit, a pending request goes with it.
             var dropRequest = new TransitionAction_Custom(() => request = null);
 
-            var arrived = new Transition(travel, wait);
-            arrived.AddTrigger(new Trigger_Memo("TravelArrived"));
-            graph.AddTransition(arrived);
+            var hostedByColony = new Transition(audience, wait);
+            hostedByColony.AddTrigger(new Trigger_Memo(MemoHosted));
+            graph.AddTransition(hostedByColony);
+
+            // TurnAway has settled it with the Empire.
+            var sentAway = new Transition(audience, exit);
+            sentAway.AddTrigger(new Trigger_Memo(MemoTurnedAway));
+            sentAway.AddPreAction(new TransitionAction_EnsureHaveExitDestination());
+            sentAway.AddPostAction(new TransitionAction_EndAllJobs());
+            graph.AddTransition(sentAway);
 
             // The colony agreed to a sermon (Answer has started it): he goes to preach.
             var startSermon = new Transition(wait, preach);
@@ -159,7 +189,7 @@ namespace JusticiarValor
             sermonOver.AddTrigger(new Trigger_Memo(SermonUtility.MemoSermonEnded));
             graph.AddTransition(sermonOver);
 
-            var dangerousTemperature = new Transition(travel, exit);
+            var dangerousTemperature = new Transition(audience, exit);
             dangerousTemperature.AddSources(wait, preach);
             dangerousTemperature.AddTrigger(new Trigger_PawnExperiencingDangerousTemperatures());
             dangerousTemperature.AddPreAction(new TransitionAction_Message("MessageVisitorsDangerousTemperature".Translate(pawnsPlural, factionName)));
@@ -168,7 +198,7 @@ namespace JusticiarValor
             dangerousTemperature.AddPostAction(new TransitionAction_EndAllJobs());
             graph.AddTransition(dangerousTemperature);
 
-            var anomalousWeather = new Transition(travel, exit);
+            var anomalousWeather = new Transition(audience, exit);
             anomalousWeather.AddSources(wait, preach);
             anomalousWeather.AddTrigger(new Trigger_PawnExperiencingAnomalousWeather());
             anomalousWeather.AddPreAction(new TransitionAction_Message("MessageVisitorsAnomalousWeather".Translate(pawnsPlural, factionName)));
@@ -177,7 +207,7 @@ namespace JusticiarValor
             anomalousWeather.AddPostAction(new TransitionAction_EndAllJobs());
             graph.AddTransition(anomalousWeather);
 
-            var trapped = new Transition(travel, exitDigging);
+            var trapped = new Transition(audience, exitDigging);
             trapped.AddSources(wait, preach, takeWounded);
             trapped.AddSources(exitSubgraph.lordToils);
             trapped.AddTrigger(new Trigger_PawnCannotReachMapEdge());
@@ -192,14 +222,14 @@ namespace JusticiarValor
             graph.AddTransition(freed);
 
             var wounded = new Transition(wait, takeWounded);
-            wounded.AddSource(preach);
+            wounded.AddSources(audience, preach);
             wounded.AddTrigger(new Trigger_WoundedGuestPresent());
             wounded.AddPreAction(new TransitionAction_Message("MessageVisitorsTakingWounded".Translate(pawnsPlural, factionName)));
             wounded.AddPreAction(dropRequest);
             graph.AddTransition(wounded);
 
             var hostile = new Transition(wait, exitDefending);
-            hostile.AddSources(takeWounded, travel, preach);
+            hostile.AddSources(audience, takeWounded, preach);
             hostile.AddTrigger(new Trigger_BecamePlayerEnemy());
             hostile.AddPreAction(new TransitionAction_SetDefendLocalGroup());
             hostile.AddPreAction(dropRequest);
@@ -209,7 +239,7 @@ namespace JusticiarValor
 
             // Without the justiciar there is no mission: his escort goes home.
             var preacherLost = new Transition(wait, exit);
-            preacherLost.AddSources(travel, preach);
+            preacherLost.AddSources(audience, preach);
             preacherLost.AddTrigger(new Trigger_PawnLost(PawnLostCondition.Undefined, preacher));
             preacherLost.AddPreAction(new TransitionAction_Message("MJV_MissionEscortLeaving".Translate(factionName)));
             preacherLost.AddPreAction(new TransitionAction_EnsureHaveExitDestination());
@@ -218,6 +248,7 @@ namespace JusticiarValor
             graph.AddTransition(preacherLost);
 
             var converted = new Transition(wait, exit);
+            converted.AddSource(audience);
             converted.AddTrigger(new Trigger_TickCondition(() => ImperialFaith.ColonyConverted(Map), 250));
             converted.AddPreAction(new TransitionAction_Custom(() => Messages.Message(
                 "MJV_MissionaryLeavingConverted".Translate(preacher.Named("PREACHER"), SermonRequests.FaithName.Named("FAITH")),
@@ -246,10 +277,53 @@ namespace JusticiarValor
             record.Settle(preacher, settings, Map);
         }
 
+        // The colony agreed to host him: his visit begins.
+        public void Host()
+        {
+            if (!AwaitingAudience)
+            {
+                return;
+            }
+            hosted = true;
+            int now = Find.TickManager.TicksGame;
+            leaveTick = now + visitTicks;
+            nextSermonTick = now + firstSermonDelayTicks;
+            nextMoodSampleTick = now;
+            lord.ReceiveMemo(MemoHosted);
+            Messages.Message("MJV_MissionaryHosted".Translate(preacher.Named("PREACHER"), visitTicks.ToStringTicksToPeriod().Named("DURATION")),
+                preacher, MessageTypeDefOf.PositiveEvent);
+        }
+
+        // The colony sent him away (ignored: nobody came to talk to him in time): he goes home, and the Empire takes offense.
+        public void TurnAway(bool ignored)
+        {
+            if (!AwaitingAudience)
+            {
+                return;
+            }
+            turnedAway = true;
+            Faction empire = preacher.Faction;
+            if (empire != null && !empire.HostileTo(Faction.OfPlayer) && turnedAwayGoodwill != 0)
+            {
+                empire.TryAffectGoodwillWith(Faction.OfPlayer, turnedAwayGoodwill, false, true, MJV_DefOf.MJV_JusticiarTurnedAway);
+            }
+            Messages.Message((ignored ? "MJV_MissionaryGaveUp" : "MJV_MissionaryTurnedAway").Translate(preacher.Named("PREACHER"),
+                (empire?.Name ?? string.Empty).Named("FACTION"), (-turnedAwayGoodwill).Named("PENALTY")), preacher, MessageTypeDefOf.NegativeEvent);
+            lord.ReceiveMemo(MemoTurnedAway);
+        }
+
         public override void LordJobTick()
         {
             base.LordJobTick();
             int now = Find.TickManager.TicksGame;
+            if (!hosted)
+            {
+                if (now >= audienceEndTick && AwaitingAudience)
+                {
+                    TurnAway(true);
+                }
+                return;
+            }
             if (now >= nextMoodSampleTick)
             {
                 nextMoodSampleTick = now + GenDate.TicksPerHour;
@@ -351,6 +425,10 @@ namespace JusticiarValor
         {
             if (pawn == preacher)
             {
+                if (AwaitingAudience)
+                {
+                    return "MJV_LordReportAwaitingAudience".Translate();
+                }
                 if (lord.CurLordToil is LordToil_MJV_Preach)
                 {
                     return "MJV_LordReportPreaching".Translate();
@@ -375,6 +453,12 @@ namespace JusticiarValor
             Scribe_Deep.Look(ref request, "request");
             Scribe_Deep.Look(ref record, "record");
             Scribe_Values.Look(ref nextMoodSampleTick, "nextMoodSampleTick", 0);
+            Scribe_Values.Look(ref hosted, "hosted", false);
+            Scribe_Values.Look(ref turnedAway, "turnedAway", false);
+            Scribe_Values.Look(ref visitTicks, "visitTicks", 0);
+            Scribe_Values.Look(ref firstSermonDelayTicks, "firstSermonDelayTicks", 0);
+            Scribe_Values.Look(ref turnedAwayGoodwill, "turnedAwayGoodwill", 0);
+            Scribe_Values.Look(ref audienceEndTick, "audienceEndTick", 0);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 settings ??= new SermonSettings();

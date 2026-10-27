@@ -4,6 +4,7 @@ using RimWorld;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
+using Verse.Sound;
 
 namespace JusticiarValor
 {
@@ -51,6 +52,37 @@ namespace JusticiarValor
             Scribe_Values.Look(ref maxTurnoutGoodwill, "maxTurnoutGoodwill", 20);
             Scribe_Values.Look(ref refusalGoodwill, "refusalGoodwill", -4);
             Scribe_Values.Look(ref codexMinMood, "codexMinMood", 0.5f);
+        }
+    }
+
+    // The sounds of a justiciar's sermon, on RitualOutcomeEffectDef MJV_ImperialSermon. The preacher's voice is set on
+    // the MJV_DeliverSermon duty.
+    public class SermonSounds : DefModExtension
+    {
+        // Once, when the preacher begins.
+        public SoundDef start;
+
+        // At the sermon spot while he preaches. Without one, faithAmbience plays his faith's ritual music, as the game's
+        // own rituals do.
+        public SoundDef ambience;
+        public bool faithAmbience = true;
+
+        // Over each listener who converts.
+        public SoundDef convert;
+
+        // When the sermon ends: preached to the end, or cut short (cancelled or interrupted).
+        public SoundDef held;
+        public SoundDef cutShort;
+
+        public static SermonSounds Get => MJV_DefOf.MJV_ImperialSermon?.GetModExtension<SermonSounds>();
+
+        public SoundDef AmbienceFor(Pawn preacher)
+        {
+            if (ambience != null)
+            {
+                return ambience;
+            }
+            return faithAmbience ? preacher?.Ideo?.SoundOngoingRitual : null;
         }
     }
 
@@ -246,6 +278,10 @@ namespace JusticiarValor
             bool preaching = IsPreaching(preacher, spot);
             if (preaching)
             {
+                if (Data.preachingTicks == 0)
+                {
+                    SermonSounds.Get?.start?.PlayOneShot(new TargetInfo(spot, Map));
+                }
                 Data.preachingTicks++;
             }
             List<Pawn> pawns = lord.ownedPawns;
@@ -285,6 +321,7 @@ namespace JusticiarValor
         private bool cancelRequested;
         private bool sentAwayByPlayer;
         private LordToil_MJV_Sermon sermonToil;
+        private Sustainer ambience;
 
         // A preacher that has not got going by then (could not reach the spot...) gives up.
         private const int StartGraceTicks = 2500;
@@ -431,6 +468,22 @@ namespace JusticiarValor
             return pawn == preacher ? "MJV_LordReportPreaching".Translate() : "MJV_LordReportListening".Translate(preacher.Named("PREACHER"));
         }
 
+        // The sermon's ambience plays at the spot while he preaches, and stops with him.
+        public override void LordJobTick()
+        {
+            base.LordJobTick();
+            if (concluded || !DebugSettings.playRitualAmbience || !LordToil_MJV_Sermon.IsPreaching(preacher, spot))
+            {
+                return;
+            }
+            if (ambience == null || ambience.Ended)
+            {
+                SoundDef def = SermonSounds.Get?.AmbienceFor(preacher);
+                ambience = def?.TrySpawnSustainer(SoundInfo.InMap(new TargetInfo(spot, Map), MaintenanceType.PerTick));
+            }
+            ambience?.Maintain();
+        }
+
         private void Conclude(LordToil_MJV_Sermon toil, SermonOutcome outcome)
         {
             if (concluded)
@@ -478,6 +531,13 @@ namespace JusticiarValor
             }
             ImperialFaith.RewardConversions(converts.Count, settings.goodwillPerConvert, converts.Count > 0 ? converts[0] : null);
             Report(listeners, converts, outcome);
+            ambience?.End();
+            ambience = null;
+            if (Map != null)
+            {
+                SermonSounds sounds = SermonSounds.Get;
+                (outcome == SermonOutcome.Held ? sounds?.held : sounds?.cutShort)?.PlayOneShot(new TargetInfo(spot, Map));
+            }
             var result = new SermonResult
             {
                 outcome = outcome,
@@ -503,6 +563,7 @@ namespace JusticiarValor
             Faction faction = preacher?.Faction;
             Pawn towards = preacher != null && preacher.Spawned && preacher.Map == convert.Map ? preacher : null;
             MoteMaker.MakeInteractionBubble(convert, towards, def.interactionMote, def.GetSymbol(faction, faith), def.GetSymbolColor(faction));
+            SermonSounds.Get?.convert?.PlayOneShot(new TargetInfo(convert.Position, convert.Map));
         }
 
         private static void GiveSermonThought(Pawn pawn, float heard, Ideo faith)
@@ -552,6 +613,8 @@ namespace JusticiarValor
         public override void Cleanup()
         {
             base.Cleanup();
+            ambience?.End();
+            ambience = null;
             // Release the preacher (a lodger) and the listeners from their sermon jobs right away.
             if (preacher != null && preacher.Spawned && preacher.CurJobDef == MJV_DefOf.MJV_PreachSermon && PreacherIsMember)
             {
