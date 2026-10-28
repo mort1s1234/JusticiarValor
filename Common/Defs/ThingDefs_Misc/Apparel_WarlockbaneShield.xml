@@ -4,7 +4,7 @@
 	<ThingDef ParentName="ApparelBase">
 		<defName>MJV_Apparel_WarlockbaneShield</defName>
 		<label>warlockbane shield</label>
-		<description>A round justiciar's shield of plasteel around a disc of tuned eltex. The eltex is tuned against hostile psychic fields: when a warlock turns psychic power on its bearer, be it a psycast, a psychic lance or a pulse sweeping over the field, the shield turns it aside and lashes the caster with the backlash.\n\nThe shield holds two charges and slowly regains them.</description>
+		<description>A round plasteel shield with a disc of tuned eltex. The eltex is tuned against hostile psychic fields: when it encounters a hostile targeted psychic spell, the shield deflects it aside and unleashes a counterspell of reflected psychic energy upon the caster.\n\nThe shield holds two charges and slowly restores them.</description>
 		<thingClass>VEF.Apparels.Apparel_Shield</thingClass>
 		<techLevel>Spacer</techLevel>
 		<tickerType>Normal</tickerType>

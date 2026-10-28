@@ -93,7 +93,7 @@
 	<AbilityDef>
 		<defName>MJV_CelestialPierce</defName>
 		<label>Celestial Pierce</label>
-		<description>Conjure a spectral copy of the psyblade that rises into the air and slams down on a spot up to three cells away. The ground breaks where it lands, impaling everyone standing around it, allies included. Walls shield those behind them.</description>
+		<description>Conjure a spectral copy of the psyblade that rises into the air and slams down on a spot. The ground breaks where it lands, impaling everyone standing around it.</description>
 		<iconPath>UI/Abilities/MJV_CelestialPierce</iconPath>
 		<cooldownTicksRange>600</cooldownTicksRange>
 		<hostile>true</hostile>
