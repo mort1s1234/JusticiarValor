@@ -16,21 +16,23 @@
 		</graphicData>
 		<statBases>
 			<WorkToMake>30000</WorkToMake>
-			<MaxHitPoints>260</MaxHitPoints>
+			<MaxHitPoints>220</MaxHitPoints>
 			<Mass>3.5</Mass>
 			<Flammability>0.3</Flammability>
-			<ArmorRating_Sharp>0.9</ArmorRating_Sharp>
-			<ArmorRating_Blunt>0.5</ArmorRating_Blunt>
-			<ArmorRating_Heat>0.6</ArmorRating_Heat>
+			<ArmorRating_Sharp>0.68</ArmorRating_Sharp>
+			<ArmorRating_Blunt>0.38</ArmorRating_Blunt>
+			<ArmorRating_Heat>0.50</ArmorRating_Heat>
 			<EquipDelay>2</EquipDelay>
 		</statBases>
 		<equippedStatOffsets>
-			<MeleeDodgeChance>4</MeleeDodgeChance>
+			<MeleeDodgeChance>3</MeleeDodgeChance>
+			<AimingDelayFactor>0.15</AimingDelayFactor>
 		</equippedStatOffsets>
 		<costList>
-			<Plasteel>70</Plasteel>
-			<ComponentSpacer>2</ComponentSpacer>
-			<VPE_Eltex MayRequire="VanillaExpanded.VPsycastsE">3</VPE_Eltex>
+			<Plasteel>80</Plasteel>
+			<ComponentSpacer>3</ComponentSpacer>
+			<Uranium>15</Uranium>
+			<VPE_Eltex MayRequire="VanillaExpanded.VPsycastsE">4</VPE_Eltex>
 		</costList>
 		<recipeMaker>
 			<workSpeedStat>GeneralLaborSpeed</workSpeedStat>
@@ -64,6 +66,8 @@
 				<li>VFEC_OuterShell</li>
 			</layers>
 			<tags>
+				<li>PrestigeCombatGear</li>
+				<li>Psychic</li>
 				<li>RoyalTier7</li>
 				<li>MJV_JusticiarGear</li>
 			</tags>
@@ -111,11 +115,11 @@
 			</li>
 			<li Class="JusticiarValor.CompProperties_Warlockbane">
 				<maxCharges>2</maxCharges>
-				<rechargeTicks>2400</rechargeTicks>
+				<rechargeTicks>3000</rechargeTicks>
 				<deflectSound>Deflect_Metal</deflectSound>
-				<backlashStunTicks>90</backlashStunTicks>
+				<backlashStunTicks>120</backlashStunTicks>
 				<backlashSound>PsycastPsychicEffect</backlashSound>
-				<backlashEntropy>12</backlashEntropy>
+				<backlashEntropy>20</backlashEntropy>
 			</li>
 		</comps>
 		<thingSetMakerTags>

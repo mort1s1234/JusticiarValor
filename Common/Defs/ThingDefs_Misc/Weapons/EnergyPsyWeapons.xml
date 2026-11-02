@@ -46,25 +46,26 @@
 				</capacities>
 				<power>10</power>
 				<cooldownTime>2.0</cooldownTime>
-				<armorPenetration>0.40</armorPenetration>
+				<armorPenetration>0.30</armorPenetration>
+				<chanceFactor>0.15</chanceFactor>
 			</li>
 			<li>
 				<label>point</label>
 				<capacities>
 					<li>Stab</li>
 				</capacities>
-				<power>32</power>
-				<cooldownTime>1.9</cooldownTime>
-				<armorPenetration>0.80</armorPenetration>
+				<power>27</power>
+				<cooldownTime>1.95</cooldownTime>
+				<armorPenetration>0.85</armorPenetration>
 			</li>
 			<li>
 				<label>edge</label>
 				<capacities>
 					<li>Cut</li>
 				</capacities>
-				<power>18</power>
-				<cooldownTime>2.1</cooldownTime>
-				<armorPenetration>0.70</armorPenetration>
+				<power>19</power>
+				<cooldownTime>2.0</cooldownTime>
+				<armorPenetration>0.65</armorPenetration>
 			</li>
 		</tools>
 		<modExtensions>
@@ -105,10 +106,10 @@
 		<comps Inherit="False">
 			<li Class="CompProperties_Forbiddable"/>
 			<li Class="JusticiarValor.CompProperties_PsyOrbSynthesizer">
-				<synthesisTicks>300</synthesisTicks>
+				<synthesisTicks>360</synthesisTicks>
 				<maxOrbs>3</maxOrbs>
-				<range>15.9</range>
-				<launchIntervalTicks>60</launchIntervalTicks>
+				<range>12.9</range>
+				<launchIntervalTicks>75</launchIntervalTicks>
 				<projectile>MJV_Projectile_PsyOrb</projectile>
 				<launchSound>Psycast_Skip_Pulse</launchSound>
 				<toggleIconPath>UI/Abilities/MJV_PsyOrb</toggleIconPath>
@@ -176,27 +177,28 @@
 				<capacities>
 					<li>Blunt</li>
 				</capacities>
-				<power>10</power>
-				<cooldownTime>2.0</cooldownTime>
-				<armorPenetration>0.42</armorPenetration>
+				<power>9</power>
+				<cooldownTime>1.8</cooldownTime>
+				<armorPenetration>0.30</armorPenetration>
+				<chanceFactor>0.15</chanceFactor>
 			</li>
 			<li>
 				<label>point</label>
 				<capacities>
 					<li>Stab</li>
 				</capacities>
-				<power>18</power>
-				<cooldownTime>1.6</cooldownTime>
-				<armorPenetration>0.48</armorPenetration>
+				<power>20</power>
+				<cooldownTime>1.5</cooldownTime>
+				<armorPenetration>0.68</armorPenetration>
 			</li>
 			<li>
 				<label>edge</label>
 				<capacities>
 					<li>Cut</li>
 				</capacities>
-				<power>24</power>
+				<power>21</power>
 				<cooldownTime>1.4</cooldownTime>
-				<armorPenetration>0.70</armorPenetration>
+				<armorPenetration>0.58</armorPenetration>
 			</li>
 		</tools>
 		<costList>

@@ -18,18 +18,18 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>0.05</offset>
+						<offset>0.04</offset>
 					</li>
 					<li>
 						<capacity>Moving</capacity>
-						<offset>0.04</offset>
+						<offset>0.03</offset>
 					</li>
 				</capMods>
 				<statOffsets>
-					<MeleeDodgeChance>4</MeleeDodgeChance>
+					<MeleeDodgeChance>3</MeleeDodgeChance>
 				</statOffsets>
 				<statFactors>
-					<AimingDelayFactor>0.92</AimingDelayFactor>
+					<AimingDelayFactor>0.94</AimingDelayFactor>
 				</statFactors>
 			</li>
 			<li>
@@ -38,18 +38,18 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>0.10</offset>
+						<offset>0.08</offset>
 					</li>
 					<li>
 						<capacity>Moving</capacity>
-						<offset>0.08</offset>
+						<offset>0.06</offset>
 					</li>
 				</capMods>
 				<statOffsets>
-					<MeleeDodgeChance>8</MeleeDodgeChance>
+					<MeleeDodgeChance>6</MeleeDodgeChance>
 				</statOffsets>
 				<statFactors>
-					<AimingDelayFactor>0.84</AimingDelayFactor>
+					<AimingDelayFactor>0.88</AimingDelayFactor>
 				</statFactors>
 			</li>
 			<li>
@@ -58,26 +58,24 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>0.15</offset>
+						<offset>0.12</offset>
 					</li>
 					<li>
 						<capacity>Moving</capacity>
-						<offset>0.12</offset>
+						<offset>0.08</offset>
 					</li>
 				</capMods>
 				<statOffsets>
-					<MeleeDodgeChance>12</MeleeDodgeChance>
-					<MeleeHitChance>4</MeleeHitChance>
+					<MeleeDodgeChance>9</MeleeDodgeChance>
+					<MeleeHitChance>3</MeleeHitChance>
 				</statOffsets>
 				<statFactors>
-					<AimingDelayFactor>0.75</AimingDelayFactor>
+					<AimingDelayFactor>0.80</AimingDelayFactor>
 				</statFactors>
 			</li>
 		</stages>
 	</HediffDef>
 
-	<!-- Justiciar Valor: the daze its psychic wave leaves behind. Stat factors only: a capacity offset would down a
-	     wounded pawn (a hostile mech then lies there instead of dying, and gets up when the daze ends). -->
 	<HediffDef>
 		<defName>MJV_PsychicDaze</defName>
 		<label>psychic daze</label>
@@ -102,7 +100,6 @@
 		</comps>
 	</HediffDef>
 
-	<!-- Energy psyspear: the slow a psy-orb leaves on the pawn it hits. A stat factor, like the psychic daze. -->
 	<HediffDef>
 		<defName>MJV_PsyOrbSlow</defName>
 		<label>psy-orb drag</label>
@@ -126,7 +123,6 @@
 		</comps>
 	</HediffDef>
 
-	<!-- Promachos armor's Invictus: overdriven servos. The duration is set from the stored charge when cast. -->
 	<HediffDef>
 		<defName>MJV_InvictusOverdrive</defName>
 		<label>Invictus overdrive</label>
@@ -139,13 +135,13 @@
 			<li>
 				<statOffsets>
 					<MoveSpeed>2.6</MoveSpeed>
-					<MeleeDodgeChance>20</MeleeDodgeChance>
-					<MeleeHitChance>6</MeleeHitChance>
+					<MeleeDodgeChance>10</MeleeDodgeChance>
+					<MeleeHitChance>4</MeleeHitChance>
 				</statOffsets>
 				<statFactors>
-					<MeleeCooldownFactor>0.5</MeleeCooldownFactor>
-					<AimingDelayFactor>0.5</AimingDelayFactor>
-					<RangedCooldownFactor>0.6</RangedCooldownFactor>
+					<MeleeCooldownFactor>0.68</MeleeCooldownFactor>
+					<AimingDelayFactor>0.72</AimingDelayFactor>
+					<RangedCooldownFactor>0.80</RangedCooldownFactor>
 				</statFactors>
 			</li>
 		</stages>

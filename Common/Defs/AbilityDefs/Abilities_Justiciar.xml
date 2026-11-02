@@ -7,7 +7,7 @@
 		<label>Justiciar Valor</label>
 		<description>Channel an extra charge through the helmet's eltex until it resonates and releases a psychic wave around the wearer. The wave throws everyone nearby back, allies included, damages them and leaves them dazed. Those it throws are stunned for a few seconds where they land.\n\nThe wearer of the Promachos helmet cannot be arrested while conscious: an attempt triggers Justiciar Valor at once, and the wearer takes it as an attack.</description>
 		<iconPath>UI/Abilities/MJV_JusticiarValor</iconPath>
-		<cooldownTicksRange>800</cooldownTicksRange>
+		<cooldownTicksRange>1800</cooldownTicksRange>
 		<targetRequired>false</targetRequired>
 		<hostile>true</hostile>
 		<casterMustBeCapableOfViolence>true</casterMustBeCapableOfViolence>
@@ -16,9 +16,6 @@
 		<displayGizmoWhileUndrafted>false</displayGizmoWhileUndrafted>
 		<disableGizmoWhileUndrafted>true</disableGizmoWhileUndrafted>
 		<writeCombatLog>true</writeCombatLog>
-		<!-- No Ability_EffectRadius: with it the game gathers the affected targets in the radius through targetParams
-		     (Ability.GetAffectedTargets), and with canTargetPawns false the effect would apply to nothing. The comp finds
-		     its victims itself. -->
 		<verbProperties>
 			<verbClass>Verb_CastAbility</verbClass>
 			<warmupTime>0.3</warmupTime>
@@ -42,7 +39,7 @@
 				<knockbackDistance>3</knockbackDistance>
 				<maxKnockbackBodySize>2.5</maxKnockbackBodySize>
 				<stunTicks>60~120</stunTicks>
-				<landingStunTicks>120~180</landingStunTicks>
+				<landingStunTicks>90~150</landingStunTicks>
 				<dazeHediff>MJV_PsychicDaze</dazeHediff>
 				<releaseSound>PsycastPsychicPulse</releaseSound>
 				<aiMinTargets>2</aiMinTargets>
@@ -56,7 +53,7 @@
 		<label>Invictus</label>
 		<description>Release the energy the psychic shield has stored from the hits it absorbed. The shield is refilled and overcharged, and the armor's servos are overdriven: the wearer moves and strikes at a blinding pace for several seconds, leaving afterimages in their wake. The more energy is stored, the longer it lasts.</description>
 		<iconPath>UI/Abilities/MJV_Invictus</iconPath>
-		<cooldownTicksRange>1200</cooldownTicksRange>
+		<cooldownTicksRange>2700</cooldownTicksRange>
 		<targetRequired>false</targetRequired>
 		<hostile>false</hostile>
 		<casterMustBeCapableOfViolence>false</casterMustBeCapableOfViolence>
@@ -80,8 +77,8 @@
 		</verbProperties>
 		<comps>
 			<li Class="JusticiarValor.CompProperties_AbilityInvictus">
-				<minChargeFraction>0.25</minChargeFraction>
-				<durationSeconds>4~10</durationSeconds>
+				<minChargeFraction>0.35</minChargeFraction>
+				<durationSeconds>4~8</durationSeconds>
 				<hediff>MJV_InvictusOverdrive</hediff>
 				<releaseSound>Psycast_Skip_Exit</releaseSound>
 				<aiMinChargeFraction>0.5</aiMinChargeFraction>
@@ -95,7 +92,7 @@
 		<label>Celestial Pierce</label>
 		<description>Conjure a spectral copy of the psyblade that rises into the air and slams down on a spot. The ground breaks where it lands, impaling everyone standing around it.</description>
 		<iconPath>UI/Abilities/MJV_CelestialPierce</iconPath>
-		<cooldownTicksRange>600</cooldownTicksRange>
+		<cooldownTicksRange>1200</cooldownTicksRange>
 		<hostile>true</hostile>
 		<casterMustBeCapableOfViolence>true</casterMustBeCapableOfViolence>
 		<aiCanUse>true</aiCanUse>

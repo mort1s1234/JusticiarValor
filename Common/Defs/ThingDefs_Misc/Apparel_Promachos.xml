@@ -27,7 +27,7 @@
 			<Flammability>0.4</Flammability>
 			<ArmorRating_Sharp>1.12</ArmorRating_Sharp>
 			<ArmorRating_Blunt>0.48</ArmorRating_Blunt>
-			<ArmorRating_Heat>0.58</ArmorRating_Heat>
+			<ArmorRating_Heat>0.54</ArmorRating_Heat>
 			<Insulation_Cold>48</Insulation_Cold>
 			<Insulation_Heat>38</Insulation_Heat>
 			<EquipDelay>14</EquipDelay>
@@ -40,8 +40,8 @@
 			<VPE_Eltex MayRequire="VanillaExpanded.VPsycastsE">6</VPE_Eltex>
 		</costList>
 		<equippedStatOffsets>
-			<MoveSpeed>-0.20</MoveSpeed>
-			<PainShockThreshold>0.15</PainShockThreshold>
+			<MoveSpeed>-0.25</MoveSpeed>
+			<PainShockThreshold>0.10</PainShockThreshold>
 			<PsychicSensitivityOffset>0.25</PsychicSensitivityOffset>
 			<PsychicEntropyMax>15</PsychicEntropyMax>
 			<SlaveSuppressionOffset MayRequire="Ludeon.RimWorld.Ideology">-0.3</SlaveSuppressionOffset>
@@ -118,18 +118,18 @@
 			<!-- The shield's maximum is energyPerSensitivity x the wearer's psychic sensitivity (this armor's and the helmet's
 			     offsets included: a baseline wearer of the full set has 155%), clamped to energyMaxRange. -->
 			<li Class="JusticiarValor.CompProperties_PsychicShield">
-				<energyPerSensitivity>50</energyPerSensitivity>
-				<energyMaxRange>0~300</energyMaxRange>
-				<rechargePerSecond>10</rechargePerSecond>
-				<rechargeDelayTicks>300</rechargeDelayTicks>
+				<energyPerSensitivity>45</energyPerSensitivity>
+				<energyMaxRange>50~220</energyMaxRange>
+				<rechargePerSecond>8</rechargePerSecond>
+				<rechargeDelayTicks>420</rechargeDelayTicks>
 				<resetDelayTicks>2400</resetDelayTicks>
 				<energyOnReset>0.4</energyOnReset>
 				<absorbMelee>true</absorbMelee>
 				<chargePerDamage>1</chargePerDamage>
-				<chargeMax>120</chargeMax>
+				<chargeMax>100</chargeMax>
 				<chargeDrainDelayTicks>600</chargeDrainDelayTicks>
 				<chargeDrainPerSecond>2</chargeDrainPerSecond>
-				<overdriveEnergyFactor>1.5</overdriveEnergyFactor>
+				<overdriveEnergyFactor>1.35</overdriveEnergyFactor>
 				<drawSize>2.05</drawSize>
 				<absorbSound>EnergyShield_AbsorbDamage</absorbSound>
 				<breakSound>EnergyShield_Broken</breakSound>
@@ -173,24 +173,24 @@
 			<drawSize>(1, 1)</drawSize>
 		</graphicData>
 		<statBases>
-			<MaxHitPoints>280</MaxHitPoints>
-			<WorkToMake>32000</WorkToMake>
+			<MaxHitPoints>260</MaxHitPoints>
+			<WorkToMake>36000</WorkToMake>
 			<Mass>2.8</Mass>
 			<Flammability>0.3</Flammability>
 			<ArmorRating_Sharp>1.10</ArmorRating_Sharp>
 			<ArmorRating_Blunt>0.46</ArmorRating_Blunt>
-			<ArmorRating_Heat>0.55</ArmorRating_Heat>
+			<ArmorRating_Heat>0.52</ArmorRating_Heat>
 			<Insulation_Cold>4</Insulation_Cold>
 			<Insulation_Heat>2</Insulation_Heat>
 			<EquipDelay>5</EquipDelay>
 		</statBases>
 		<costList>
-			<ComponentSpacer>3</ComponentSpacer>
+			<ComponentSpacer>5</ComponentSpacer>
 			<Plasteel>80</Plasteel>
 			<VPE_Eltex MayRequire="VanillaExpanded.VPsycastsE">8</VPE_Eltex>
 		</costList>
 		<equippedStatOffsets>
-			<PainShockThreshold>0.10</PainShockThreshold>
+			<PainShockThreshold>0.05</PainShockThreshold>
 			<PsychicSensitivityOffset>0.30</PsychicSensitivityOffset>
 			<PsychicEntropyRecoveryRate>0.15</PsychicEntropyRecoveryRate>
 			<PsychicEntropyMax>20</PsychicEntropyMax>
