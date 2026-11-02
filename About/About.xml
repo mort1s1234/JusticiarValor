@@ -37,5 +37,6 @@
 		<li>Ludeon.RimWorld.Ideology</li>
 		<li>OskarPotocki.VanillaFactionsExpanded.Core</li>
 		<li>VanillaExpanded.VPsycastsE</li>
+		<li>ceteam.combatextended</li>
 	</loadAfter>
 </ModMetaData>
