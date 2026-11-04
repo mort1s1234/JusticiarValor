@@ -5,6 +5,14 @@ The script writes a dated zip under the system temporary folder's `JusticiarValo
 `-OutputPath` selects a different destination. Existing archives are never overwritten.
 The zip contains one `Justiciar Valor` folder, ready to install under `RimWorld/Mods/`.
 
+## VPE startup compatibility
+
+- Warlockbane's VEF/VPE ability patches are applied after Def loading and reference resolution. This prevents
+  Harmony from initializing VPE's static `FireTornadoDef` field before its ThingDef exists, which left the field null
+  and logged a missing `VPE_FireTornado` on RimWorld 1.6.
+- `VPE_FlameTornado` remains the ability name and `VPE_FireTornado` remains the spawned ThingDef name.
+  Validation with `-WithVPE` now casts the ability and checks that the tornado spawns, alongside the shield checks.
+
 ## Mission rewards
 
 - Ordinary Imperial Missions guarantee one displayed Justiciar item. The native random-option generator gives
@@ -29,10 +37,11 @@ The zip contains one `Justiciar Valor` folder, ready to install under `RimWorld/
 
 | Included | Purpose |
 |---|---|
-| `About/About.xml`, `About/Preview.png`, `LoadFolders.xml` | Metadata, preview and version selection |
+| `About/About.xml`, `About/Preview.png`, `About/ModIcon.png`, `About/PublishedFileId.txt`, `LoadFolders.xml` | Metadata, preview, mod icon, Workshop identity and version selection |
 | `1.6/Assemblies/JusticiarValor.dll`, `1.6/AssetBundles/justiciarvalor_win`, `justiciarvalor_mac` | RimWorld 1.6 code and shaders |
 | `1.7/Assemblies/JusticiarValor.dll`, `1.7/Defs/`, `1.7/Shaders/` | RimWorld 1.7 code and native shaders |
 | `Common/Defs/`, `Common/Patches/`, `Common/Languages/`, `Common/Textures/` | Shared runtime content |
+| `Common/CE/`, `WeaponTweakData/` | Conditional Combat Extended patches and weapon compatibility data |
 
 Sources, raw art, tests and recordings, local tools, design documents, Git data and this note are omitted.
 The twelve obsolete animation atlases listed in the packaging script are already absent from the runtime texture
@@ -47,7 +56,7 @@ Use `-SkipVisuals` for logic/save checks without screenshot assertions, and `-Wi
 Use `-Version 1.6 -GameDir <1.6 installation>` for the Unity version. It also tests real reward generation, preview
 and delivery, blueprint boundaries, event reward persistence, and the rare inventory hook.
 
-English descriptions and new translation keys are included. Mortis handles translations; the separately arranged
-Combat Extended patch remains external work. Neither is represented as finished by this package.
+The package includes the repository's current English text, Russian localization, Combat Extended patch and weapon
+compatibility data. The VPE regression checks do not cover Combat Extended's combat behavior.
 PublisherPlus exclusions cover development material. For the native Workshop uploader, publish the clean package
 contents: the development checkout still contains sources and recordings that should not be uploaded.

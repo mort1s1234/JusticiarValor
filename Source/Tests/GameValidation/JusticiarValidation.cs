@@ -102,6 +102,7 @@ namespace JusticiarValorValidation
         private static bool Mentions(string text)
         {
             return text != null && (text.IndexOf("Justiciar", StringComparison.OrdinalIgnoreCase) >= 0 || text.Contains("MJV_")
+                || text.Contains("VPE_FireTornado") || text.Contains("uninitialized DefOf of type VPE_DefOf")
                 || text.IndexOf("magenta", StringComparison.OrdinalIgnoreCase) >= 0 || text.Contains("Could not load Texture2D"));
         }
 
@@ -304,7 +305,7 @@ namespace JusticiarValorValidation
                 Line("VERSE " + message.type + " " + message.text.Split('\n')[0].Trim());
             }
             bool engineErrors = entries.Any(e => (e.StartsWith("Error") || e.StartsWith("Critical") || e.StartsWith("Exception")) && Mentions(e));
-            Check(verse.Length == 0 && !engineErrors, "no engine or Verse warning or error mentions Justiciar Valor, a missing texture or the magenta fallback shader");
+            Check(verse.Length == 0 && !engineErrors, "no engine or Verse warning or error mentions Justiciar Valor, VPE startup, a missing texture or the magenta fallback shader");
             string result = recording ? "RECORDING" : "RUNTIME_VALIDATION";
             Line(failures == 0 ? result + "_PASSED" : $"{result}_FAILED ({failures} failures)");
             Root.Shutdown();

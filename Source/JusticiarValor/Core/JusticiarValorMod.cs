@@ -11,8 +11,8 @@ namespace JusticiarValor
 
         public JusticiarValorMod(ModContentPack content) : base(content)
         {
-            // Patching from the Mod constructor: the patched methods' callers are all compiled after this point, so the
-            // JIT cannot have inlined the originals into them yet (RimWorld 1.7 runs tiered compilation).
+            // Patch the game's entry points before their callers can inline them (1.7 uses tiered compilation).
+            // Mod ability classes need their Defs first; their patches are deferred below.
             var harmony = new Harmony(HarmonyId);
             Patch(harmony, "arrest immunity (Promachos helmet)",
                 AccessTools.Method(typeof(Pawn), nameof(Pawn.CheckAcceptArrest)),
@@ -25,12 +25,18 @@ namespace JusticiarValor
                 Patch_WarlockbaneDeflectItem.TargetMethod(),
                 prefix: AccessTools.Method(typeof(Patch_WarlockbaneDeflectItem), nameof(Patch_WarlockbaneDeflectItem.Prefix)),
                 finalizer: AccessTools.Method(typeof(Patch_WarlockbaneDeflectItem), nameof(Patch_WarlockbaneDeflectItem.Finalizer)));
-            foreach (MethodBase cast in Patch_WarlockbaneDeflectVEF.TargetMethods())
+            // Harmony can initialize an ability's static fields while patching Cast, especially on Mono. VPE's
+            // FireTornadoDef would otherwise cache null before ThingDefs exist. Defer discovery and patching until
+            // the loading event has resolved Defs and bound DefOfs, before gameplay can cast any abilities.
+            LongEventHandler.ExecuteWhenFinished(() =>
             {
-                Patch(harmony, "spell deflection against Vanilla Expanded Framework abilities (Warlockbane shield)", cast,
-                    prefix: AccessTools.Method(typeof(Patch_WarlockbaneDeflectVEF), nameof(Patch_WarlockbaneDeflectVEF.Prefix)),
-                    finalizer: AccessTools.Method(typeof(Patch_WarlockbaneDeflectVEF), nameof(Patch_WarlockbaneDeflectVEF.Finalizer)));
-            }
+                foreach (MethodBase cast in Patch_WarlockbaneDeflectVEF.TargetMethods())
+                {
+                    Patch(harmony, "spell deflection against Vanilla Expanded Framework abilities (Warlockbane shield)", cast,
+                        prefix: AccessTools.Method(typeof(Patch_WarlockbaneDeflectVEF), nameof(Patch_WarlockbaneDeflectVEF.Prefix)),
+                        finalizer: AccessTools.Method(typeof(Patch_WarlockbaneDeflectVEF), nameof(Patch_WarlockbaneDeflectVEF.Finalizer)));
+                }
+            });
             Patch(harmony, "justiciars leading tribute collector caravans",
                 Patch_ImperialJusticiars.GenerateTraderMethod(),
                 prefix: AccessTools.Method(typeof(Patch_ImperialJusticiars), nameof(Patch_ImperialJusticiars.GenerateTraderPrefix)),

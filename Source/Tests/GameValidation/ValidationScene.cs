@@ -510,7 +510,9 @@ namespace JusticiarValorValidation
             invictus.Activate(new LocalTargetInfo(justiciar), new LocalTargetInfo(justiciar));
             Hediff overdrive = justiciar.health.hediffSet.GetFirstHediffOfDef(MJV_DefOf.MJV_InvictusOverdrive);
             int ticksLeft = overdrive?.TryGetComp<HediffComp_Disappears>()?.ticksToDisappear ?? -1;
-            Check(overdrive != null && ticksLeft == 600, "Invictus overdrives the wearer for 10 s at a full charge (" + ticksLeft + " ticks)");
+            int fullChargeTicks = (int)(invictus.def.comps.OfType<CompProperties_AbilityInvictus>().Single().durationSeconds.max * 60f);
+            Check(overdrive != null && ticksLeft == fullChargeTicks,
+                "Invictus overdrives the wearer for its configured maximum at a full charge (" + ticksLeft + "/" + fullChargeTicks + " ticks)");
             float overcharged = shield.BaseEnergyMax * shield.Props.overdriveEnergyFactor;
             Check(shield.Overdriven && Math.Abs(shield.EnergyMax - overcharged) < 0.01f && Math.Abs(shield.Energy - overcharged) < 0.01f && shield.Charge == 0f,
                 "Invictus spends the charge and overcharges the shield to " + shield.Props.overdriveEnergyFactor.ToStringPercent() + " (" + shield.Energy + ")");
@@ -534,7 +536,7 @@ namespace JusticiarValorValidation
                 yield return 1;
             }
             Check(afterimages >= 3, "the overdriven wearer leaves afterimages as it moves (" + afterimages + ")");
-            Ticks(600);
+            Ticks(fullChargeTicks);
             Check(!justiciar.health.hediffSet.HasHediff(MJV_DefOf.MJV_InvictusOverdrive) && !shield.Overdriven, "the overdrive ends on time");
             justiciar.jobs.StopAll();
             justiciar.Position = center;
@@ -542,11 +544,12 @@ namespace JusticiarValorValidation
 
             JusticiarValidation.Line("== Psy-orbs");
             orbsField.SetValue(synthesizer, 0);
-            Ticks(301);
-            Check(synthesizer.Orbs == 1, "the psy-spear synthesizes an orb in five seconds (" + synthesizer.Orbs + ")");
+            AccessTools.Field(typeof(CompPsyOrbSynthesizer), "synthesisProgress").SetValue(synthesizer, 0);
+            Ticks(synthesizer.OrbProps.synthesisTicks + 1);
+            Check(synthesizer.Orbs == 1, "the psy-spear synthesizes one orb after its configured interval (" + synthesizer.OrbProps.synthesisTicks + " ticks)");
             Check(synthesizer.Deployed && MapComponent_JusticiarFx.IsRegistered(map, synthesizer), "the orbs are out around a drafted wielder");
             synthesizer.AutoLaunch = false;
-            Ticks(301);
+            Ticks(synthesizer.OrbProps.synthesisTicks + 1);
             Check(synthesizer.Orbs == 1, "nothing is synthesized while the auto-ability is off");
             Check(!synthesizer.Deployed, "switching the auto-ability off takes the orbs back into the spear, where they are kept");
             synthesizer.AutoLaunch = true;
@@ -593,8 +596,14 @@ namespace JusticiarValorValidation
             AccessTools.Field(typeof(CompPsyOrbSynthesizer), "launchCooldown").SetValue(synthesizer, 0);
             Pawn orbTarget = MakeHostile(spearman.Position + new IntVec3(0, 0, 7));
             float orbHealth = Health(orbTarget);
-            Ticks(15);
-            Check(map.listerThings.ThingsOfDef(MJV_DefOf.MJV_Projectile_PsyOrb).Count >= 1 && synthesizer.Orbs < 3, "an orb is launched at an enemy in range");
+            bool orbLaunched = false;
+            // A close target can be hit before a single observation at tick 15. Observe the launch while it happens.
+            for (int tick = 0; tick < 15; tick++)
+            {
+                Ticks(1);
+                orbLaunched |= map.listerThings.ThingsOfDef(MJV_DefOf.MJV_Projectile_PsyOrb).Count >= 1 && synthesizer.Orbs < 3;
+            }
+            Check(orbLaunched, "an orb is launched at an enemy in range");
             Ticks(90);
             Check(orbTarget.Dead || orbTarget.health.hediffSet.HasHediff(MJV_DefOf.MJV_PsyOrbSlow) && Health(orbTarget) < orbHealth, "the orb burns and slows its target");
             Check(EffectCount("OrbImpactFx") >= 1, "the orb bursts on impact");
@@ -1110,6 +1119,18 @@ namespace JusticiarValorValidation
             Prime();
             burden.Cast(new GlobalTargetInfo(justiciar));
             Check(justiciar.health.hediffSet.HasHediff(burdened), "with its charges spent the shield no longer deflects VPE psycasts");
+
+            // Patching this ability before Def loading used to initialize its static ThingDef cache to null on Mono.
+            // Exercise the real Cast path: the ability and the spawned thing intentionally have different defNames.
+            VefAbility flameTornado = GiveVefAbility(abilities, "VPE_FlameTornado");
+            ThingDef fireTornadoDef = DefDatabase<ThingDef>.GetNamed("VPE_FireTornado");
+            IntVec3 tornadoCell = GenRadial.RadialCellsAround(at, 20f, true)
+                .First(c => c.DistanceTo(at) > 15f && c.InBounds(map) && c.Standable(map) && c.GetFirstPawn(map) == null);
+            Prime();
+            flameTornado.Cast(new GlobalTargetInfo(tornadoCell, map));
+            Thing tornado = map.listerThings.ThingsOfDef(fireTornadoDef).FirstOrDefault(t => t.Position == tornadoCell);
+            Check(tornado != null && tornado.Spawned, "VPE Flame Tornado casts successfully and spawns its Fire Tornado ThingDef after startup");
+            tornado?.Destroy();
 
             foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned.ToList())
             {

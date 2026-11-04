@@ -7,10 +7,11 @@ $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
 if (Test-Path -LiteralPath $OutputPath) { throw "Release already exists: $OutputPath" }
 
 # Explicit runtime inputs: never include development tools, raw artwork, local documents or test recordings.
-$runtimeFiles = @('About\About.xml', 'About\Preview.png', 'LoadFolders.xml',
+$runtimeFiles = @('About\About.xml', 'About\Preview.png', 'About\ModIcon.png', 'About\PublishedFileId.txt', 'LoadFolders.xml',
     '1.6\Assemblies\JusticiarValor.dll', '1.6\AssetBundles\justiciarvalor_win', '1.6\AssetBundles\justiciarvalor_mac',
     '1.7\Assemblies\JusticiarValor.dll')
-$runtimeFolders = @('Common\Defs', 'Common\Patches', 'Common\Languages', 'Common\Textures', '1.7\Defs', '1.7\Shaders')
+$runtimeFolders = @('Common\Defs', 'Common\Patches', 'Common\Languages', 'Common\Textures', 'Common\CE',
+    '1.7\Defs', '1.7\Shaders', 'WeaponTweakData')
 foreach ($relative in $runtimeFiles + $runtimeFolders) {
     if (-not (Test-Path -LiteralPath (Join-Path $modRoot $relative))) { throw "Missing runtime input: $relative" }
 }
