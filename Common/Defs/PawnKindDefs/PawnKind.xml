@@ -78,7 +78,7 @@
       <li>Wimp</li>
       <li>Nudist</li>
       <li>BodyPurist</li>
-      <li MayRequire="VanillaExpanded.VanillaTraitsExpanded">Cowardly</li>
+      <li MayRequire="VanillaExpanded.VanillaTraitsExpanded">VTE_Coward</li>
       <li>Greedy</li>
       <li>Jealous</li>
     </disallowedTraits>
