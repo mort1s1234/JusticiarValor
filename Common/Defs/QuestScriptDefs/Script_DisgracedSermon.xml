@@ -34,6 +34,7 @@
         <li Class="QuestNode_GetMap" />
 
         <li Class="JusticiarValor.QuestNode_MJV_ImperialMission">
+          <disgracedSermon>true</disgracedSermon>
           <requireFaith>false</requireFaith>
         </li>
         <li Class="JusticiarValor.QuestNode_MJV_GetPursuers">

@@ -5,6 +5,14 @@ The script writes a dated zip under the system temporary folder's `JusticiarValo
 `-OutputPath` selects a different destination. Existing archives are never overwritten.
 The zip contains one `Justiciar Valor` folder, ready to install under `RimWorld/Mods/`.
 
+## Mission settings
+
+Options > Mod settings > Justiciar Valor now has separate switches for imperial recruitment, imperial mission quests
+(including blueprint commissions), and disgraced sermon quests. All default to enabled and are saved between sessions.
+Quest switches affect new offers; existing quests remain playable. Disabling recruitment prevents new calls to service
+even in an ongoing mission, while a colonist already called continues normally. New mission descriptions include the
+recruitment warning only when recruitment is enabled. Settings text is available in English and Russian.
+
 ## VPE startup compatibility
 
 - Warlockbane's VEF/VPE ability patches are applied after Def loading and reference resolution. This prevents

@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using HarmonyLib;
+using UnityEngine;
 using Verse;
 
 namespace JusticiarValor
@@ -8,9 +9,12 @@ namespace JusticiarValor
     public class JusticiarValorMod : Mod
     {
         public const string HarmonyId = "Mortis.JusticiarValor";
+        public static JusticiarValorSettings Settings { get; private set; } = new JusticiarValorSettings();
 
         public JusticiarValorMod(ModContentPack content) : base(content)
         {
+            Settings = GetSettings<JusticiarValorSettings>();
+
             // Patch the game's entry points before their callers can inline them (1.7 uses tiered compilation).
             // Mod ability classes need their Defs first; their patches are deferred below.
             var harmony = new Harmony(HarmonyId);
@@ -48,6 +52,22 @@ namespace JusticiarValor
             Patch(harmony, "rare codex-auspex carried by imperial nobles",
                 Patch_ImperialCodexInventory.TargetMethod(),
                 postfix: AccessTools.Method(typeof(Patch_ImperialCodexInventory), nameof(Patch_ImperialCodexInventory.Postfix)));
+        }
+
+        public override string SettingsCategory() => "Justiciar Valor";
+
+        public override void DoSettingsWindowContents(Rect inRect)
+        {
+            var listing = new Listing_Standard();
+            listing.Begin(inRect);
+            listing.CheckboxLabeled("MJV_SettingsAllowRecruitment".Translate(), ref Settings.allowImperialRecruitment,
+                "MJV_SettingsAllowRecruitmentDesc".Translate());
+            listing.CheckboxLabeled("MJV_SettingsImperialMissions".Translate(), ref Settings.enableImperialMissions,
+                "MJV_SettingsImperialMissionsDesc".Translate());
+            listing.CheckboxLabeled("MJV_SettingsDisgracedSermon".Translate(), ref Settings.enableDisgracedSermon,
+                "MJV_SettingsDisgracedSermonDesc".Translate());
+            listing.Label("MJV_SettingsQuestChanges".Translate());
+            listing.End();
         }
 
         // Each patch is applied on its own, so that one target changing in a game update only disables its own feature.

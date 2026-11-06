@@ -210,6 +210,8 @@ $($expansions -join "`n")
     if ($EffectsOnly) { $arguments += '-jvfxonly' }
     if ($SkipVisuals) { $arguments += '-jvskipvisuals' }
     if ($Record -and $RecordOnly) { $arguments += "-jvrecordonly=$($RecordOnly -join ',')" }
+    # Start-Process joins ArgumentList into a command line; preserve save/report paths containing spaces.
+    $arguments = @($arguments | ForEach-Object { '"' + $_ + '"' })
     $started = Get-Date
     $process = Start-Process -FilePath $exe -WorkingDirectory $GameDir -ArgumentList $arguments -PassThru -WindowStyle $windowStyle `
         -RedirectStandardOutput $console -RedirectStandardError (Join-Path $WorkDir 'console-error.log')

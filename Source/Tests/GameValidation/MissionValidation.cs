@@ -370,6 +370,7 @@ namespace JusticiarValorValidation
             else
             {
                 EnsureCongregation(5);
+                CheckMissionSettings();
                 foreach (object step in LodgingMission(empire))
                 {
                     yield return step;
@@ -516,6 +517,10 @@ namespace JusticiarValorValidation
             VisitMorning(job);
             List<Pawn> congregation = Listeners();
             Pawn weak = congregation.First();
+            // Travel and audience checks can take days, during which ordinary interactions may convert this pawn.
+            // The goodwill and bubble checks require a new conversion by this sermon.
+            weak.ideo.SetIdeo(originalIdeo);
+            Check(!ImperialFaith.IsBeliever(weak), "the visiting sermon's chosen listener starts outside the imperial faith");
             Weaken(weak);
             Refresh(preacher);
             goodwill0 = empire.PlayerGoodwill;
@@ -606,6 +611,8 @@ namespace JusticiarValorValidation
             {
                 yield break;
             }
+            Check(((string)quest.description).Contains((string)"MJV_MissionRecruitmentWarning".Translate()),
+                "new mission offers explain recruitment when it is enabled");
             QuestPart_MJV_LodgerSermons sermons = quest.PartsListForReading.OfType<QuestPart_MJV_LodgerSermons>().FirstOrDefault();
             Check(sermons != null && sermons.preacher != null && sermons.preacher.kindDef == MJV_DefOf.MJV_Justiciar,
                 "the mission has its justiciar and sermon schedule");
@@ -742,13 +749,28 @@ namespace JusticiarValorValidation
                     pawn.ideo.SetIdeo(ImperialFaith.Ideo);
                 }
             }
-            checkConvertedMethod.Invoke(sermons, null);
-            QuestPart_ShuttleDelay delay = quest.PartsListForReading.OfType<QuestPart_ShuttleDelay>().First();
-            Check(delay.State != QuestPartState.Enabled || delay.TicksLeft <= 0, "once the colony has converted the justiciar's shuttle is called early");
-            foreach (object step in TickUntil(() => sermons.Called != null, 3000))
+            // Disable recruitment after the quest was accepted, then let the actual pickup arrival signal run.
+            bool recruitmentEnabled = JusticiarValorMod.Settings.allowImperialRecruitment;
+            JusticiarValorMod.Settings.allowImperialRecruitment = false;
+            try
             {
-                yield return step;
+                checkConvertedMethod.Invoke(sermons, null);
+                QuestPart_ShuttleDelay delay = quest.PartsListForReading.OfType<QuestPart_ShuttleDelay>().First();
+                Check(delay.State != QuestPartState.Enabled || delay.TicksLeft <= 0, "once the colony has converted the justiciar's shuttle is called early");
+                foreach (object step in TickUntil(() => sermons.shuttle?.Spawned == true, 3000))
+                {
+                    yield return step;
+                }
+                Check(lastWait && sermons.Called == null && !sermons.Converts.Any(p => p.MentalStateDef == MJV_DefOf.MJV_CalledToService)
+                    && !sermons.shuttle.TryGetComp<CompShuttle>().requiredPawns.Any(p => sermons.Converts.Contains(p)),
+                    "disabling recruitment during an existing mission prevents the guaranteed call and adds no shuttle passenger");
             }
+            finally
+            {
+                JusticiarValorMod.Settings.allowImperialRecruitment = recruitmentEnabled;
+            }
+            // Replay the arrival with recruitment enabled to exercise both outcomes with the same eligible converts.
+            sermons.Notify_QuestSignalReceived(new Signal(sermons.inSignalShuttleArrived));
             Pawn calledToService = sermons.Called;
             Check(calledToService != null && calledToService.MentalStateDef == MJV_DefOf.MJV_CalledToService, "a convert is called to serve the Empire when the shuttle comes");
             Thing shuttle = sermons.shuttle;

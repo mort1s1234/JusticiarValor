@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <MJV_SettingsAllowRecruitment>Разрешить вербовку колонистов Империей</MJV_SettingsAllowRecruitment>
+  <MJV_SettingsAllowRecruitmentDesc>Новообращённые могут услышать призыв служить Империи и улететь на челноке юстициария. Отключение запрещает новые призывы, в том числе в текущих миссиях. Уже призванных колонистов это не затрагивает.</MJV_SettingsAllowRecruitmentDesc>
+  <MJV_SettingsImperialMissions>Включить задания имперской миссии</MJV_SettingsImperialMissions>
+  <MJV_SettingsImperialMissionsDesc>Разрешить задания по приёму имперского юстициария для проведения проповедей, включая награды снаряжением и поручения с чертежами.</MJV_SettingsImperialMissionsDesc>
+  <MJV_SettingsDisgracedSermon>Включить задания опального проповедника</MJV_SettingsDisgracedSermon>
+  <MJV_SettingsDisgracedSermonDesc>Разрешить задания по укрытию опального юстициария и защите от преследующей его фракции.</MJV_SettingsDisgracedSermonDesc>
+  <MJV_SettingsQuestChanges>Переключатели заданий влияют на новые предложения. Существующие задания можно принять и завершить. По умолчанию все параметры включены.</MJV_SettingsQuestChanges>
+  <MJV_MissionRecruitmentWarning>Поговаривают, что порой новообращенные покидают родные земли и уходят вслед за юстициарием в Империю.</MJV_MissionRecruitmentWarning>
+</LanguageData>

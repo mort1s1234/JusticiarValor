@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <MJV_SettingsAllowRecruitment>Allow imperial recruitment of colonists</MJV_SettingsAllowRecruitment>
+  <MJV_SettingsAllowRecruitmentDesc>Converts may be called to serve the Empire and leave with the justiciar's shuttle. Disabling this prevents new calls, including in ongoing missions. Colonists already called to service are unaffected.</MJV_SettingsAllowRecruitmentDesc>
+  <MJV_SettingsImperialMissions>Enable imperial mission quests</MJV_SettingsImperialMissions>
+  <MJV_SettingsImperialMissionsDesc>Allow quests to host an imperial justiciar for sermons, including both equipment rewards and blueprint commissions.</MJV_SettingsImperialMissionsDesc>
+  <MJV_SettingsDisgracedSermon>Enable disgraced sermon quests</MJV_SettingsDisgracedSermon>
+  <MJV_SettingsDisgracedSermonDesc>Allow quests to shelter a disgraced justiciar and defend against the pursuing faction.</MJV_SettingsDisgracedSermonDesc>
+  <MJV_SettingsQuestChanges>Quest switches apply to new offers. Existing quests can still be accepted and completed. All options are enabled by default.</MJV_SettingsQuestChanges>
+  <MJV_MissionRecruitmentWarning>It is said that, now and then, a new believer follows a justiciar back to the Empire.</MJV_MissionRecruitmentWarning>
+</LanguageData>

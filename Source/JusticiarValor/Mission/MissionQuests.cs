@@ -16,10 +16,13 @@ namespace JusticiarValor
     {
         public SlateRef<bool> requireFaith;
         public SlateRef<int> minUnconverted;
+        public bool disgracedSermon;
 
         protected override bool TestRunInt(Slate slate)
         {
-            return Setup(slate);
+            // Gate new offers only. Existing quests keep their parts and can still finish after a settings change.
+            return (disgracedSermon ? JusticiarValorMod.Settings.enableDisgracedSermon : JusticiarValorMod.Settings.enableImperialMissions)
+                && Setup(slate);
         }
 
         protected override void RunInt()
@@ -42,6 +45,8 @@ namespace JusticiarValor
             slate.Set("empire", empire);
             slate.Set("faithName", ImperialFaith.Ideo?.name ?? (string)"MJV_ImperialFaithFallback".Translate());
             slate.Set("unconvertedCount", ImperialFaith.UnconvertedCount(map));
+            slate.Set("missionRecruitmentWarning", JusticiarValorMod.Settings.allowImperialRecruitment
+                ? "\n\n" + (string)"MJV_MissionRecruitmentWarning".Translate() : "");
             return true;
         }
     }
@@ -461,6 +466,12 @@ namespace JusticiarValor
 
         private void TryCall()
         {
+            // Read the current setting here, so it also prevents new calls in missions generated before it changed.
+            // A call that has already started keeps its saved pawn/shuttle state and completes normally.
+            if (!JusticiarValorMod.Settings.allowImperialRecruitment)
+            {
+                return;
+            }
             CompShuttle comp = shuttle?.TryGetComp<CompShuttle>();
             Map map = shuttle?.MapHeld;
             if (called != null || comp == null || map == null || callChance <= 0f || !Rand.Chance(callChance))

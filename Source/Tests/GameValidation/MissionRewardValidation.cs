@@ -106,9 +106,22 @@ namespace JusticiarValorValidation
         private IEnumerable<object> PrepareBlueprintSave()
         {
             RestoreFaith();
-            Quest quest = MakeQuest("MJV_ImperialMission_Blueprint", 400f);
+            bool recruitmentEnabled = JusticiarValorMod.Settings.allowImperialRecruitment;
+            Quest quest;
+            try
+            {
+                JusticiarValorMod.Settings.allowImperialRecruitment = false;
+                quest = MakeQuest("MJV_ImperialMission_Blueprint", 400f);
+            }
+            finally
+            {
+                JusticiarValorMod.Settings.allowImperialRecruitment = recruitmentEnabled;
+            }
             Check(quest != null, "the blueprint variant can be offered while justiciar techprints are needed");
             if (quest == null) yield break;
+            Check(!((string)quest.description).Contains((string)"MJV_MissionRecruitmentWarning".Translate())
+                && !((string)quest.description).Contains("[missionRecruitmentWarning]"),
+                "a new mission with recruitment disabled omits the recruitment warning without unresolved grammar");
             var part = quest.PartsListForReading.OfType<QuestPart_MJV_LodgerSermons>().Single();
             Thing reward = RewardItems(quest).SingleOrDefault();
             Check(part.blueprintMission && part.suppressCodex && part.requiredSermons == 3
